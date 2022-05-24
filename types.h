@@ -26,10 +26,12 @@
 
 #include <vector>
 #include <map>
+
 namespace fixpoint {
 
     struct location_t;
     struct edge_t;
+    struct state_t;
 
     using Federation = pardibaal::Federation;
     using Zone = pardibaal::DBM;
@@ -41,6 +43,7 @@ namespace fixpoint {
     using constraints_t = std::vector<constraint_t>;
     using clocks_t = std::vector<clock_index_t>;
     using edges_t = std::vector<edge_t>;
+    using locations_t = std::vector<location_t>;
 
     using clock_map_t = std::map<clock_index_t, std::string>;
     using location_map_t = std::map<location_id_t, location_t>;

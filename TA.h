@@ -72,23 +72,31 @@ namespace fixpoint {
 
     class TA {
 
+        std::string _name;
+
         clock_map_t _clock_names;
 
         location_map_t _locations;
 
         edge_map_t _backward_edges;
 
+        location_id_t _initial;
+
     public:
         const clock_index_t number_of_clocks;
 
-        TA(clock_map_t clocks, const std::vector<location_t> &locations, const edges_t &edges);
+        TA(std::string  name, clock_map_t clocks, const locations_t &locations, const edges_t &edges, location_id_t initial);
 
         [[nodiscard]] const edges_t &edges_to(location_id_t id) const;
 
         [[nodiscard]] std::string clock_name(clock_index_t index) const;
 
+        [[nodiscard]] const location_map_t& locations() const;
 
+        friend std::ostream& operator<<(std::ostream& out, const TA& T);
     };
+
+    std::ostream& operator<<(std::ostream& out, const TA& T);
 }
 
 #endif //FIXPOINT_TA_H

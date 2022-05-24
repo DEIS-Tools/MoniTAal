@@ -6,10 +6,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(EXTERNAL_INSTALL_LOCATION "${CMAKE_BINARY_DIR}/external")
 
 FIND_PACKAGE(Boost 1.40 COMPONENTS program_options REQUIRED )
-FIND_PACKAGE(PugiXML)
+FIND_PACKAGE(pugixml REQUIRED)
 
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 INCLUDE_DIRECTORIES( ${PugiXML_INCLUDE_DIR})
+link_directories( ${PugiXML_LIB_DIR})
 
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION})
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/lib)
@@ -31,14 +32,39 @@ link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 
 set(HEADER_FILES
         TA.h
-        types.h)
+        Parser.h
+        types.h
+        state_t.h
+        Fixpoint.h)
 
-add_executable(fixpoint
+add_library(fixpoint
         ${HEADER_FILES}
         TA.cpp
-        main.cpp)
+        Parser.cpp
+        state_t.cpp
+        Fixpoint.cpp)
 
-TARGET_LINK_LIBRARIES(fixpoint LINK_PRIVATE ${Boost_LIBRARIES})
-TARGET_LINK_LIBRARIES(fixpoint LINK_PRIVATE ${PugiXML})
+target_link_libraries(fixpoint PRIVATE
+        pugixml
+        -lpardibaal)
+
+install(TARGETS fixpoint
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+install(FILES ${HEADER_FILES} DESTINATION include/fixpoint)
 
 add_dependencies(fixpoint pardibaal)
+
+add_executable(fixpoint-bin main.cpp)
+
+add_dependencies(fixpoint-bin fixpoint)
+
+target_link_libraries(fixpoint-bin PRIVATE
+        ${Boost_LIBRARIES}
+        fixpoint)
+
+install(TARGETS fixpoint-bin
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)

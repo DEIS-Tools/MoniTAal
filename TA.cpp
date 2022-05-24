@@ -38,7 +38,7 @@ namespace fixpoint {
     constraints_t location_t::invariant() const { return _invariant; }
 
     Zone location_t::invariant_zone(clock_index_t dimension) const {
-        auto rtn = pardibaal::DBM::unconstrained(dimension);
+        auto rtn = Zone::unconstrained(dimension);
 
         for (const auto &c : _invariant)
             rtn.restrict(c);
@@ -74,8 +74,8 @@ namespace fixpoint {
         return rtn;
     }
 
-    TA::TA(clock_map_t clocks, const std::vector<location_t> &locations, const edges_t &edges) :
-            _clock_names(std::move(clocks)), number_of_clocks(clocks.size()) {
+    TA::TA(std::string name, clock_map_t clocks, const locations_t &locations, const edges_t &edges, location_id_t initial) :
+            _name(std::move(name)), number_of_clocks(clocks.size()), _clock_names(clocks), _initial(initial) {
         location_map_t loc_map;
         edge_map_t edge_map;
 
@@ -86,9 +86,8 @@ namespace fixpoint {
             for (const auto &e : edges) {
                 if (e.to() == l.id())
                     tmp.push_back(e);
-
-                edge_map.insert({l.id(), tmp});
             }
+            edge_map.insert({l.id(), tmp});
         }
 
         _locations = std::move(loc_map);
@@ -101,5 +100,39 @@ namespace fixpoint {
 
     std::string TA::clock_name(clock_index_t index) const {
         return _clock_names.at(index);
+    }
+
+    const location_map_t &TA::locations() const {
+        return _locations;
+    }
+
+    std::ostream& operator<<(std::ostream& out, const TA& T) {
+        out << T._name << "\n  Locations: (" << T._locations.at(T._initial).name() << ")";
+        for (const auto& loc : T._locations) {
+            out << "\n    " << loc.second.name() << " ";
+            if (loc.second.is_accept()) out << "(accept) ";
+
+            for (const auto& c : loc.second.invariant()) {
+                out << T._clock_names.at(c._i) << " - " << T._clock_names.at(c._j) << " ";
+                out << (c._bound.is_strict() ? "< " : "<= ") << c._bound.get_bound() << ", ";
+            }
+        }
+
+        out << "\n  Edges:";
+        for (const auto& es : T._backward_edges) {
+            for (const auto& e : es.second) {
+                out << "\n    " << T._locations.at(e.from()).name() << " -> " << T._locations.at(e.to()).name();
+                out << ": reset: ";
+                for (const auto& x : e.reset())
+                    out << T._clock_names.at(x) << ", ";
+                out << " guard: ";
+                for (const auto& g : e.guard()) {
+                    out << T._clock_names.at(g._i) << " - " << T._clock_names.at(g._j) << " ";
+                    out << (g._bound.is_strict() ? "< " : "<= ") << g._bound.get_bound() << " && ";
+                }
+            }
+        }
+
+        return out;
     }
 }
