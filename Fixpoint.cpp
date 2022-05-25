@@ -38,8 +38,6 @@ namespace fixpoint {
             }
         }
 
-        std::cout << "done first step, waiting size: " << waiting.size() << '\n';
-
         while (not waiting.is_empty()) {
             auto s = waiting.begin()->second;
             waiting.remove(s.location_id());
@@ -54,8 +52,6 @@ namespace fixpoint {
                  pred.step_back(e);
                  waiting.insert(pred);
             }
-
-            std::cout << "Waiting size: " << waiting.size() << '\n';
         }
 
         return passed;
@@ -73,7 +69,22 @@ namespace fixpoint {
     }
 
     states_map_t Fixpoint::buchi_accept_fixpoint(const TA &T) {
-        return fixpoint::states_map_t();
+        auto acc = accept_states(T);
+        auto intersection = acc;
+        auto reach_a = reach(acc, T);
+        intersection.intersection(reach_a);
+        auto reach_b = reach(intersection, T);
+
+        while (not reach_a.equals(reach_b)) {
+            reach_a = reach_b;
+            intersection = acc;
+
+            intersection.intersection(reach_b);
+
+            reach_b = reach(intersection, T);
+        }
+
+        return reach_a;
     }
 
 }

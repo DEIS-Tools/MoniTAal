@@ -90,6 +90,10 @@ namespace fixpoint {
         return false;
     }
 
+    bool state_t::equals(const state_t& state) const {
+        return _federation.equal(state._federation);
+    }
+
     location_id_t state_t::location_id() const {
         return _location;
     }
@@ -163,6 +167,15 @@ namespace fixpoint {
 
     std::map<location_id_t, state_t>::const_iterator states_map_t::end() const {
         return _states.end();
+    }
+
+    bool states_map_t::equals(const states_map_t& rhs) const {
+        if (this->size() != rhs.size())
+            return false;
+
+        return std::all_of(_states.begin(), _states.end(),
+                           [&rhs](const std::pair<location_id_t, state_t>& s) {
+            return rhs.at(s.first).equals(s.second); });
     }
 
     void states_map_t::print(std::ostream& out, const TA& T) const {

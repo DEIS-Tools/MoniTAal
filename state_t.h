@@ -47,8 +47,9 @@ namespace fixpoint {
 
         [[nodiscard]] bool is_empty() const;
         [[nodiscard]] bool is_included_in(const state_t& state) const;
+        [[nodiscard]] bool equals(const state_t& state) const;
 
-        location_id_t location_id() const;
+        [[nodiscard]] location_id_t location_id() const;
 
         void print(std::ostream& out, const TA& T) const;
 
@@ -80,7 +81,10 @@ namespace fixpoint {
         [[nodiscard]] std::map<location_id_t, state_t>::iterator end();
         [[nodiscard]] std::map<location_id_t, state_t>::const_iterator end() const;
 
+        [[nodiscard]] bool equals(const states_map_t& rhs) const;
+
         void print(std::ostream& out, const TA& T) const;
+
 
     private:
         std::map<location_id_t, state_t> _states;

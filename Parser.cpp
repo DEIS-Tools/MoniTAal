@@ -30,8 +30,10 @@ namespace fixpoint {
 
     TA Parser::parse(const char *path) {
         pugi::xml_document doc;
-        if (not load_file(doc, path))
-            throw std::exception();
+        if (not load_file(doc, path)) {
+            std::cerr << "Error: Failed to load model file " << path << '\n';
+            exit(-1);
+        }
 
         auto xml_ta = doc.child("nta").child("template");
 
