@@ -19,8 +19,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with fixpoint. If not, see <https://www.gnu.org/licenses/>.
  */
-#include <iostream>
+
 #include "Fixpoint.h"
+#include "types.h"
 #include "state_t.h"
 
 namespace fixpoint {
@@ -29,7 +30,7 @@ namespace fixpoint {
         states_map_t waiting;
         states_map_t passed;
 
-//         We have to take at least a single step
+//         We have to take at least one step
         for (const auto& [_, s] : states) {
             for (const auto& e : T.edges_to(s.location_id())) {
                 auto state = s;

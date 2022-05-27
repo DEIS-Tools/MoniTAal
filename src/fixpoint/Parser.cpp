@@ -20,6 +20,7 @@
  * along with fixpoint. If not, see <https://www.gnu.org/licenses/>.
  */
 #include "Parser.h"
+#include "TA.h"
 
 #include <string>
 #include <iostream>

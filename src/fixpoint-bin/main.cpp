@@ -1,6 +1,6 @@
-#include "Parser.h"
-#include "Fixpoint.h"
-#include "state_t.h"
+#include "fixpoint/Parser.h"
+#include "fixpoint/Fixpoint.h"
+#include "fixpoint/state_t.h"
 
 #include <boost/program_options.hpp>
 #include <filesystem>

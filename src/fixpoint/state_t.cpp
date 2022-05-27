@@ -25,6 +25,7 @@
 
 #include <pardibaal/Federation.h>
 #include <iostream>
+#include <algorithm>
 
 namespace fixpoint {
 

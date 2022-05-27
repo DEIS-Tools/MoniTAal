@@ -23,6 +23,7 @@
 #define FIXPOINT_PARSER_H
 
 #include "TA.h"
+#include "types.h"
 
 #include <pugixml.hpp>
 

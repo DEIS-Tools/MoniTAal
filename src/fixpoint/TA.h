@@ -25,7 +25,6 @@
 #include "types.h"
 
 #include <pardibaal/DBM.h>
-
 #include <map>
 
 namespace fixpoint {
