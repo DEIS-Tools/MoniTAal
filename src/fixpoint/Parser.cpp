@@ -57,19 +57,29 @@ namespace fixpoint {
             locations.push_back(location_t(boost::algorithm::ends_with(name, "_a"), id, name, invariant));
         }
 
-        // transitions
+        // Loop through all transitions
         edges_t edges;
         for (pugi::xml_node tran = xml_ta.child("transition"); not tran.empty(); tran = tran.next_sibling("transition")) {
-            location_id_t from = parse_loc_id(tran.child("source").attribute("ref").as_string()),
-                            to = parse_loc_id(tran.child("target").attribute("ref").as_string());
+            location_id_t from = parse_loc_id(tran.child("source").attribute("ref").as_string());
+            location_id_t to   = parse_loc_id(tran.child("target").attribute("ref").as_string());
 
-            auto reset_node = tran.find_child([](pugi::xml_node node){ return not std::strcmp(node.attribute("kind").as_string(), "assignment"); });
+            // Reset
+            auto reset_node = tran.find_child([](pugi::xml_node node){
+                return not std::strcmp(node.attribute("kind").as_string(), "assignment"); });
             clocks_t reset = parse_reset(reset_node.text().as_string(), ta_clocks);
 
-            auto guard_node = tran.find_child([](pugi::xml_node node){ return std::strcmp(node.attribute("kind").as_string(), "guard") == 0; });
+            // Guard
+            auto guard_node = tran.find_child([](pugi::xml_node node){
+                return std::strcmp(node.attribute("kind").as_string(), "guard") == 0; });
             constraints_t guard = parse_constraint(guard_node.text().as_string(), ta_clocks);
 
-            edges.push_back(edge_t(from, to, guard, reset));
+            // Synchronisation as label
+            auto sync_node = tran.find_child([](pugi::xml_node node){
+                return std::strcmp(node.attribute("kind").as_string(), "synchronisation") == 0; });
+            label_t label = sync_node.text().as_string();
+            label = label.substr(0, label.length() - 1); // Remove ! or ?
+
+            edges.push_back(edge_t(from, to, guard, reset, label));
         }
 
         clock_map_t clocks;

@@ -46,8 +46,8 @@ namespace fixpoint {
         return rtn;
     }
 
-    edge_t::edge_t(location_id_t from, location_id_t to, constraints_t guard, clocks_t reset) :
-            _from(from), _to(to), _guard(std::move(guard)), _reset(std::move(reset)) {}
+    edge_t::edge_t(location_id_t from, location_id_t to, constraints_t& guard, clocks_t& reset, label_t& label) :
+            _from(from), _to(to), _guard(std::move(guard)), _reset(std::move(reset)), _label(std::move(label)) {}
 
     location_id_t edge_t::from() const {
         return _from;
@@ -73,6 +73,8 @@ namespace fixpoint {
 
         return rtn;
     }
+
+    label_t edge_t::label() const {return _label;}
 
     TA::TA(std::string name, clock_map_t clocks, const locations_t &locations, const edges_t &edges, location_id_t initial) :
             _name(std::move(name)), number_of_clocks(clocks.size()), _clock_names(clocks), _initial(initial) {
@@ -112,8 +114,10 @@ namespace fixpoint {
             out << "\n    " << loc.second.name() << " ";
             if (loc.second.is_accept()) out << "(accept) ";
 
+            out << "invariant: ";
             for (const auto& c : loc.second.invariant()) {
-                out << T._clock_names.at(c._i) << " - " << T._clock_names.at(c._j) << " ";
+                if (c._i != 0) out << T._clock_names.at(c._i) << ' ';
+                if (c._j != 0) out << "- " << T._clock_names.at(c._j) << ' ';
                 out << (c._bound.is_strict() ? "< " : "<= ") << c._bound.get_bound() << ", ";
             }
         }
@@ -121,15 +125,18 @@ namespace fixpoint {
         out << "\n  Edges:";
         for (const auto& es : T._backward_edges) {
             for (const auto& e : es.second) {
-                out << "\n    " << T._locations.at(e.from()).name() << " -> " << T._locations.at(e.to()).name();
+                out << "    " << T._locations.at(e.from()).name() << " -> " << T._locations.at(e.to()).name();
                 out << ": reset: ";
                 for (const auto& x : e.reset())
                     out << T._clock_names.at(x) << ", ";
                 out << " guard: ";
                 for (const auto& g : e.guard()) {
-                    out << T._clock_names.at(g._i) << " - " << T._clock_names.at(g._j) << " ";
-                    out << (g._bound.is_strict() ? "< " : "<= ") << g._bound.get_bound() << " && ";
+                    if (g._i != 0) out << T._clock_names.at(g._i) << ' ';
+                    if (g._j != 0) out << "- " << T._clock_names.at(g._j) << ' ';
+                    out << (g._bound.is_strict() ? "< " : "<= ") << g._bound.get_bound() << ", ";
                 }
+                out << " label: " << e.label() << '\n';
+
             }
         }
 

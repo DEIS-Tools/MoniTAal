@@ -39,6 +39,7 @@ namespace fixpoint {
 
     using location_id_t = uint32_t;
     using clock_index_t = pardibaal::dim_t;
+    using label_t       = std::string;
 
     using constraints_t = std::vector<constraint_t>;
     using clocks_t = std::vector<clock_index_t>;

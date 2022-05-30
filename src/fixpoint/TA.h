@@ -49,17 +49,19 @@ namespace fixpoint {
     };
 
     struct edge_t {
-        edge_t(location_id_t from, location_id_t to, constraints_t guard, clocks_t reset);
+        edge_t(location_id_t from, location_id_t to, constraints_t& guard, clocks_t& reset, label_t& label);
 
         [[nodiscard]] location_id_t from() const;
 
         [[nodiscard]] location_id_t to() const;
 
-        [[nodiscard]] const clocks_t &reset() const;
-
         [[nodiscard]] const constraints_t &guard() const;
 
+        [[nodiscard]] const clocks_t &reset() const;
+
         [[nodiscard]] Zone guard_zone(clock_index_t dimension) const;
+
+        [[nodiscard]] label_t label() const;
 
     private:
         const location_id_t _from, _to;
@@ -67,6 +69,8 @@ namespace fixpoint {
         const constraints_t _guard;
 
         const clocks_t _reset;
+
+        const label_t _label;
     };
 
     class TA {
