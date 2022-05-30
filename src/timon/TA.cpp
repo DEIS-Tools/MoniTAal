@@ -24,7 +24,7 @@
 #include "TA.h"
 
 #include <utility>
-namespace fixpoint {
+namespace timon {
 
     location_t::location_t(bool accept, location_id_t id, std::string name, constraints_t invariant) :
             _accept(accept), _id(id), _name(std::move(name)), _invariant(std::move(invariant)) {}

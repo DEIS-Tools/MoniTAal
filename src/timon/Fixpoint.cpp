@@ -24,7 +24,7 @@
 #include "types.h"
 #include "state_t.h"
 
-namespace fixpoint {
+namespace timon {
 
     states_map_t Fixpoint::reach(const states_map_t &states, const TA& T) {
         states_map_t waiting;

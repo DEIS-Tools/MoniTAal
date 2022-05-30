@@ -27,7 +27,7 @@
 #include <iostream>
 #include <algorithm>
 
-namespace fixpoint {
+namespace timon {
 
     state_t::state_t() {
         _location = 0;

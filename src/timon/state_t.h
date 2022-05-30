@@ -29,7 +29,7 @@
 #include <vector>
 
 
-namespace fixpoint {
+namespace timon {
 
     //symbolic state
     struct state_t {

@@ -27,7 +27,8 @@
 #include <pardibaal/DBM.h>
 #include <map>
 
-namespace fixpoint {
+namespace timon {
+
     struct location_t {
         location_t(bool accept, location_id_t id, std::string name, constraints_t invariant);
 

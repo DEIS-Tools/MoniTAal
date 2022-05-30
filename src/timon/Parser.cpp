@@ -27,7 +27,7 @@
 #include <sstream>
 #include <boost/algorithm/string/predicate.hpp>
 
-namespace fixpoint {
+namespace timon {
 
     TA Parser::parse(const char *path) {
         pugi::xml_document doc;

@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(fixpoint-bin LANGUAGES CXX)
+project(Timon-bin LANGUAGES CXX)
 
-add_executable(fixpoint-bin main.cpp)
+add_executable(Timon-bin main.cpp)
 
-target_link_libraries(fixpoint-bin PRIVATE
+target_link_libraries(Timon-bin PRIVATE
         ${Boost_LIBRARIES}
-        fixpoint)
+        Timon)
 
-install(TARGETS fixpoint-bin
+install(TARGETS Timon-bin
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)

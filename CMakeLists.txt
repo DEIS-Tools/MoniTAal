@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-project(src/fixpoint VERSION 0.3)
+project(timon VERSION 0.3)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -31,7 +31,7 @@ ExternalProject_add(pardibaal
 include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 
-add_subdirectory(src/fixpoint)
-target_include_directories(fixpoint INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_subdirectory(src/timon)
+target_include_directories(Timon INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-add_subdirectory(src/fixpoint-bin)
+add_subdirectory(src/timon-bin)

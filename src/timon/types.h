@@ -27,7 +27,7 @@
 #include <vector>
 #include <map>
 
-namespace fixpoint {
+namespace timon {
 
     struct location_t;
     struct edge_t;

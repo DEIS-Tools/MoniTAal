@@ -1,6 +1,6 @@
-#include "fixpoint/Parser.h"
-#include "fixpoint/Fixpoint.h"
-#include "fixpoint/state_t.h"
+#include "timon/Parser.h"
+#include "timon/Fixpoint.h"
+#include "timon/state_t.h"
 
 #include <boost/program_options.hpp>
 #include <filesystem>
@@ -8,7 +8,7 @@
 #include <iostream>
 
 namespace po = boost::program_options;
-using namespace fixpoint;
+using namespace timon;
 
 class Output {
 private:

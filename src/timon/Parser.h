@@ -27,7 +27,7 @@
 
 #include <pugixml.hpp>
 
-namespace fixpoint {
+namespace timon {
 
     enum operator_e {
         ASSIGN, EQ, G, GE, L, LE

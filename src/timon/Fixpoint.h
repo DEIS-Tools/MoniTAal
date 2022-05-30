@@ -26,7 +26,7 @@
 #include "types.h"
 #include "state_t.h"
 
-namespace fixpoint {
+namespace timon {
 
     class Fixpoint {
     public:

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(fixpoint-lib LANGUAGES CXX)
+project(Timon LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -13,20 +13,20 @@ set(HEADER_FILES
         Parser.h
         types.h)
 
-add_library(fixpoint
+add_library(Timon
         TA.cpp
         state_t.cpp
         Fixpoint.cpp
         Parser.cpp)
 
-target_link_libraries(fixpoint PRIVATE
+target_link_libraries(Timon PRIVATE
         pugixml
         -lpardibaal)
 
-add_dependencies(fixpoint pardibaal)
+add_dependencies(Timon pardibaal)
 
-install(TARGETS fixpoint
+install(TARGETS Timon
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-install(FILES ${HEADER_FILES} DESTINATION include/fixpoint)
+install(FILES ${HEADER_FILES} DESTINATION include/timon)
