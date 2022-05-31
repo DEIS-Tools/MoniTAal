@@ -230,11 +230,15 @@ namespace timon {
     }
 
     bool state_t::is_included_in(const symbolic_state_map_t &states) const {
-        if (states.has_state(_location))
-            for (const auto& dbm : states.at(_location).federation())
+        if (not states.has_state(_location)) {
+            return false;
+        } else {
+            for (const auto &dbm : states.at(_location).federation())
 
                 for (pardibaal::dim_t i = 0; i < dbm.dimension(); ++i)
-                    for (pardibaal::dim_t j = 0; i < dbm.dimension(); ++i) {
+                    for (pardibaal::dim_t j = 0; j < dbm.dimension(); ++j) {
+
+                        if (dbm.at(i, j).is_inf()) continue;
 
                         if (dbm.at(i, j).is_strict()) {
                             if (_valuation[i] - _valuation[j] >= dbm.at(i, j).get_bound())
@@ -244,6 +248,7 @@ namespace timon {
                                 return false;
                         }
                     }
+        }
 
         return true;
 

@@ -84,6 +84,8 @@ namespace timon {
 
         edge_map_t _backward_edges;
 
+        edge_map_t _forward_edges;
+
         location_id_t _initial;
 
     public:
@@ -92,6 +94,8 @@ namespace timon {
         TA(std::string  name, clock_map_t clocks, const locations_t &locations, const edges_t &edges, location_id_t initial);
 
         [[nodiscard]] const edges_t &edges_to(location_id_t id) const;
+
+        [[nodiscard]] const edges_t &edges_from(location_id_t id) const;
 
         [[nodiscard]] std::string clock_name(clock_index_t index) const;
 

@@ -29,14 +29,16 @@
 
 namespace timon {
 
-    TA Parser::parse(const char *path) {
+    TA Parser::parse(const char *path, const char *name) {
         pugi::xml_document doc;
         if (not load_file(doc, path)) {
             std::cerr << "Error: Failed to load model file " << path << '\n';
             exit(-1);
         }
 
-        auto xml_ta = doc.child("nta").child("template");
+//        auto xml_ta = doc.child("nta").child("template");
+        auto xml_ta = doc.child("nta").find_child([name](pugi::xml_node node) {
+            return not std::strcmp(name, node.child("name").text().as_string()); });
 
         pugi::xml_text ta_name = xml_ta.child("name").text();
         std::vector<std::string> ta_clocks;

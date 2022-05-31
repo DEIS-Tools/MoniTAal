@@ -1,6 +1,7 @@
 #include "timon/Parser.h"
 #include "timon/Fixpoint.h"
 #include "timon/state.h"
+#include "timon/Monitor.h"
 
 #include <boost/program_options.hpp>
 #include <filesystem>
@@ -9,6 +10,7 @@
 
 namespace po = boost::program_options;
 using namespace timon;
+using ti = timed_input_t;
 
 class Output {
 private:
@@ -60,19 +62,17 @@ int main(int argc, const char** argv) {
 
     po::options_description options;
     options.add_options()
-            ("help,h", "Dispay this help message")
-            ("input-model_a", po::value<std::string>()->required(), "Input model for the property");
-//            ("input-model_not_a", po::value<std::string>()->required(),
-//                    "Input model for the negative property");
+            ("help,h", "Dispay this help message\nExample: timon-bin --pos <name> <path> --neg <name> <path>")
+            ("pos", po::value<std::string>()->required(), "Input name of the model for the property")
+            ("neg", po::value<std::string>()->required(), "Input name of the model for the negative property")
+            ("model,m", po::value<std::string>()->required(), "Path to the input model xml file");
 
     Output output("Output Option");
 
     options.add(output.options());
 
-    po::positional_options_description model;
-    model.add("input-model_a", 1);
     po::variables_map vm;
-    po::store(po::command_line_parser(argc, argv).options(options).positional(model).run(), vm);
+    po::store(po::command_line_parser(argc, argv).options(options).run(), vm);
 
     if (vm.count("help")) {
         std::cout << options << std::endl;
@@ -82,15 +82,57 @@ int main(int argc, const char** argv) {
     try {
         po::notify(vm);
     } catch (boost::wrapexcept<po::required_option>& e) {
-        std::cerr << "Error: no input model provided\n";
+        std::cerr << "Error: two input models required\n";
         exit(-1);
     }
 
-    TA T = Parser::parse(vm["input-model_a"].as<std::string>().c_str());
+    TA pos = Parser::parse(vm["model"].as<std::string>().c_str(), vm["pos"].as<std::string>().c_str());
+    TA neg = Parser::parse(vm["model"].as<std::string>().c_str(), vm["neg"].as<std::string>().c_str());
 
-    auto buchi_accept_states = Fixpoint::buchi_accept_fixpoint(T);
+//    output.do_output(vm, T, buchi_accept_states);
+    std::vector<ti> word1 = {
+        ti(0, "c"),
+        ti(2.5, "b"),
+        ti(100, "b"),
+        ti(2, "a"),
+        ti(0, "c"),
+        ti(5, "a"),
+        ti(10, "b"),
+        ti(0, "c"),
+        ti(0, "c")};
 
-    output.do_output(vm, T, buchi_accept_states);
+    std::vector<ti> word2 = {
+            ti(0, "a"),
+            ti(101, "c")};
+
+
+    std::cout << pos << "\n" << neg << "\n";
+
+
+    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+
+    Monitor monitor(pos, neg);
+
+    auto answer = monitor.input(word1);
+    switch (answer) {
+        case INCONCLUSIVE: std::cout << "INCONCLUSIVE\n";
+            break;
+        case POSITIVE: std::cout << "POSITIVE\n";
+            break;
+        case NEGATIVE: std::cout << "NEGATIVE\n";
+            break;
+    }
+
+    answer = monitor.input(word2);
+    switch (answer) {
+        case INCONCLUSIVE: std::cout << "INCONCLUSIVE\n";
+            break;
+        case POSITIVE: std::cout << "POSITIVE\n";
+            break;
+        case NEGATIVE: std::cout << "NEGATIVE\n";
+            break;
+    }
 
     return 0;
 }

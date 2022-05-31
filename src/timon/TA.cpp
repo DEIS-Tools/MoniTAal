@@ -79,24 +79,31 @@ namespace timon {
     TA::TA(std::string name, clock_map_t clocks, const locations_t &locations, const edges_t &edges, location_id_t initial) :
             _name(std::move(name)), number_of_clocks(clocks.size()), _clock_names(clocks), _initial(initial) {
         location_map_t loc_map;
-        edge_map_t edge_map;
+        edge_map_t backward_edges, forward_edges;
 
         for (const auto &l : locations) {
             loc_map.insert({l.id(), l});
 
-            edges_t tmp;
+            edges_t to, from;
             for (const auto &e : edges) {
                 if (e.to() == l.id())
-                    tmp.push_back(e);
+                    to.push_back(e);
+                if (e.from() == l.id())
+                    from.push_back(e);
             }
-            edge_map.insert({l.id(), tmp});
+            backward_edges.insert({l.id(), to});
+            forward_edges.insert({l.id(), from});
+
         }
 
         _locations = std::move(loc_map);
-        _backward_edges = std::move(edge_map);
+        _backward_edges = std::move(backward_edges);
+        _forward_edges = std::move(forward_edges);
     }
 
-    const edges_t &TA::edges_to(location_id_t id) const { return _backward_edges.at(id); }
+    const edges_t& TA::edges_to(location_id_t id) const { return _backward_edges.at(id); }
+
+    const edges_t& TA::edges_from(location_id_t id) const { return _forward_edges.at(id); }
 
     std::string TA::clock_name(clock_index_t index) const { return _clock_names.at(index); }
 
@@ -105,7 +112,7 @@ namespace timon {
     location_id_t TA::initial_location() const { return _initial; }
 
     std::ostream& operator<<(std::ostream& out, const TA& T) {
-        out << T._name << "\n  Locations: (" << T._locations.at(T._initial).name() << ")";
+        out << T._name << "\n  Locations: (" << T._locations.at(T._initial).name() << ")\n";
         for (const auto& loc : T._locations) {
             out << "\n    " << loc.second.name() << " ";
             if (loc.second.is_accept()) out << "(accept) ";
@@ -118,7 +125,7 @@ namespace timon {
             }
         }
 
-        out << "\n  Edges:";
+        out << "\n  Edges:\n";
         for (const auto& es : T._backward_edges) {
             for (const auto& e : es.second) {
                 out << "    " << T._locations.at(e.from()).name() << " -> " << T._locations.at(e.to()).name();

@@ -42,26 +42,46 @@ namespace timon {
         timed_input_t(float time, label_t label);
     };
 
-    class Single_monitor {
+    enum monitor_answer_e {INCONCLUSIVE, POSITIVE, NEGATIVE};
+    /**
+     * Monitors a property p from the two TBA's constructed for p and -p
+     */
+    class Monitor {
+        // Private class. Monitors a single automata one step at a time
         enum single_monitor_answer_e {ACTIVE, OUT};
+        class Single_monitor { // Bad naming I KNOW
+            const TA _automaton;
 
-        const TA _automaton;
+            // Where it is still possible to reach an accepting location infinitely often
+            const symbolic_state_map_t _accepting_space;
 
-        // Where it is still possible to reach an accepting location infinitely often
-        const symbolic_state_map_t _accepting_space;
+            std::vector<state_t> _current_states;
 
-        std::vector<timed_input_t> _timed_word;
+            single_monitor_answer_e _status;
 
-        std::vector<state_t> _current_states;
+        public:
+            Single_monitor(const TA &automaton);
 
-        single_monitor_answer_e _status;
+            single_monitor_answer_e status();
+
+            single_monitor_answer_e input(const timed_input_t& input);
+        };
+
+        Single_monitor _monitor_pos, _monitor_neg;
+
+        std::vector<timed_input_t> _word;
+
+        monitor_answer_e _status;
 
     public:
-        Single_monitor(const TA &automaton);
+        Monitor(const TA& pos, const TA& neg);
 
-        single_monitor_answer_e get_status();
+        monitor_answer_e input(const std::vector<timed_input_t>& input);
 
-        single_monitor_answer_e input(timed_input_t input);
+        monitor_answer_e input(const timed_input_t& input);
+
+        monitor_answer_e status() const;
+
     };
 
 }

@@ -35,7 +35,7 @@ namespace timon {
 
     class Parser {
     public:
-        static TA parse(const char *path);
+        static TA parse(const char *path, const char *name);
 
     private:
         static bool load_file(pugi::xml_document& doc, const char *path);
