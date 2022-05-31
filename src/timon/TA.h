@@ -97,6 +97,8 @@ namespace timon {
 
         [[nodiscard]] const location_map_t& locations() const;
 
+        [[nodiscard]] location_id_t initial_location() const;
+
         friend std::ostream& operator<<(std::ostream& out, const TA& T);
     };
 

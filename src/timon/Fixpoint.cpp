@@ -22,13 +22,13 @@
 
 #include "Fixpoint.h"
 #include "types.h"
-#include "state_t.h"
+#include "state.h"
 
 namespace timon {
 
-    states_map_t Fixpoint::reach(const states_map_t &states, const TA& T) {
-        states_map_t waiting;
-        states_map_t passed;
+    symbolic_state_map_t Fixpoint::reach(const symbolic_state_map_t &states, const TA& T) {
+        symbolic_state_map_t waiting;
+        symbolic_state_map_t passed;
 
 //         We have to take at least one step
         for (const auto& [_, s] : states) {
@@ -58,18 +58,18 @@ namespace timon {
         return passed;
     }
 
-    states_map_t Fixpoint::accept_states(const TA &T) {
-        states_map_t accept_states;
+    symbolic_state_map_t Fixpoint::accept_states(const TA &T) {
+        symbolic_state_map_t accept_states;
 
         for (const auto& [_, loc] : T.locations()) {
             if (loc.is_accept())
-                accept_states.insert(state_t(loc.id(), Federation::unconstrained(T.number_of_clocks)));
+                accept_states.insert(symbolic_state_t(loc.id(), Federation::unconstrained(T.number_of_clocks)));
         }
 
         return accept_states;
     }
 
-    states_map_t Fixpoint::buchi_accept_fixpoint(const TA &T) {
+    symbolic_state_map_t Fixpoint::buchi_accept_fixpoint(const TA &T) {
         auto acc = accept_states(T);
         auto intersection = acc;
         auto reach_a = reach(acc, T);

@@ -1,6 +1,6 @@
 #include "timon/Parser.h"
 #include "timon/Fixpoint.h"
-#include "timon/state_t.h"
+#include "timon/state.h"
 
 #include <boost/program_options.hpp>
 #include <filesystem>
@@ -25,12 +25,12 @@ private:
         return out;
     }
 
-    void print_simple(const TA& T, const states_map_t& states) const {
+    void print_simple(const TA& T, const symbolic_state_map_t& states) const {
         std::cout << T << '\n';
         states.print(std::cout, T);
     }
 
-    void write_simple(const TA& T, const states_map_t& states) const {
+    void write_simple(const TA& T, const symbolic_state_map_t& states) const {
         std::ofstream out = open_file();
         out << T << '\n';
         states.print(out, T);
@@ -47,7 +47,7 @@ public:
 
     [[nodiscard]] const po::options_description& options() const { return output_options; }
 
-    void do_output(po::variables_map vm, const TA& T, const states_map_t& states) const {
+    void do_output(po::variables_map vm, const TA& T, const symbolic_state_map_t& states) const {
         if (vm.count("print"))
             print_simple(T, states);
         if (vm.count("out")) {

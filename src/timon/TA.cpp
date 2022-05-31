@@ -96,17 +96,13 @@ namespace timon {
         _backward_edges = std::move(edge_map);
     }
 
-    const edges_t &TA::edges_to(location_id_t id) const {
-        return _backward_edges.at(id);
-    }
+    const edges_t &TA::edges_to(location_id_t id) const { return _backward_edges.at(id); }
 
-    std::string TA::clock_name(clock_index_t index) const {
-        return _clock_names.at(index);
-    }
+    std::string TA::clock_name(clock_index_t index) const { return _clock_names.at(index); }
 
-    const location_map_t &TA::locations() const {
-        return _locations;
-    }
+    const location_map_t &TA::locations() const { return _locations; }
+
+    location_id_t TA::initial_location() const { return _initial; }
 
     std::ostream& operator<<(std::ostream& out, const TA& T) {
         out << T._name << "\n  Locations: (" << T._locations.at(T._initial).name() << ")";

@@ -8,16 +8,18 @@ include_directories(include)
 
 set(HEADER_FILES
         TA.h
-        state_t.h
+        state.h
         Fixpoint.h
         Parser.h
-        types.h)
+        types.h
+        Monitor.h)
 
 add_library(Timon
         TA.cpp
-        state_t.cpp
+        state.cpp
         Fixpoint.cpp
-        Parser.cpp)
+        Parser.cpp
+        Monitor.cpp)
 
 target_link_libraries(Timon PRIVATE
         pugixml

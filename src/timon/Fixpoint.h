@@ -24,15 +24,15 @@
 
 #include "TA.h"
 #include "types.h"
-#include "state_t.h"
+#include "state.h"
 
 namespace timon {
 
     class Fixpoint {
     public:
-        static states_map_t reach(const states_map_t& states, const TA& T);
-        static states_map_t accept_states(const TA& T);
-        static states_map_t buchi_accept_fixpoint(const TA& T);
+        static symbolic_state_map_t reach(const symbolic_state_map_t& states, const TA& T);
+        static symbolic_state_map_t accept_states(const TA& T);
+        static symbolic_state_map_t buchi_accept_fixpoint(const TA& T);
     };
 
 }
