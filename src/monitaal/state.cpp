@@ -4,21 +4,22 @@
  */
 
 /*
- * This file is part of fixpoint
+ * This file is part of MoniTAal
  *
- * fixpoint is free software: you can redistribute it and/or modify
+ * MoniTAal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * fixpoint is distributed in the hope that it will be useful,
+ * MoniTAal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with fixpoint. If not, see <https://www.gnu.org/licenses/>.
+ * along with MoniTAal. If not, see <https://www.gnu.org/licenses/>.
  */
+
 #include "state.h"
 #include "types.h"
 #include "TA.h"
@@ -27,7 +28,7 @@
 #include <iostream>
 #include <algorithm>
 
-namespace timon {
+namespace monitaal {
 
     symbolic_state_t::symbolic_state_t() {
         _location = 0;

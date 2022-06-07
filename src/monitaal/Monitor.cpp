@@ -19,12 +19,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with timon. If not, see <https://www.gnu.org/licenses/>.
  */
+
 #include "Monitor.h"
 
 #include <utility>
 #include <iostream>
 
-namespace timon {
+namespace monitaal {
 
     timed_input_t::timed_input_t(float time, label_t label) : time(time), label(std::move(label)) {}
 

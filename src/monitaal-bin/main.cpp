@@ -1,7 +1,7 @@
-#include "timon/Parser.h"
-#include "timon/Fixpoint.h"
-#include "timon/state.h"
-#include "timon/Monitor.h"
+#include "monitaal/Parser.h"
+#include "monitaal/Fixpoint.h"
+#include "monitaal/state.h"
+#include "monitaal/Monitor.h"
 
 #include <boost/program_options.hpp>
 #include <filesystem>
@@ -9,7 +9,7 @@
 #include <iostream>
 
 namespace po = boost::program_options;
-using namespace timon;
+using namespace monitaal;
 using ti = timed_input_t;
 
 class Output {

@@ -19,6 +19,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with timon. If not, see <https://www.gnu.org/licenses/>.
  */
+
 #ifndef TIMON_MONITOR_H
 #define TIMON_MONITOR_H
 
@@ -29,7 +30,7 @@
 
 #include <vector>
 
-namespace timon {
+namespace monitaal {
 
     /**
      * A timed character in a timed word.

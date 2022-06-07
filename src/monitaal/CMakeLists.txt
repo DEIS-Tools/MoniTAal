@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(Timon LANGUAGES CXX)
+project(MoniTAal LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -14,21 +14,21 @@ set(HEADER_FILES
         types.h
         Monitor.h)
 
-add_library(Timon
+add_library(MoniTAal
         TA.cpp
         state.cpp
         Fixpoint.cpp
         Parser.cpp
         Monitor.cpp)
 
-target_link_libraries(Timon PRIVATE
+target_link_libraries(MoniTAal PRIVATE
         pugixml
         -lpardibaal)
 
-add_dependencies(Timon pardibaal)
+add_dependencies(MoniTAal pardibaal)
 
-install(TARGETS Timon
+install(TARGETS MoniTAal
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-install(FILES ${HEADER_FILES} DESTINATION include/timon)
+install(FILES ${HEADER_FILES} DESTINATION include/monitaal)
