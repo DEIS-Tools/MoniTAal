@@ -32,25 +32,25 @@ namespace monitaal {
 
 //         We have to take at least one step
         for (const auto& [_, s] : states) {
-            for (const auto& e : T.edges_to(s.location_id())) {
+            for (const auto& e : T.edges_to(s.location())) {
                 auto state = s;
-                state.step_back(e);
+                state.do_transition_backward(e);
                 waiting.insert(state);
             }
         }
 
         while (not waiting.is_empty()) {
             auto s = waiting.begin()->second;
-            waiting.remove(s.location_id());
+            waiting.remove(s.location());
 
-            if (passed.has_state(s.location_id()) && s.is_included_in(passed.at(s.location_id())))
+            if (passed.has_state(s.location()) && s.is_included_in(passed.at(s.location())))
                 continue;
 
             passed.insert(s);
 
-            for (const auto& e : T.edges_to(s.location_id())) {
+            for (const auto& e : T.edges_to(s.location())) {
                  auto pred = s;
-                 pred.step_back(e);
+                pred.do_transition_backward(e);
                  waiting.insert(pred);
             }
         }

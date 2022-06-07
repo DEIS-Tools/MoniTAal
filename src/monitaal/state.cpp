@@ -65,11 +65,21 @@ namespace monitaal {
     }
 
     void symbolic_state_t::add(const symbolic_state_t& state) {
-        if (state.location_id() == _location)
+        if (state.location() == _location)
             _federation.add(state._federation);
     }
 
-    void symbolic_state_t::step_back(const edge_t& edge) {
+    //TODO:
+    void symbolic_state_t::delay(value_t value) {
+
+    }
+
+    //TODO:
+    bool symbolic_state_t::do_transition(const edge_t& edge) {
+        return false;
+    }
+
+    void symbolic_state_t::do_transition_backward(const edge_t& edge) {
 
         if (edge.to() == _location) {
             _location = edge.from();
@@ -86,6 +96,11 @@ namespace monitaal {
         return _federation.is_empty();
     }
 
+    //TODO
+    bool symbolic_state_t::is_included_in(const symbolic_state_map_t &states) const {
+        return false;
+    }
+
     bool symbolic_state_t::is_included_in(const symbolic_state_t &state) const {
         if (state._location == _location)
             return _federation.intersects(state._federation);
@@ -96,7 +111,7 @@ namespace monitaal {
         return _federation.equal(state._federation);
     }
 
-    location_id_t symbolic_state_t::location_id() const {
+    location_id_t symbolic_state_t::location() const {
         return _location;
     }
 
@@ -106,14 +121,13 @@ namespace monitaal {
         out << T.locations().at(_location).name() << ' ' << _federation;
     }
 
-
     void symbolic_state_map_t::insert(symbolic_state_t state) {
 
         if (not state.is_empty()) {
-            if (_states.find(state.location_id()) == _states.end()) {
-                _states.insert({state.location_id(), state});
+            if (_states.find(state.location()) == _states.end()) {
+                _states.insert({state.location(), state});
             } else {
-                _states[state.location_id()].add(state);
+                _states[state.location()].add(state);
             }
         }
     }
@@ -194,13 +208,13 @@ namespace monitaal {
         }
     }
 
-    void state_t::delay(value_t value) {
+    void concrete_state_t::delay(value_t value) {
         for (auto& v : _valuation)
             v += value;
         _valuation[0] = 0;
     }
 
-    bool state_t::transition(const edge_t &edge) {
+    bool concrete_state_t::do_transition(const edge_t &edge) {
         if (edge.from() != _location) return false;
         // If the transition is not possible, do nothing and return false
         for (const auto& c : edge.guard()) {
@@ -222,15 +236,20 @@ namespace monitaal {
         return true;
     }
 
-    valuation_t state_t::valuation() const {
+    valuation_t concrete_state_t::valuation() const {
         return _valuation;
     }
 
-    location_id_t state_t::location() const {
+    location_id_t concrete_state_t::location() const {
         return _location;
     }
 
-    bool state_t::is_included_in(const symbolic_state_map_t &states) const {
+    //TODO
+    bool concrete_state_t::is_included_in(const symbolic_state_t &states) const {
+        return false;
+    }
+
+    bool concrete_state_t::is_included_in(const symbolic_state_map_t &states) const {
         if (not states.has_state(_location)) {
             return false;
         } else {
@@ -255,8 +274,7 @@ namespace monitaal {
 
     }
 
-    state_t::state_t(location_id_t location, pardibaal::dim_t number_of_clocks) : _location(location) {
+    concrete_state_t::concrete_state_t(location_id_t location, pardibaal::dim_t number_of_clocks) : _location(location) {
         _valuation = std::vector<value_t>(number_of_clocks);
     }
-
 }

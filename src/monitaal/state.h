@@ -32,6 +32,8 @@
 
 namespace monitaal {
 
+    class symbolic_state_map_t;
+
     //symbolic state
     struct symbolic_state_t {
 
@@ -44,13 +46,19 @@ namespace monitaal {
         void free(const clocks_t& clocks);
         void intersect(const symbolic_state_t& state);
         void add(const symbolic_state_t& state);
-        void step_back(const edge_t& edge);
+
+        bool do_transition(const edge_t& edge);
+        void do_transition_backward(const edge_t& edge);
+
+        void delay(value_t value);
+
 
         [[nodiscard]] bool is_empty() const;
+        [[nodiscard]] bool is_included_in(const symbolic_state_map_t &states) const;
         [[nodiscard]] bool is_included_in(const symbolic_state_t& state) const;
         [[nodiscard]] bool equals(const symbolic_state_t& state) const;
 
-        [[nodiscard]] location_id_t location_id() const;
+        [[nodiscard]] location_id_t location() const;
 
         [[nodiscard]] Federation federation() const;
 
@@ -96,8 +104,8 @@ namespace monitaal {
         std::map<location_id_t, symbolic_state_t> _states;
     };
 
-    struct state_t {
-        state_t(location_id_t location, pardibaal::dim_t number_of_clocks);
+    struct concrete_state_t {
+        concrete_state_t(location_id_t location, pardibaal::dim_t number_of_clocks);
 
         void delay(value_t value);
 
@@ -106,11 +114,13 @@ namespace monitaal {
          * @param edge: The edge that defines the transition to be taken
          * @return True if the transition was possible and completed, false if not.
          */
-        bool transition(const edge_t& edge);
+        bool do_transition(const edge_t& edge);
 
         [[nodiscard]] valuation_t valuation() const;
 
         [[nodiscard]] location_id_t location() const;
+
+        [[nodiscard]] bool is_included_in(const symbolic_state_t& states) const;
 
         [[nodiscard]] bool is_included_in(const symbolic_state_map_t& states) const;
 

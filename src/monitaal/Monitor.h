@@ -44,24 +44,28 @@ namespace monitaal {
     };
 
     enum monitor_answer_e {INCONCLUSIVE, POSITIVE, NEGATIVE};
+
     /**
      * Monitors a property p from the two TBA's constructed for p and -p
      */
+    template<class STATE>
     class Monitor {
-        // Private class. Monitors a single automata one step at a time
+
         enum single_monitor_answer_e {ACTIVE, OUT};
+
+        // Private class. Monitors a single automata one step at a time
         class Single_monitor { // Bad naming I KNOW
             const TA _automaton;
 
             // Where it is still possible to reach an accepting location infinitely often
             const symbolic_state_map_t _accepting_space;
 
-            std::vector<state_t> _current_states;
+            std::vector<STATE> _current_states;
 
             single_monitor_answer_e _status;
 
         public:
-            Single_monitor(const TA &automaton);
+            explicit Single_monitor(const TA &automaton);
 
             single_monitor_answer_e status();
 
@@ -81,9 +85,12 @@ namespace monitaal {
 
         monitor_answer_e input(const timed_input_t& input);
 
-        monitor_answer_e status() const;
+        [[nodiscard]] monitor_answer_e status() const;
 
     };
+
+    typedef Monitor<symbolic_state_t> Interval_monitor;
+    typedef Monitor<concrete_state_t> Concrete_monitor;
 
 }
 

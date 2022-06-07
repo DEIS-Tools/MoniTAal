@@ -29,37 +29,40 @@ namespace monitaal {
 
     timed_input_t::timed_input_t(float time, label_t label) : time(time), label(std::move(label)) {}
 
-    Monitor::Single_monitor::Single_monitor(const TA &automaton) :
+    template<class STATE>
+    Monitor<STATE>::Single_monitor::Single_monitor(const TA &automaton) :
     _automaton(automaton), _accepting_space(Fixpoint::buchi_accept_fixpoint(automaton)) {
 
-        state_t init(_automaton.initial_location(), _automaton.number_of_clocks);
+        STATE init(_automaton.initial_location(), _automaton.number_of_clocks);
 
         if (init.is_included_in(_accepting_space))
             _status = ACTIVE;
         else
             _status = OUT;
 
-        _current_states = std::vector<state_t>{init};
+        _current_states = std::vector<STATE>{init};
     }
 
-    Monitor::single_monitor_answer_e Monitor::Single_monitor::status() { return _status; }
+    template<class STATE> typename Monitor<STATE>::single_monitor_answer_e
+    Monitor<STATE>::Single_monitor::status() { return _status; }
 
-    Monitor::single_monitor_answer_e Monitor::Single_monitor::input(const timed_input_t& input) {
-        std::vector<state_t> next_states;
+    template<class STATE> typename Monitor<STATE>::single_monitor_answer_e
+    Monitor<STATE>::Single_monitor::input(const timed_input_t& input) {
+        std::vector<STATE> next_states;
 
         for (auto& s : _current_states) {
             s.delay(input.time);
             auto state = s;
             for (const auto& edge : _automaton.edges_from(s.location()))
                 if (std::strcmp(edge.label().c_str(), input.label.c_str()) == 0) //for all edges with input label
-                    if (state.transition(edge)) {
+                    if (state.do_transition(edge)) {
                         next_states.push_back(state);
                         state = s;
                     }
         }
         _current_states = next_states;
         // If one of the states are inside, we are still active
-        // TODO: remove states that fall outside??
+        // TODO: remove states that fall outside
         for (const auto& state : _current_states)
             if (state.is_included_in(_accepting_space)) {
                 _status = ACTIVE;
@@ -68,34 +71,10 @@ namespace monitaal {
 
         _status = OUT;
         return _status;
-
-//        std::vector<uint32_t> del(_current_states.size());
-//        uint32_t size = _current_states.size();
-
-//        for (uint32_t i = 0; i < size; ++i) {
-//            _current_states[i].delay(input.time);
-//            auto copy = _current_states[i];
-//            bool add = false;
-//
-//            for (const auto& edge : _automaton.edges_from(_current_states[i].location())) {
-//                if (std::strcmp(edge.label().c_str(), input.label.c_str()) == 0) {
-//                    if (not add && _current_states[i].transition(edge)) // relies on short circuiting
-//                        add = true;
-//                    else {
-//                        auto tmp = copy;
-//                        if (tmp.transition(edge))
-//                            _current_states.push_back(tmp);
-//                    }
-//                }
-//            }
-//            if (not add) {
-//                del.push_back(i);
-//            }
-//        }
     }
 
-
-    Monitor::Monitor(const TA& pos, const TA& neg)
+    template<class STATE>
+    Monitor<STATE>::Monitor(const TA& pos, const TA& neg)
             : _monitor_pos(Single_monitor(pos)), _monitor_neg(Single_monitor(neg)) {
 
         assert((_monitor_pos.status() != OUT || _monitor_neg.status() != OUT) &&
@@ -109,7 +88,8 @@ namespace monitaal {
 
     }
 
-    monitor_answer_e Monitor::input(const std::vector<timed_input_t> &input) {
+    template<class STATE>
+    monitor_answer_e Monitor<STATE>::input(const std::vector<timed_input_t> &input) {
         for (const auto& i : input) {
             _status = this->input(i);
             if (_status != INCONCLUSIVE)
@@ -119,7 +99,8 @@ namespace monitaal {
         return _status;
     }
 
-    monitor_answer_e Monitor::input(const timed_input_t &input) {
+    template<class STATE>
+    monitor_answer_e Monitor<STATE>::input(const timed_input_t &input) {
         auto pos = _monitor_pos.input(input), neg = _monitor_neg.input(input);
 
         assert((pos != OUT || neg != OUT) &&
@@ -133,7 +114,11 @@ namespace monitaal {
         return _status;
     }
 
-    monitor_answer_e Monitor::status() const {
+    template<class STATE>
+    monitor_answer_e Monitor<STATE>::status() const {
         return _status;
     }
+
+    template class Monitor<symbolic_state_t>;
+    template class Monitor<concrete_state_t>;
 }

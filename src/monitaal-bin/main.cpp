@@ -112,7 +112,7 @@ int main(int argc, const char** argv) {
     Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
     Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
 
-    Monitor monitor(pos, neg);
+    Concrete_monitor monitor(pos, neg);
 
     auto answer = monitor.input(word1);
     switch (answer) {
