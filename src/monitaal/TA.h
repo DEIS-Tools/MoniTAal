@@ -20,8 +20,8 @@
  * along with MoniTAal. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef FIXPOINT_TA_H
-#define FIXPOINT_TA_H
+#ifndef MONITAAL_TA_H
+#define MONITAAL_TA_H
 
 #include "types.h"
 
@@ -110,4 +110,4 @@ namespace monitaal {
     std::ostream& operator<<(std::ostream& out, const TA& T);
 }
 
-#endif //FIXPOINT_TA_H
+#endif //MONITAAL_TA_H

@@ -20,8 +20,8 @@
  * along with MoniTAal. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef FIXPOINT_PARSER_H
-#define FIXPOINT_PARSER_H
+#ifndef MONITAAL_PARSER_H
+#define MONITAAL_PARSER_H
 
 #include "TA.h"
 #include "types.h"
@@ -58,4 +58,4 @@ namespace monitaal {
 
 }
 
-#endif //FIXPOINT_PARSER_H
+#endif //MONITAAL_PARSER_H

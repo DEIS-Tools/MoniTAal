@@ -20,8 +20,8 @@
  * along with MoniTAal. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef FIXPOINT_STATE_T_H
-#define FIXPOINT_STATE_T_H
+#ifndef MONITAAL_STATE_T_H
+#define MONITAAL_STATE_T_H
 
 #include "types.h"
 #include "TA.h"
@@ -121,4 +121,4 @@ namespace monitaal {
 
 }
 
-#endif //FIXPOINT_STATE_T_H
+#endif //MONITAAL_STATE_T_H

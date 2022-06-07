@@ -20,8 +20,8 @@
  * along with MoniTAal. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef FIXPOINT_FIXPOINT_H
-#define FIXPOINT_FIXPOINT_H
+#ifndef MONITAAL_MONITAAL_H
+#define MONITAAL_MONITAAL_H
 
 #include "TA.h"
 #include "types.h"
@@ -38,4 +38,4 @@ namespace monitaal {
 
 }
 
-#endif //FIXPOINT_FIXPOINT_H
+#endif //MONITAAL_MONITAAL_H

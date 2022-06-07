@@ -20,8 +20,8 @@
  * along with MoniTAal. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef FIXPOINT_TYPES_H
-#define FIXPOINT_TYPES_H
+#ifndef MONITAAL_TYPES_H
+#define MONITAAL_TYPES_H
 
 #include <pardibaal/Federation.h>
 
@@ -60,4 +60,4 @@ namespace monitaal {
 
 }
 
-#endif //FIXPOINT_TYPES_H
+#endif //MONITAAL_TYPES_H

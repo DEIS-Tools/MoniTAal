@@ -4,24 +4,24 @@
  */
 
 /*
- * This file is part of timon
+ * This file is part of MoniTAal
  *
- * timon is free software: you can redistribute it and/or modify
+ * MoniTAal is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * timon is distributed in the hope that it will be useful,
+ * MoniTAal is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with timon. If not, see <https://www.gnu.org/licenses/>.
+ * along with MoniTAal. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef TIMON_MONITOR_H
-#define TIMON_MONITOR_H
+#ifndef MONITAAL_MONITOR_H
+#define MONITAAL_MONITOR_H
 
 #include "types.h"
 #include "TA.h"
@@ -87,4 +87,4 @@ namespace monitaal {
 
 }
 
-#endif //TIMON_MONITOR_H
+#endif //MONITAAL_MONITOR_H

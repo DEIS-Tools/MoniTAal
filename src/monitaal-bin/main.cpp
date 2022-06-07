@@ -62,7 +62,7 @@ int main(int argc, const char** argv) {
 
     po::options_description options;
     options.add_options()
-            ("help,h", "Dispay this help message\nExample: timon-bin --pos <name> <path> --neg <name> <path>")
+            ("help,h", "Dispay this help message\nExample: monitaal-bin --pos <name> <path> --neg <name> <path>")
             ("pos", po::value<std::string>()->required(), "Input name of the model for the property")
             ("neg", po::value<std::string>()->required(), "Input name of the model for the negative property")
             ("model,m", po::value<std::string>()->required(), "Path to the input model xml file");
