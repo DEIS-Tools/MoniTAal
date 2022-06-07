@@ -1,3 +1,3 @@
-# Timon
+# MoniTAal
 
-Timed buchi automaton monitor
+Monitor for Timed buchi automata Aalborg
