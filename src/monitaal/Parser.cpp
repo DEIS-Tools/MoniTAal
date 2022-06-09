@@ -125,7 +125,7 @@ namespace monitaal {
             operator_e op = parse_operator(word);
 
             stream >> word;
-            pardibaal::val_t bound = std::stoi(word);
+            zone_val_t bound = std::stoi(word);
 
             switch (op) {
                 case EQ:

@@ -24,57 +24,74 @@
 
 #include <utility>
 #include <iostream>
+#include <type_traits>
 
 namespace monitaal {
 
-    timed_input_t::timed_input_t(float time, label_t label) : time(time), label(std::move(label)) {}
+    template<bool is_interval>
+    timed_input_t<is_interval>::timed_input_t(typename std::conditional_t<is_interval, interval_t, concrete_time_t> time,
+                                              label_t label) : time(time), label(std::move(label)) {}
 
-    template<class STATE>
-    Monitor<STATE>::Single_monitor::Single_monitor(const TA &automaton) :
+    template<bool is_interval>
+    Monitor<is_interval>::Single_monitor::Single_monitor(const TA &automaton) :
     _automaton(automaton), _accepting_space(Fixpoint::buchi_accept_fixpoint(automaton)) {
-
-        STATE init(_automaton.initial_location(), _automaton.number_of_clocks);
+        
+        typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>
+            init(_automaton.initial_location(), _automaton.number_of_clocks);
 
         if (init.is_included_in(_accepting_space))
             _status = ACTIVE;
         else
             _status = OUT;
 
-        _current_states = std::vector<STATE>{init};
+
+        _current_states = std::vector{init};
     }
 
-    template<class STATE> typename Monitor<STATE>::single_monitor_answer_e
-    Monitor<STATE>::Single_monitor::status() { return _status; }
+    template<bool is_interval> typename Monitor<is_interval>::single_monitor_answer_e
+    Monitor<is_interval>::Single_monitor::status() { return _status; }
 
-    template<class STATE> typename Monitor<STATE>::single_monitor_answer_e
-    Monitor<STATE>::Single_monitor::input(const timed_input_t& input) {
-        std::vector<STATE> next_states;
+    template<bool is_interval> typename Monitor<is_interval>::single_monitor_answer_e
+    Monitor<is_interval>::Single_monitor::input(const timed_input_t<is_interval>& input) {
+        std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+                next_states;
 
         for (auto& s : _current_states) {
             s.delay(input.time);
+            if (s.satisfies(_automaton.locations().at(s.location()).invariant()))
+                s.restrict(_automaton.locations().at(s.location()).invariant());
+            else
+                continue;
+
             auto state = s;
             for (const auto& edge : _automaton.edges_from(s.location()))
                 if (std::strcmp(edge.label().c_str(), input.label.c_str()) == 0) //for all edges with input label
-                    if (state.do_transition(edge)) {
-                        next_states.push_back(state);
+
+                    // If we can do the transition (then do it) and also satisfies the invariant, then explore this
+                    if (state.do_transition(edge) && state.satisfies(_automaton.locations()
+                                                          .at(edge.to()).invariant())) {
+                        state.restrict(_automaton.locations().at(edge.to()).invariant());
+
+                        // Only add the state if it is included in the possible accept space
+                        if (state.is_included_in(_accepting_space))
+                            next_states.push_back(state);
                         state = s;
                     }
         }
-        _current_states = next_states;
-        // If one of the states are inside, we are still active
-        // TODO: remove states that fall outside
-        for (const auto& state : _current_states)
-            if (state.is_included_in(_accepting_space)) {
-                _status = ACTIVE;
-                return _status;
-            }
 
-        _status = OUT;
+        // Only possible accept states are added. If empty, then we are out
+        if (next_states.size() == 0)
+            _status = OUT;
+        else
+            _status = ACTIVE;
+
+        _current_states = next_states;
+
         return _status;
     }
 
-    template<class STATE>
-    Monitor<STATE>::Monitor(const TA& pos, const TA& neg)
+    template<bool is_interval>
+    Monitor<is_interval>::Monitor(const TA& pos, const TA& neg)
             : _monitor_pos(Single_monitor(pos)), _monitor_neg(Single_monitor(neg)) {
 
         assert((_monitor_pos.status() != OUT || _monitor_neg.status() != OUT) &&
@@ -88,8 +105,8 @@ namespace monitaal {
 
     }
 
-    template<class STATE>
-    monitor_answer_e Monitor<STATE>::input(const std::vector<timed_input_t> &input) {
+    template<bool is_interval>
+    monitor_answer_e Monitor<is_interval>::input(const std::vector<timed_input_t<is_interval>> &input) {
         for (const auto& i : input) {
             _status = this->input(i);
             if (_status != INCONCLUSIVE)
@@ -99,8 +116,8 @@ namespace monitaal {
         return _status;
     }
 
-    template<class STATE>
-    monitor_answer_e Monitor<STATE>::input(const timed_input_t &input) {
+    template<bool is_interval>
+    monitor_answer_e Monitor<is_interval>::input(const timed_input_t<is_interval>& input) {
         auto pos = _monitor_pos.input(input), neg = _monitor_neg.input(input);
 
         assert((pos != OUT || neg != OUT) &&
@@ -114,11 +131,13 @@ namespace monitaal {
         return _status;
     }
 
-    template<class STATE>
-    monitor_answer_e Monitor<STATE>::status() const {
+    template<bool is_interval>
+    monitor_answer_e Monitor<is_interval>::status() const {
         return _status;
     }
 
-    template class Monitor<symbolic_state_t>;
-    template class Monitor<concrete_state_t>;
+    template struct timed_input_t<true>;
+    template struct timed_input_t<false>;
+    template class Monitor<true>;
+    template class Monitor<false>;
 }

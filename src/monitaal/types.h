@@ -35,8 +35,13 @@ namespace monitaal {
     struct edge_t;
     struct symbolic_state_t;
 
+    template<bool is_interval> struct timed_input_t;
+    template<bool is_interval> class Monitor;
+
     using Federation = pardibaal::Federation;
     using Zone       = pardibaal::DBM;
+
+    using zone_val_t = pardibaal::val_t;
 
     using constraint_t  = pardibaal::clock_constraint_t;
     using constraints_t = std::vector<constraint_t>;
@@ -54,9 +59,17 @@ namespace monitaal {
 
     using label_t = std::string;
 
-    using value_t = float;
-    using valuation_t = std::vector<value_t>;
+    using symb_time_t = uint32_t;
+    using interval_t = std::pair<symb_time_t, symb_time_t>;
 
+    using concrete_time_t = float;
+    using valuation_t = std::vector<concrete_time_t>;
+
+    using interval_input = timed_input_t<true>;
+    using concrete_input = timed_input_t<false>;
+
+    using Interval_monitor = Monitor<true>;
+    using Concrete_monitor = Monitor<false>;
 
 }
 

@@ -69,14 +69,29 @@ namespace monitaal {
             _federation.add(state._federation);
     }
 
-    //TODO:
-    void symbolic_state_t::delay(value_t value) {
+    void symbolic_state_t::delay(symb_time_t value) {
+        _federation.delay(((pardibaal::val_t) value));
+    }
 
+    void symbolic_state_t::delay(interval_t interval) {
+        _federation.delay(((pardibaal::val_t) interval.first, (pardibaal::val_t) interval.second));
     }
 
     //TODO:
     bool symbolic_state_t::do_transition(const edge_t& edge) {
-        return false;
+        if (edge.from() != _location) return false;
+
+        // If the transition is not possible, do nothing and return false
+        if (not _federation.satisfies(edge.guard()))
+            return false;
+
+        _federation.restrict(edge.guard());
+
+        for (const auto& r : edge.reset())
+            _federation.assign(r, 0);
+
+        _location = edge.to();
+        return true;
     }
 
     void symbolic_state_t::do_transition_backward(const edge_t& edge) {
@@ -96,19 +111,29 @@ namespace monitaal {
         return _federation.is_empty();
     }
 
-    //TODO
     bool symbolic_state_t::is_included_in(const symbolic_state_map_t &states) const {
-        return false;
+        if (not states.has_state(_location))
+            return false;
+
+        return is_included_in(states.at(_location));
     }
 
     bool symbolic_state_t::is_included_in(const symbolic_state_t &state) const {
         if (state._location == _location)
-            return _federation.intersects(state._federation);
+            return _federation.subset(state._federation);
         return false;
     }
 
     bool symbolic_state_t::equals(const symbolic_state_t& state) const {
         return _federation.equal(state._federation);
+    }
+
+    bool symbolic_state_t::satisfies(const constraint_t &constraint) const {
+        return _federation.satisfies(constraint);
+    }
+
+    bool symbolic_state_t::satisfies(const constraints_t &constraints) const {
+        return _federation.satisfies(constraints);
     }
 
     location_id_t symbolic_state_t::location() const {
@@ -208,11 +233,14 @@ namespace monitaal {
         }
     }
 
-    void concrete_state_t::delay(value_t value) {
+    void concrete_state_t::delay(concrete_time_t value) {
         for (auto& v : _valuation)
             v += value;
         _valuation[0] = 0;
     }
+
+    // Empty because we don't need restriction for concrete states.
+    void concrete_state_t::restrict(const constraints_t &constraints) {}
 
     bool concrete_state_t::do_transition(const edge_t &edge) {
         if (edge.from() != _location) return false;
@@ -244,16 +272,11 @@ namespace monitaal {
         return _location;
     }
 
-    //TODO
     bool concrete_state_t::is_included_in(const symbolic_state_t &states) const {
-        return false;
-    }
-
-    bool concrete_state_t::is_included_in(const symbolic_state_map_t &states) const {
-        if (not states.has_state(_location)) {
+        if (states.location() != _location) {
             return false;
-        } else {
-            for (const auto &dbm : states.at(_location).federation())
+        } else if (not states.is_empty()) {
+            for (const auto &dbm : states.federation())
 
                 for (pardibaal::dim_t i = 0; i < dbm.dimension(); ++i)
                     for (pardibaal::dim_t j = 0; j < dbm.dimension(); ++j) {
@@ -271,10 +294,34 @@ namespace monitaal {
         }
 
         return true;
+    }
+
+    bool concrete_state_t::is_included_in(const symbolic_state_map_t &states) const {
+        if (not states.has_state(_location)) {
+            return false;
+        }
+
+        return is_included_in(states.at(_location));
 
     }
 
+    bool concrete_state_t::satisfies(const constraint_t &constraint) const {
+        if (constraint._bound.is_strict()) {
+            return (_valuation[constraint._i] - _valuation[constraint._j] < constraint._bound.get_bound());
+        } else {
+            return (_valuation[constraint._i] - _valuation[constraint._j] <= constraint._bound.get_bound());
+        }
+    }
+
+    bool concrete_state_t::satisfies(const constraints_t &constraints) const {
+        for (const auto& c : constraints)
+            if (not this->satisfies(c))
+                return false;
+
+        return true;
+    }
+
     concrete_state_t::concrete_state_t(location_id_t location, pardibaal::dim_t number_of_clocks) : _location(location) {
-        _valuation = std::vector<value_t>(number_of_clocks);
+        _valuation = std::vector<concrete_time_t>(number_of_clocks);
     }
 }

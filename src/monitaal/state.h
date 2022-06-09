@@ -41,22 +41,34 @@ namespace monitaal {
         symbolic_state_t(location_id_t location, const Federation &federation);
 
         void down();
+
+        /**
+         * restricts the zone by all the given clocks at zero
+         */
         void restrict_to_zero(const clocks_t& clocks);
+
         void restrict(const constraints_t& constraints);
+
         void free(const clocks_t& clocks);
+
         void intersect(const symbolic_state_t& state);
+
         void add(const symbolic_state_t& state);
 
         bool do_transition(const edge_t& edge);
         void do_transition_backward(const edge_t& edge);
 
-        void delay(value_t value);
+        void delay(symb_time_t value);
+        void delay(interval_t interval);
 
 
         [[nodiscard]] bool is_empty() const;
         [[nodiscard]] bool is_included_in(const symbolic_state_map_t &states) const;
         [[nodiscard]] bool is_included_in(const symbolic_state_t& state) const;
         [[nodiscard]] bool equals(const symbolic_state_t& state) const;
+
+        [[nodiscard]] bool satisfies(const constraint_t& constraint) const;
+        [[nodiscard]] bool satisfies(const constraints_t& constraints) const;
 
         [[nodiscard]] location_id_t location() const;
 
@@ -107,7 +119,11 @@ namespace monitaal {
     struct concrete_state_t {
         concrete_state_t(location_id_t location, pardibaal::dim_t number_of_clocks);
 
-        void delay(value_t value);
+        void delay(concrete_time_t value);
+
+        // Small hack: This is used in the monitor template, but only relevant for symbolic states.
+        // Therefore this is just an empty implementation.
+        void restrict(const constraints_t& constraints);
 
         /**
          * Do a transition if possible. Returns false if the guard was not satisfied.
@@ -123,6 +139,9 @@ namespace monitaal {
         [[nodiscard]] bool is_included_in(const symbolic_state_t& states) const;
 
         [[nodiscard]] bool is_included_in(const symbolic_state_map_t& states) const;
+
+        [[nodiscard]] bool satisfies(const constraint_t& constraint) const;
+        [[nodiscard]] bool satisfies(const constraints_t& constraints) const;
 
     private:
         location_id_t _location;

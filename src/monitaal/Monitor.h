@@ -29,6 +29,7 @@
 #include "Fixpoint.h"
 
 #include <vector>
+#include <type_traits>
 
 namespace monitaal {
 
@@ -36,11 +37,13 @@ namespace monitaal {
      * A timed character in a timed word.
      * Consists of a timing element and a label
      */
+    template<bool is_interval>
     struct timed_input_t {
-        const float time;
+        typename std::conditional_t<is_interval, interval_t, concrete_time_t>
+                 const time;
         const label_t label;
 
-        timed_input_t(float time, label_t label);
+        timed_input_t(typename std::conditional_t<is_interval, interval_t, concrete_time_t> time, label_t label);
     };
 
     enum monitor_answer_e {INCONCLUSIVE, POSITIVE, NEGATIVE};
@@ -48,7 +51,7 @@ namespace monitaal {
     /**
      * Monitors a property p from the two TBA's constructed for p and -p
      */
-    template<class STATE>
+    template<bool is_interval>
     class Monitor {
 
         enum single_monitor_answer_e {ACTIVE, OUT};
@@ -60,7 +63,8 @@ namespace monitaal {
             // Where it is still possible to reach an accepting location infinitely often
             const symbolic_state_map_t _accepting_space;
 
-            std::vector<STATE> _current_states;
+            std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+                _current_states;
 
             single_monitor_answer_e _status;
 
@@ -69,28 +73,25 @@ namespace monitaal {
 
             single_monitor_answer_e status();
 
-            single_monitor_answer_e input(const timed_input_t& input);
+            single_monitor_answer_e input(const timed_input_t<is_interval>& input);
         };
 
         Single_monitor _monitor_pos, _monitor_neg;
 
-        std::vector<timed_input_t> _word;
+        std::vector<timed_input_t<is_interval>> _word;
 
         monitor_answer_e _status;
 
     public:
         Monitor(const TA& pos, const TA& neg);
 
-        monitor_answer_e input(const std::vector<timed_input_t>& input);
+        monitor_answer_e input(const std::vector<timed_input_t<is_interval>>& input);
 
-        monitor_answer_e input(const timed_input_t& input);
+        monitor_answer_e input(const timed_input_t<is_interval>& input);
 
         [[nodiscard]] monitor_answer_e status() const;
 
     };
-
-    typedef Monitor<symbolic_state_t> Interval_monitor;
-    typedef Monitor<concrete_state_t> Concrete_monitor;
 
 }
 

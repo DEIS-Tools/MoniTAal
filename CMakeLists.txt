@@ -20,7 +20,7 @@ file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/include)
 include(ExternalProject)
 ExternalProject_add(pardibaal
         GIT_REPOSITORY git@github.com:DEIS-Tools/PARDIBAAL.git
-        GIT_TAG clock-constraint
+        GIT_TAG delay
         CMAKE_ARGS (
             -DBUILD_TESTING=OFF
             -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}

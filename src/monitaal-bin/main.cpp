@@ -10,7 +10,7 @@
 
 namespace po = boost::program_options;
 using namespace monitaal;
-using ti = timed_input_t;
+using conc_ti = concrete_input;
 
 class Output {
 private:
@@ -90,20 +90,20 @@ int main(int argc, const char** argv) {
     TA neg = Parser::parse(vm["model"].as<std::string>().c_str(), vm["neg"].as<std::string>().c_str());
 
 //    output.do_output(vm, T, buchi_accept_states);
-    std::vector<ti> word1 = {
-        ti(0, "c"),
-        ti(2.5, "b"),
-        ti(100, "b"),
-        ti(2, "a"),
-        ti(0, "c"),
-        ti(5, "a"),
-        ti(10, "b"),
-        ti(0, "c"),
-        ti(0, "c")};
+    std::vector<conc_ti> word1 = {
+            conc_ti(0, "c"),
+            conc_ti(2, "b"),
+            conc_ti(100, "b"),
+            conc_ti(2, "a"),
+            conc_ti(0, "c"),
+            conc_ti(5, "a"),
+            conc_ti(10, "b"),
+            conc_ti(0, "c"),
+            conc_ti(0, "c")};
 
-    std::vector<ti> word2 = {
-            ti(0, "a"),
-            ti(101, "c")};
+    std::vector<conc_ti> word2 = {
+            conc_ti(0, "a"),
+            conc_ti(101, "c")};
 
 
     std::cout << pos << "\n" << neg << "\n";
