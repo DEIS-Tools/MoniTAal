@@ -32,7 +32,6 @@
 
 namespace po = boost::program_options;
 using namespace monitaal;
-using conc_ti = concrete_input;
 
 class Output {
 private:
@@ -114,53 +113,4 @@ int main(int argc, const char** argv) {
     }
 
     return 0;
-}
-
-void some_test() {
-    TA pos = Parser::parse("../../a-b.xml", "a_leadsto_b");
-    TA neg = Parser::parse("../../a-b.xml", "not_a_leadsto_b");
-
-    std::vector<conc_ti> word1 = {
-            conc_ti(0, "c"),
-            conc_ti(2, "b"),
-            conc_ti(100, "b"),
-            conc_ti(2, "a"),
-            conc_ti(0, "c"),
-            conc_ti(5, "a"),
-            conc_ti(10, "b"),
-            conc_ti(0, "c"),
-            conc_ti(0, "c")};
-
-    std::vector<conc_ti> word2 = {
-            conc_ti(0, "a"),
-            conc_ti(101, "c")};
-
-
-    std::cout << pos << "\n" << neg << "\n";
-
-
-    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
-    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
-
-    Concrete_monitor monitor(pos, neg);
-
-    auto answer = monitor.input(word1);
-    switch (answer) {
-        case INCONCLUSIVE: std::cout << "INCONCLUSIVE\n";
-            break;
-        case POSITIVE: std::cout << "POSITIVE\n";
-            break;
-        case NEGATIVE: std::cout << "NEGATIVE\n";
-            break;
-    }
-
-    answer = monitor.input(word2);
-    switch (answer) {
-        case INCONCLUSIVE: std::cout << "INCONCLUSIVE\n";
-            break;
-        case POSITIVE: std::cout << "POSITIVE\n";
-            break;
-        case NEGATIVE: std::cout << "NEGATIVE\n";
-            break;
-    }
 }

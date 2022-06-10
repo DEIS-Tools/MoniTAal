@@ -1,0 +1,5 @@
+configure_file(a-b.xml                  a-b.xml COPYONLY)
+configure_file(model.xml                model.xml COPYONLY)
+configure_file(startend_div_formula.xml startend_div_formula.xml COPYONLY)
+configure_file(startend_formula.xml     startend_formula.xml COPYONLY)
+configure_file(tree.xml                 tree.xml COPYONLY)
