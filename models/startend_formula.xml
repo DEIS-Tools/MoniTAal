@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+  <declaration>chan start; 
+chan end; 
+</declaration>
+  <template>
+    <name x="50" y="50">TBA</name>
+    <parameter/>
+    <declaration>clock x0; 
+</declaration>
+    <location id="id0" x="40" y="80">
+      <name x="40" y="80">S0_a</name>
+    </location>
+    <location id="id1" x="40" y="240">
+      <name x="40" y="240">S1_a</name>
+    </location>
+    <location id="id2" x="200" y="240">
+      <name x="200" y="240">S2_a</name>
+    </location>
+    <init ref="id1"/>
+    <transition controllable="true">
+      <source ref="id1"/>
+      <target ref="id1"/>
+      <label kind="synchronisation" x="25" y="225">end?</label>
+      <nail x="75" y="235"/>
+      <nail x="64" y="264"/>
+    </transition>
+    <transition controllable="true">
+      <source ref="id1"/>
+      <target ref="id2"/>
+      <label kind="synchronisation" x="141" y="245">start?</label>
+      <label kind="assignment" x="109" y="245">x0 = 0</label>
+      <nail x="146" y="400"/>
+    </transition>
+    <transition controllable="true">
+      <source ref="id2"/>
+      <target ref="id0"/>
+      <label kind="guard" x="118" y="158">x0 &gt; 10</label>
+      <label kind="synchronisation" x="129" y="169">start?</label>
+      <nail x="134" y="144"/>
+    </transition>
+    <transition controllable="true">
+      <source ref="id2"/>
+      <target ref="id0"/>
+      <label kind="guard" x="88" y="128">x0 &gt; 10</label>
+      <label kind="synchronisation" x="99" y="139">end?</label>
+      <nail x="74" y="144"/>
+    </transition>
+    <transition controllable="true">
+      <source ref="id2"/>
+      <target ref="id1"/>
+      <label kind="guard" x="88" y="235">x0 &lt;= 10</label>
+      <label kind="synchronisation" x="99" y="235">end?</label>
+      <nail x="74" y="240"/>
+    </transition>
+    <transition controllable="true">
+      <source ref="id2"/>
+      <target ref="id2"/>
+      <label kind="guard" x="220" y="260">x0 &lt;= 10</label>
+      <label kind="synchronisation" x="220" y="260">start?</label>
+      <nail x="270" y="200"/>
+      <nail x="252" y="292"/>
+    </transition>
+  </template>
+  <system>system TBA;</system>
+</nta>

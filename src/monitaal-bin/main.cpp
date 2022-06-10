@@ -1,3 +1,25 @@
+/*
+ * Copyright Thomas M. Grosen 
+ * Created on 19/05/2022
+ */
+
+/*
+ * This file is part of MoniTAal
+ *
+ * MoniTAal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MoniTAal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with MoniTAal. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "monitaal/Parser.h"
 #include "monitaal/Fixpoint.h"
 #include "monitaal/state.h"
@@ -27,7 +49,8 @@ private:
         return out;
     }
 
-    void print_simple(const TA& T, const symbolic_state_map_t& states) const {
+public:
+    static void print_simple(const TA& T, const symbolic_state_map_t& states) {
         std::cout << T << '\n';
         states.print(std::cout, T);
     }
@@ -39,10 +62,9 @@ private:
         out.close();
     }
 
-public:
     explicit Output(const std::string& caption = "Output Option") : output_options(caption) {
         output_options.add_options()
-                ("print,p", "Prints the conclusion (in simple format)")
+                ("print,p", po::value<std::string>(), "Print the analysis in simple format")
                 ("out,o", po::value<std::string>(&output_file)->implicit_value("out.txt"),
                         "Writes the conclusion to a file in simple format (out.txt by default)");
     }
@@ -63,9 +85,9 @@ int main(int argc, const char** argv) {
     po::options_description options;
     options.add_options()
             ("help,h", "Dispay this help message\nExample: monitaal-bin --pos <name> <path> --neg <name> <path>")
-            ("pos", po::value<std::string>()->required(), "Input name of the model for the property")
-            ("neg", po::value<std::string>()->required(), "Input name of the model for the negative property")
-            ("model,m", po::value<std::string>()->required(), "Path to the input model xml file");
+            ("pos", po::value<std::string>(), "Input name of the model for the property")
+            ("neg", po::value<std::string>(), "Input name of the model for the negative property")
+            ("model,m", po::value<std::string>(), "Path to the input model xml file");
 
     Output output("Output Option");
 
@@ -82,14 +104,22 @@ int main(int argc, const char** argv) {
     try {
         po::notify(vm);
     } catch (boost::wrapexcept<po::required_option>& e) {
-        std::cerr << "Error: two input models required\n";
+        std::cerr << "Error: Some required fields not given\n";
         exit(-1);
     }
 
-    TA pos = Parser::parse(vm["model"].as<std::string>().c_str(), vm["pos"].as<std::string>().c_str());
-    TA neg = Parser::parse(vm["model"].as<std::string>().c_str(), vm["neg"].as<std::string>().c_str());
+    if (vm.count("print")) {
+        TA T = Parser::parse(vm["print"].as<std::string>().c_str(), "");
+        Output::print_simple(T, Fixpoint::buchi_accept_fixpoint(T));
+    }
 
-//    output.do_output(vm, T, buchi_accept_states);
+    return 0;
+}
+
+void some_test() {
+    TA pos = Parser::parse("../../a-b.xml", "a_leadsto_b");
+    TA neg = Parser::parse("../../a-b.xml", "not_a_leadsto_b");
+
     std::vector<conc_ti> word1 = {
             conc_ti(0, "c"),
             conc_ti(2, "b"),
@@ -133,6 +163,4 @@ int main(int argc, const char** argv) {
         case NEGATIVE: std::cout << "NEGATIVE\n";
             break;
     }
-
-    return 0;
 }
