@@ -54,3 +54,7 @@ nbproject
 #vim
 *.swp
 /build/
+
+#sublime text
+*.sublime-project
+*.sublime-workspace
