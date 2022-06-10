@@ -37,9 +37,12 @@ namespace monitaal {
             exit(-1);
         }
 
-//        auto xml_ta = doc.child("nta").child("template");
-        auto xml_ta = doc.child("nta").find_child([name](pugi::xml_node node) {
-            return not std::strcmp(name, node.child("name").text().as_string()); });
+        pugi::xml_node xml_ta;
+        if (std::strlen(name) == 0)
+            xml_ta = doc.child("nta").child("template");
+        else
+            xml_ta = doc.child("nta").find_child([name](pugi::xml_node node) {
+                return not std::strcmp(name, node.child("name").text().as_string()); });
 
         pugi::xml_text ta_name = xml_ta.child("name").text();
         std::vector<std::string> ta_clocks;
