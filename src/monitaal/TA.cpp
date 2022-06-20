@@ -24,6 +24,7 @@
 #include "TA.h"
 
 #include <utility>
+
 namespace monitaal {
 
     location_t::location_t(bool accept, location_id_t id, std::string name, constraints_t invariant) :
@@ -46,8 +47,8 @@ namespace monitaal {
         return rtn;
     }
 
-    edge_t::edge_t(location_id_t from, location_id_t to, constraints_t& guard, clocks_t& reset, label_t& label) :
-            _from(from), _to(to), _guard(std::move(guard)), _reset(std::move(reset)), _label(std::move(label)) {}
+    edge_t::edge_t(location_id_t from, location_id_t to, const constraints_t& guard, const clocks_t& reset, const label_t& label) :
+            _from(from), _to(to), _guard(guard), _reset(reset), _label(label) {}
 
     location_id_t edge_t::from() const {
         return _from;
@@ -77,7 +78,7 @@ namespace monitaal {
     label_t edge_t::label() const {return _label;}
 
     TA::TA(std::string name, clock_map_t clocks, const locations_t &locations, const edges_t &edges, location_id_t initial) :
-            _name(std::move(name)), number_of_clocks(clocks.size()), _clock_names(clocks), _initial(initial) {
+            _name(std::move(name)), _number_of_clocks(clocks.size()), _clock_names(clocks), _initial(initial) {
         location_map_t loc_map;
         edge_map_t backward_edges, forward_edges;
 
@@ -110,6 +111,88 @@ namespace monitaal {
     const location_map_t &TA::locations() const { return _locations; }
 
     location_id_t TA::initial_location() const { return _initial; }
+
+    clock_index_t TA::number_of_clocks() const { return _number_of_clocks; }
+
+    void TA::intersection(const TA &other) {
+
+        clock_map_t new_clocks;
+
+        new_clocks.insert({0, "0"});
+        for (const auto& [index, name] : this->_clock_names) {
+            if (index != 0) {
+                new_clocks.insert({index, name + "_1"});
+            }
+        }
+
+        // Assume clock indexes range from 0 and onwards. Append them all (except for 0 clock, hence the - 1)
+        auto clock_size = this->_clock_names.size() - 1;
+        for (const auto& [index, name] : other._clock_names) {
+            if (index != 0) {
+                new_clocks.insert({index + clock_size, name + "_2"});
+            }
+        }
+
+        locations_t new_locations;
+        std::map<std::pair<location_id_t, location_id_t>, std::pair<location_id_t, location_id_t>> new_loc_indir;
+        location_id_t tmp_id = 0;
+        for (const auto& [id1, loc1] : this->_locations) {
+            for (const auto& [id2, loc2] : other.locations()) {
+                new_loc_indir.insert({{loc1.id(), loc2.id()}, {tmp_id, tmp_id+1}});
+
+                constraints_t constr(loc1.invariant());
+                for (const auto& c : loc2.invariant()) {
+                    constr.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_size),
+                                                  (c._j == 0 ? 0 : c._j + clock_size), c._bound));
+                }
+
+                location_t new_loc1(false, tmp_id, loc1.name() + '_' + loc2.name() + "_1", constr);
+                location_t new_loc2(loc2.is_accept(), tmp_id+1, loc1.name() + '_' + loc2.name() + "_2", constr);
+
+                new_locations.push_back(new_loc1);
+                new_locations.push_back(new_loc2);
+                tmp_id += 2;
+            }
+        }
+
+        edges_t new_edges;
+        for (const auto& [_, vec1] : this->_forward_edges)
+            for (const auto& e1 : vec1)
+                for (const auto& [_, vec2] : other._forward_edges)
+                    for (const auto& e2 : vec2)
+                        if (not e1.label().compare(e2.label())) {
+
+                            constraints_t guard(e1.guard());
+                            for (const auto& c : e2.guard()) {
+                                guard.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_size),
+                                                              (c._j == 0 ? 0 : c._j + clock_size), c._bound));
+                            }
+
+                            clocks_t reset(e1.reset());
+                            for (const auto& r : e2.reset())
+                                reset.push_back(r == 0 ? 0 : r + clock_size);
+
+                            const std::string label = e1.label();
+
+                            const auto& [l1, l2] = new_loc_indir.at({e1.to(), e2.to()});
+
+                            edge_t new_e1(new_loc_indir.at({e1.from(), e2.from()}).first,
+                                          (this->locations().at(e1.from()).is_accept() ? l2 : l1),
+                                              guard, reset, label);
+
+                            edge_t new_e2(new_loc_indir.at({e1.from(), e2.from()}).second,
+                                          (other.locations().at(e2.from()).is_accept() ? l1 : l2),
+                                          guard, reset, label);
+
+                            new_edges.push_back(new_e1);
+                            new_edges.push_back(new_e2);
+                        }
+
+
+        *this = TA(this->_name + '_' + other._name, new_clocks, new_locations, new_edges,
+                   new_loc_indir[{this->initial_location(), other.initial_location()}].first);
+
+    }
 
     std::ostream& operator<<(std::ostream& out, const TA& T) {
         out << T._name << "\n  Locations: (" << T._locations.at(T._initial).name() << ")\n";

@@ -37,7 +37,7 @@ namespace monitaal {
     _automaton(automaton), _accepting_space(Fixpoint::buchi_accept_fixpoint(automaton)) {
         
         typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>
-            init(_automaton.initial_location(), _automaton.number_of_clocks);
+            init(_automaton.initial_location(), _automaton.number_of_clocks());
 
         if (init.is_included_in(_accepting_space))
             _status = ACTIVE;
@@ -134,6 +134,15 @@ namespace monitaal {
     template<bool is_interval>
     monitor_answer_e Monitor<is_interval>::status() const {
         return _status;
+    }
+
+    std::ostream &monitaal::operator<<(std::ostream &out, const monitor_answer_e value) {
+        switch (value) {
+            case INCONCLUSIVE: out << "INCONCLUSIVE"; break;
+            case POSITIVE: out << "POSITIVE"; break;
+            case NEGATIVE: out << "NEGATIVE"; break;
+        }
+        return out;
     }
 
     template struct timed_input_t<true>;

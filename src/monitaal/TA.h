@@ -51,7 +51,7 @@ namespace monitaal {
     };
 
     struct edge_t {
-        edge_t(location_id_t from, location_id_t to, constraints_t& guard, clocks_t& reset, label_t& label);
+        edge_t(location_id_t from, location_id_t to, const constraints_t& guard, const clocks_t& reset, const label_t& label);
 
         [[nodiscard]] location_id_t from() const;
 
@@ -89,10 +89,11 @@ namespace monitaal {
 
         location_id_t _initial;
 
-    public:
-        const clock_index_t number_of_clocks;
+        clock_index_t _number_of_clocks;
 
-        TA(std::string  name, clock_map_t clocks, const locations_t &locations, const edges_t &edges, location_id_t initial);
+    public:
+
+        TA(std::string name, clock_map_t clocks, const locations_t &locations, const edges_t &edges, location_id_t initial);
 
         [[nodiscard]] const edges_t &edges_to(location_id_t id) const;
 
@@ -103,6 +104,10 @@ namespace monitaal {
         [[nodiscard]] const location_map_t& locations() const;
 
         [[nodiscard]] location_id_t initial_location() const;
+
+        [[nodiscard]] clock_index_t number_of_clocks() const;
+
+        void intersection (const TA& other);
 
         friend std::ostream& operator<<(std::ostream& out, const TA& T);
     };

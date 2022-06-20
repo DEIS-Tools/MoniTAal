@@ -48,6 +48,8 @@ namespace monitaal {
 
     enum monitor_answer_e {INCONCLUSIVE, POSITIVE, NEGATIVE};
 
+    std::ostream& operator<<(std::ostream& out, const monitor_answer_e value);
+
     /**
      * Monitors a property p from the two TBA's constructed for p and -p
      */

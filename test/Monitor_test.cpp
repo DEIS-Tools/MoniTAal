@@ -30,15 +30,15 @@
 
 using namespace monitaal;
 
-BOOST_AUTO_TEST_CASE(some_test_1) {
+BOOST_AUTO_TEST_CASE(some_test) {
     TA pos = Parser::parse("models/a-b.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b.xml", "not_a_leadsto_b");
 
     std::vector<concrete_input> word1 = {
             concrete_input(0, "c"),
-            concrete_input(2, "b"),
+            concrete_input(2.5, "b"),
             concrete_input(100, "b"),
-            concrete_input(2, "a"),
+            concrete_input(2.1, "a"),
             concrete_input(0, "c"),
             concrete_input(5, "a"),
             concrete_input(10, "b"),
@@ -53,4 +53,15 @@ BOOST_AUTO_TEST_CASE(some_test_1) {
 
     BOOST_CHECK(monitor.input(word1) == INCONCLUSIVE);
     BOOST_CHECK(monitor.input(word2) == NEGATIVE);
+}
+
+BOOST_AUTO_TEST_CASE(intersection_test_1) {
+    TA T1 = Parser::parse("models/small1.xml", "small1");
+    TA T2 = Parser::parse("models/small2.xml", "small2");
+
+    std::cout << T1 << T2;
+
+    T1.intersection(T2);
+
+    std::cout << T1;
 }
