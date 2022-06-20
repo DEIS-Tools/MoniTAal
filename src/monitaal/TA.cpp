@@ -194,6 +194,24 @@ namespace monitaal {
 
     }
 
+    TA TA::time_divergence_ta(const std::vector<std::string>& alphabet) {
+        clock_map_t clocks;
+        clocks.insert({0, "0"});
+        clocks.insert({1, "div_clock"});
+
+        locations_t locations;
+        locations.push_back(location_t(true, 0, "time_div1", constraints_t{}));
+        locations.push_back(location_t(false, 1, "time_div2", constraints_t{}));
+
+        edges_t edges;
+        for (const auto& a : alphabet) {
+            edges.push_back(edge_t(0, 1, constraints_t{}, clocks_t{1}, a));
+            edges.push_back(edge_t(1, 0, constraints_t{constraint_t::lower_non_strict(1, 1)}, clocks_t{}, a));
+        }
+
+        return TA("time_divergence", clocks, locations, edges, 0);
+    }
+
     std::ostream& operator<<(std::ostream& out, const TA& T) {
         out << T._name << "\n  Locations: (" << T._locations.at(T._initial).name() << ")\n";
         for (const auto& loc : T._locations) {
