@@ -186,7 +186,7 @@ namespace monitaal {
 
         for(const auto& [l, _] : this->_states) {
             if (states.has_state(l)) {
-                _states[l].intersect(states.at(l));
+                this->_states[l].intersect(states.at(l));
             } else {
                 erase_list.push_back(l);
             }

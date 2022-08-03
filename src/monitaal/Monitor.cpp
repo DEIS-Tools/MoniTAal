@@ -25,6 +25,8 @@
 #include <utility>
 #include <iostream>
 #include <type_traits>
+#include <cassert>
+#include <cstring>
 
 namespace monitaal {
 
@@ -136,7 +138,7 @@ namespace monitaal {
         return _status;
     }
 
-    std::ostream &monitaal::operator<<(std::ostream &out, const monitor_answer_e value) {
+    std::ostream& operator<<(std::ostream &out, const monitor_answer_e value) {
         switch (value) {
             case INCONCLUSIVE: out << "INCONCLUSIVE"; break;
             case POSITIVE: out << "POSITIVE"; break;

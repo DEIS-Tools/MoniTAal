@@ -70,19 +70,23 @@ namespace monitaal {
     }
 
     symbolic_state_map_t Fixpoint::buchi_accept_fixpoint(const TA &T) {
-        auto acc = accept_states(T);
-        auto intersection = acc;
-        auto reach_a = reach(acc, T);
-        intersection.intersection(reach_a);
-        auto reach_b = reach(intersection, T);
+        auto reach_a = reach(accept_states(T), T);
+
+        // Remove all states in all locations that are not accept. This is the same as intersecting with accept states
+        for (const auto &[l,_] : reach_a)
+            if (not T.locations().at(l).is_accept())
+                reach_a.remove(l);
+
+        auto reach_b = reach(reach_a, T);
 
         while (not reach_a.equals(reach_b)) {
             reach_a = reach_b;
-            intersection = acc;
 
-            intersection.intersection(reach_b);
+            for (const auto &[l,_] : reach_b)
+                if (not T.locations().at(l).is_accept())
+                    reach_b.remove(l);
 
-            reach_b = reach(intersection, T);
+            reach_b = reach(reach_b, T);
         }
 
         return reach_a;
