@@ -184,7 +184,7 @@ namespace monitaal {
     void symbolic_state_map_t::intersection(const symbolic_state_map_t& states) {
         std::vector<location_id_t> erase_list;
 
-        for(const auto& [l, _] : this->_states) {
+        for(auto &[l, _] : this->_states) {
             if (states.has_state(l)) {
                 this->_states[l].intersect(states.at(l));
             } else {
