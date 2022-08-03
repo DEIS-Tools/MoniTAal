@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.</declaration>
+	<template>
+		<name x="5" y="5">positive</name>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="136" y="0">
+			<name x="127" y="17">l1_a</name>
+		</location>
+		<location id="id1" x="0" y="0">
+			<name x="-17" y="8">l0</name>
+		</location>
+		<init ref="id1"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="170" y="-42">a!</label>
+			<nail x="170" y="0"/>
+			<nail x="170" y="-34"/>
+			<nail x="136" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="170" y="-25">b!</label>
+			<nail x="170" y="0"/>
+			<nail x="170" y="-34"/>
+			<nail x="136" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-51" y="-42">a!</label>
+			<nail x="-34" y="0"/>
+			<nail x="-34" y="-34"/>
+			<nail x="0" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<nail x="-34" y="0"/>
+			<nail x="-34" y="-34"/>
+			<nail x="0" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-51" y="-25">b!</label>
+			<nail x="-34" y="0"/>
+			<nail x="-34" y="-34"/>
+			<nail x="0" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="170" y="-8">c!</label>
+			<nail x="170" y="0"/>
+			<nail x="170" y="-34"/>
+			<nail x="136" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-51" y="-8">c!</label>
+			<nail x="-34" y="0"/>
+			<nail x="-34" y="-34"/>
+			<nail x="0" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="34" y="0">x &gt;= 20</label>
+			<label kind="synchronisation" x="59" y="-17">c!</label>
+		</transition>
+	</template>
+	<template>
+		<name>negative</name>
+		<location id="id2" x="136" y="0">
+			<name x="136" y="17">l1</name>
+		</location>
+		<location id="id3" x="0" y="0">
+			<name x="8" y="8">l0_a</name>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-85" y="-17">b!</label>
+			<nail x="-68" y="0"/>
+			<nail x="-68" y="-34"/>
+			<nail x="0" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-85" y="-34">a!</label>
+			<nail x="-34" y="0"/>
+			<nail x="-68" y="0"/>
+			<nail x="-68" y="-34"/>
+			<nail x="0" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-34" y="-85">x &lt; 20</label>
+			<label kind="synchronisation" x="-34" y="-68">c!</label>
+			<nail x="-34" y="0"/>
+			<nail x="-34" y="-68"/>
+			<nail x="0" y="-68"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="42" y="-17">x &gt;= 20</label>
+			<label kind="synchronisation" x="59" y="0">c!</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>

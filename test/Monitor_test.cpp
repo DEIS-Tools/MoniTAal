@@ -65,3 +65,15 @@ BOOST_AUTO_TEST_CASE(intersection_test_1) {
 
     std::cout << T1;
 }
+
+BOOST_AUTO_TEST_CASE(time_converge_test_1) {
+    TA converge_ta = Parser::parse("models/time_converge.xml", "time_convergence");
+
+    auto diverge_ta = TA::time_divergence_ta({"a"});
+
+    converge_ta.intersection(diverge_ta);
+
+    auto non_empty_states = Fixpoint::buchi_accept_fixpoint(converge_ta);
+
+    BOOST_CHECK(non_empty_states.is_empty());
+}
