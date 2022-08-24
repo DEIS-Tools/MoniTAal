@@ -6,6 +6,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories(include)
 
+INCLUDE_DIRECTORIES( ${PugiXML_INCLUDE_DIRS})
+
 set(HEADER_FILES
         TA.h
         state.h
@@ -22,10 +24,11 @@ add_library(MoniTAal
         Monitor.cpp)
 
 target_link_libraries(MoniTAal PRIVATE
-        pugixml
-        -lpardibaal)
+        ${pugixml_libraries}
+        -lpardibaal
+        -lutap)
 
-add_dependencies(MoniTAal pardibaal)
+add_dependencies(MoniTAal pugixml pardibaal utap)
 
 install(TARGETS MoniTAal
         RUNTIME DESTINATION bin
