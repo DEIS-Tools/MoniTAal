@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(EXTERNAL_INSTALL_LOCATION "${CMAKE_BINARY_DIR}/external")
 
+set(BUILD_SHARED_LIBS OFF)
+set(Boost_USE_STATIC_LIBS ON)
+
 FIND_PACKAGE(Boost 1.40 COMPONENTS program_options REQUIRED)
 FIND_PACKAGE(pugixml REQUIRED)
 
@@ -13,6 +16,7 @@ INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIRS})
 
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION})
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/lib)
+file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/lib64)
 file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/include)
 
 include(ExternalProject)
@@ -36,6 +40,7 @@ ExternalProject_add(utap
 
 include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
+link_directories(${EXTERNAL_INSTALL_LOCATION}/lib64)
 
 add_subdirectory(src/monitaal)
 target_include_directories(MoniTAal INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
