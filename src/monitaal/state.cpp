@@ -74,7 +74,7 @@ namespace monitaal {
     }
 
     void symbolic_state_t::delay(interval_t interval) {
-        _federation.delay(((pardibaal::val_t) interval.first, (pardibaal::val_t) interval.second));
+        _federation.interval_delay((pardibaal::val_t) interval.first, (pardibaal::val_t) interval.second);
     }
 
     //TODO:
@@ -85,7 +85,10 @@ namespace monitaal {
         if (not _federation.satisfies(edge.guard()))
             return false;
 
-        _federation.restrict(edge.guard());
+        if (!edge.guard().empty()) {
+            for (auto& c : edge.guard())
+                _federation.restrict(c);
+        }
 
         for (const auto& r : edge.reset())
             _federation.assign(r, 0);
