@@ -11,10 +11,10 @@ clock x;</declaration>
 		<name x="5" y="5">a_leadsto_b</name>
 		<declaration>// Place local declarations here.</declaration>
 		<location id="id0" x="170" y="0">
-			<name x="153" y="-34">l2</name>
+			<name x="153" y="-34">q2</name>
 		</location>
 		<location id="id1" x="0" y="0">
-			<name x="-17" y="17">l1_a</name>
+			<name x="-17" y="17">q1_a</name>
 		</location>
 		<init ref="id1"/>
 		<transition>
@@ -63,13 +63,13 @@ clock x;</declaration>
 	<template>
 		<name>not_a_leadsto_b</name>
 		<location id="id2" x="272" y="0">
-			<name x="262" y="-34">l4_a</name>
+			<name x="262" y="-34">q3_a</name>
 		</location>
 		<location id="id3" x="136" y="0">
-			<name x="126" y="-34">l2</name>
+			<name x="126" y="-34">q2</name>
 		</location>
 		<location id="id4" x="0" y="0">
-			<name x="-25" y="-34">l1</name>
+			<name x="-25" y="-34">q1</name>
 		</location>
 		<init ref="id4"/>
 		<transition>
