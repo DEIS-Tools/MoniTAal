@@ -205,6 +205,7 @@ namespace monitaal {
 
         edges_t edges;
         for (const auto& a : alphabet) {
+            edges.push_back(edge_t(1, 1, constraints_t{}, clocks_t{}, a));
             edges.push_back(edge_t(0, 1, constraints_t{}, clocks_t{1}, a));
             edges.push_back(edge_t(1, 0, constraints_t{constraint_t::lower_non_strict(1, 1)}, clocks_t{}, a));
         }
