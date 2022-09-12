@@ -92,6 +92,9 @@ namespace monitaal {
         return _status;
     }
 
+    template<bool is_interval> typename std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+    Monitor<is_interval>::Single_monitor::state_estimate() { return _current_states; };
+
     template<bool is_interval>
     Monitor<is_interval>::Monitor(const TA& pos, const TA& neg)
             : _monitor_pos(Single_monitor(pos)), _monitor_neg(Single_monitor(neg)) {
@@ -136,6 +139,18 @@ namespace monitaal {
     template<bool is_interval>
     monitor_answer_e Monitor<is_interval>::status() const {
         return _status;
+    }
+
+    template<bool is_interval>
+    std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+    Monitor<is_interval>::positive_state_estimate() {
+        return _monitor_pos.state_estimate();
+    }
+
+    template<bool is_interval>
+    std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+    Monitor<is_interval>::negative_state_estimate() {
+        return _monitor_neg.state_estimate();
     }
 
     std::ostream& operator<<(std::ostream &out, const monitor_answer_e value) {
