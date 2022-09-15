@@ -27,8 +27,23 @@
 #include <iostream>
 #include <sstream>
 #include <boost/algorithm/string/predicate.hpp>
+#include <pugixml.hpp>
 
 namespace monitaal {
+
+    bool load_file(pugi::xml_document &doc, const char *path) {
+        pugi::xml_parse_result result = doc.load_file(path);
+
+        if (result) {
+            std::cout << "Parsed \"" << path << "\" without errors\n";
+            return true;
+        }
+        else {
+            std::cout << "Parsed \"" << path << "\" with errors: " << result.description() << '\n';
+            std::cout << "Error offset: " << result.offset << '\n';
+            return false;
+        }
+    }
 
     TA Parser::parse(const char *path, const char *name) {
         pugi::xml_document doc;
@@ -96,20 +111,6 @@ namespace monitaal {
         location_id_t initial = parse_loc_id(xml_ta.child("init").attribute("ref").as_string());
 
         return TA(ta_name.as_string(), clocks, locations, edges, initial);
-    }
-
-    bool Parser::load_file(pugi::xml_document &doc, const char *path) {
-        pugi::xml_parse_result result = doc.load_file(path);
-
-        if (result) {
-            std::cout << "Parsed \"" << path << "\" without errors\n";
-            return true;
-        }
-        else {
-            std::cout << "Parsed \"" << path << "\" with errors: " << result.description() << '\n';
-            std::cout << "Error offset: " << result.offset << '\n';
-            return false;
-        }
     }
 
     constraints_t Parser::parse_constraint(const std::string& input, std::vector<std::string>& clocks) {

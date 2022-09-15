@@ -7,7 +7,7 @@
  * This file is part of MoniTAal
  *
  * MoniTAal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
+ * it under the tzms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
@@ -26,8 +26,6 @@
 #include "TA.h"
 #include "types.h"
 
-#include <pugixml.hpp>
-
 namespace monitaal {
 
     enum operator_e {
@@ -39,8 +37,6 @@ namespace monitaal {
         static TA parse(const char *path, const char *name);
 
     private:
-        static bool load_file(pugi::xml_document& doc, const char *path);
-
         static constraints_t parse_constraint(const std::string& input, std::vector<std::string>& clocks);
 
         static clocks_t parse_reset(const std::string& input, std::vector<std::string>& clocks);
