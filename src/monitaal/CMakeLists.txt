@@ -22,7 +22,7 @@ add_library(MoniTAal
         Monitor.cpp)
 
 target_link_libraries(MoniTAal PRIVATE
-        pugixml
+        -lpugixml
         -lpardibaal)
 
 add_dependencies(MoniTAal pardibaal)

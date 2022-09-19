@@ -58,3 +58,6 @@ nbproject
 #sublime text
 *.sublime-project
 *.sublime-workspace
+
+#vscode
+.vscode
