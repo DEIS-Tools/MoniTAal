@@ -30,6 +30,230 @@
 
 using namespace monitaal;
 
+BOOST_AUTO_TEST_CASE(presentation_interval) {
+    TA pos = Parser::parse("models/a-b30.xml", "a_leadsto_b");
+    TA neg = Parser::parse("models/a-b30.xml", "not_a_leadsto_b");
+    auto div = TA::time_divergence_ta({"a", "b", "c"});
+
+    std::cout << "<<<<<< Parsing models >>>>>>\n\nPositive Model:\n" << pos << "\nNegative Model:\n" << neg;
+
+    /* Fixpoint states */
+
+    std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
+    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+
+    std::cout << "Negative fixpoint states:\n";
+    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+
+
+
+    /* Conjunction with Divergence automaton */
+
+    pos.intersection(div);
+    neg.intersection(div);
+
+    std::cout << "\n<<<<<< Conjuntion with divergence automaton >>>>>>\n\n" << "Positive Model:\n" << pos << "\nNegative Model:\n" << neg << "\n\n";
+
+    std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
+    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+
+    std::cout << "Negative fixpoint states:\n";
+    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+
+    std::cout << "<<<<<< Monitoring >>>>>>\n\n";
+    std::vector<interval_input> word1 = {
+            interval_input({0, 1}, "c"),
+            interval_input({2, 5}, "b"),
+            interval_input({50, 100}, "b"),
+            interval_input({2, 3}, "a"),
+            interval_input({0, 0}, "c"),
+            interval_input({1, 5}, "a"),
+            interval_input({0, 30}, "b"),
+            interval_input({1, 20}, "c")};
+
+
+    std::vector<interval_input> word2 = {
+            interval_input({0, 10}, "a"),
+            interval_input({30, 40}, "c")};
+
+    Interval_monitor monitor(pos, neg);
+
+    std::cout << "Monitoring word: ";
+    for (const auto& c : word1)
+        std::cout << "(" << c.label << ", " << c.time.first << "-" << c.time.second <<  ") ";
+
+    monitor.input(word1);
+
+    std::cout << "\nConclusion: " << monitor.status() << "\nState estimate positive:\n";
+
+    if (monitor.positive_state_estimate().empty())
+        std::cout << "empty\n";
+    else
+        for (const auto& s : monitor.positive_state_estimate()) {
+            std::cout << pos.locations().at(s.location()).name() << s.federation() << "\n";
+        }
+
+    std::cout << "\nState estimate negative:\n";
+
+    if (monitor.negative_state_estimate().empty())
+        std::cout << "empty\n";
+    else
+        for (const auto& s : monitor.negative_state_estimate()) {
+            std::cout << neg.locations().at(s.location()).name() << s.federation() << "\n";
+        }
+
+
+
+    std::cout << "Monitoring word: ";
+    for (const auto& c : word2)
+        std::cout << "(" << c.label << ", " << c.time.first << "-" << c.time.second <<  ") ";
+
+    monitor.input(word2);
+
+    std::cout << "\nConclusion: " << monitor.status() << "\nState estimate positive:\n";
+
+    if (monitor.positive_state_estimate().empty())
+        std::cout << "empty\n";
+    else
+        for (const auto& s : monitor.positive_state_estimate()) {
+            std::cout << pos.locations().at(s.location()).name() << s.federation() << "\n";
+        }
+
+    std::cout << "\nState estimate negative:\n";
+
+    if (monitor.negative_state_estimate().empty())
+        std::cout << "empty\n";
+    else
+        for (const auto& s : monitor.negative_state_estimate()) {
+            std::cout << neg.locations().at(s.location()).name() << s.federation() << "\n";
+        }
+
+}
+
+BOOST_AUTO_TEST_CASE(presentation_concrete) {
+    TA pos = Parser::parse("models/a-b30.xml", "a_leadsto_b");
+    TA neg = Parser::parse("models/a-b30.xml", "not_a_leadsto_b");
+    auto div = TA::time_divergence_ta({"a", "b", "c"});
+
+    std::cout << "<<<<<< Parsing models >>>>>>\n\nPositive Model:\n" << pos << "\nNegative Model:\n" << neg;
+
+
+    /* Fixpoint states */
+
+    std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
+    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+
+    std::cout << "Negative fixpoint states:\n";
+    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+
+
+
+    /* Conjunction with Divergence automaton */
+
+//    pos.intersection(div);
+//    neg.intersection(div);
+//
+//    std::cout << "\n<<<<<< Conjuntion with divergence automaton >>>>>>\n\n" << "Positive Model:\n" << pos << "\nNegative Model:\n" << neg << "\n\n";
+//
+//    std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
+//    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+//
+//    std::cout << "Negative fixpoint states:\n";
+//    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+
+
+
+    /* Monitoring */
+
+    std::cout << "<<<<<< Monitoring >>>>>>\n\n";
+    std::vector<concrete_input> word1 = {
+            concrete_input(0, "c"),
+            concrete_input(2.5, "b"),
+            concrete_input(100, "b"),
+            concrete_input(2.1, "a"),
+            concrete_input(0, "c"),
+            concrete_input(5, "a"),
+            concrete_input(10, "b"),
+            concrete_input(0, "c"),
+            concrete_input(0, "c")};
+
+    std::vector<concrete_input> word2 = {
+            concrete_input(0, "a"),
+            concrete_input(101, "c")};
+
+    Concrete_monitor monitor(pos, neg);
+
+    std::cout << "Monitoring word: ";
+    for (const auto& c : word1)
+        std::cout << "(" << c.label << ", " << c.time <<  ") ";
+
+    monitor.input(word1);
+
+    std::cout << "\nConclusion: " << monitor.status() << "\nState estimate positive:\n";
+
+    int i;
+    if (monitor.positive_state_estimate().empty())
+        std::cout << "empty\n";
+    else
+        for (const auto& s : monitor.positive_state_estimate()) {
+            std::cout << pos.locations().at(s.location()).name() << " : ";
+            i = 0;
+            for (const auto& v : s.valuation())
+                std::cout << pos.clock_name(i++) << " = " << v << ", ";
+            std::cout << "\n";
+        }
+
+    std::cout << "State estimate negative:\n";
+    if (monitor.negative_state_estimate().empty())
+        std::cout << "empty\n";
+    else
+        for (const auto& s : monitor.negative_state_estimate()) {
+            std::cout << neg.locations().at(s.location()).name() << " : ";
+            i = 0;
+            for (const auto& v : s.valuation())
+                std::cout << neg.clock_name(i++) << " = " << v << ", ";
+            std::cout << "\n";
+        }
+
+    std::cout << "\nMonitoring word: ";
+    for (const auto& c : word2)
+        std::cout << "(" << c.label << ", " << c.time <<  ") ";
+
+    monitor.input(word2);
+
+    std::cout << "\nConclusion: " << monitor.status() << "\nState estimate positive:\n";
+
+    if (monitor.positive_state_estimate().empty())
+        std::cout << "empty\n";
+    else
+        for (const auto& s : monitor.positive_state_estimate()) {
+            std::cout << pos.locations().at(s.location()).name() << " : ";
+            i = 0;
+            for (const auto& v : s.valuation())
+                std::cout << pos.clock_name(i++) << " = " << v << ", ";
+            std::cout << "\n";
+        }
+
+    std::cout << "State estimate negative:\n";
+    if (monitor.negative_state_estimate().empty())
+        std::cout << "empty\n";
+    else
+        for (const auto& s : monitor.negative_state_estimate()) {
+            std::cout << neg.locations().at(s.location()).name() << " : ";
+            i = 0;
+            for (const auto& v : s.valuation()) {
+                std::cout << neg.clock_name(i++) << " = " << v << ", ";
+            }
+            std::cout << "\n";
+        }
+}
+
+BOOST_AUTO_TEST_CASE(time_div_print) {
+    auto div = TA::time_divergence_ta({"a", "b", "c"});
+
+    std::cout << div;
+}
+
 BOOST_AUTO_TEST_CASE(some_test) {
     TA pos = Parser::parse("models/a-b.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b.xml", "not_a_leadsto_b");

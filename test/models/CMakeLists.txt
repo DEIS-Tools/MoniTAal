@@ -1,4 +1,5 @@
 configure_file(a-b.xml             a-b.xml COPYONLY)
+configure_file(a-b30.xml           a-b30.xml COPYONLY)
 configure_file(small1.xml          small1.xml COPYONLY)
 configure_file(small2.xml          small2.xml COPYONLY)
 configure_file(time_converge.xml   time_converge.xml COPYONLY)

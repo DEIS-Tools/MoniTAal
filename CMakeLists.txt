@@ -34,7 +34,7 @@ link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 add_subdirectory(src/monitaal)
 target_include_directories(MoniTAal INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-add_subdirectory(src/monitaal-bin)
+#add_subdirectory(src/monitaal-bin)
 
 if(BUILD_TESTING)
     enable_testing()

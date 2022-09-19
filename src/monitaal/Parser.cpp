@@ -60,7 +60,11 @@ namespace monitaal {
 
             constraints_t invariant = parse_constraint(loc.child("label").text().as_string(), ta_clocks);
 
-            locations.push_back(location_t(boost::algorithm::ends_with(name, "_a"), id, name, invariant));
+            if (boost::algorithm::ends_with(name, "_a")) {
+                locations.push_back(location_t(true, id, name.substr(0, name.length() - 2), invariant));
+            }
+            else
+                locations.push_back(location_t(false, id, name, invariant));
         }
 
         // Loop through all transitions

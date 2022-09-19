@@ -76,6 +76,9 @@ namespace monitaal {
             single_monitor_answer_e status();
 
             single_monitor_answer_e input(const timed_input_t<is_interval>& input);
+
+            std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+            state_estimate();
         };
 
         Single_monitor _monitor_pos, _monitor_neg;
@@ -90,6 +93,12 @@ namespace monitaal {
         monitor_answer_e input(const std::vector<timed_input_t<is_interval>>& input);
 
         monitor_answer_e input(const timed_input_t<is_interval>& input);
+
+        std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+        positive_state_estimate();
+
+        std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+        negative_state_estimate();
 
         [[nodiscard]] monitor_answer_e status() const;
 
