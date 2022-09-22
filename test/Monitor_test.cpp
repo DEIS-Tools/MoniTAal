@@ -31,7 +31,7 @@
 using namespace monitaal;
 
 BOOST_AUTO_TEST_CASE(time_div_print) {
-    auto div = TA::time_divergence_ta({"a", "b", "c"});
+    auto div = TA::time_divergence_ta({"a", "b", "c"}, false);
 
     std::cout << div;
 }
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(intersection_test_1) {
 BOOST_AUTO_TEST_CASE(time_converge_test_1) {
     TA converge_ta = Parser::parse("models/time_converge.xml", "time_convergence");
 
-    auto diverge_ta = TA::time_divergence_ta({"a"});
+    auto diverge_ta = TA::time_divergence_ta({"a"}, false);
 
     converge_ta.intersection(diverge_ta);
 

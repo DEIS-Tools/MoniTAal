@@ -109,7 +109,7 @@ namespace monitaal {
 
         void intersection (const TA& other);
 
-        static TA time_divergence_ta(const std::vector<std::string>& alphabet);
+        static TA time_divergence_ta(const std::vector<std::string>& alphabet, bool deterministic);
 
         friend std::ostream& operator<<(std::ostream& out, const TA& T);
     };

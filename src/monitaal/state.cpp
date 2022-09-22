@@ -152,7 +152,7 @@ namespace monitaal {
     void symbolic_state_map_t::insert(symbolic_state_t state) {
 
         if (not state.is_empty()) {
-            if (_states.find(state.location()) == _states.end()) {
+            if (not this->has_state(state.location())) {
                 _states.insert({state.location(), state});
             } else {
                 _states[state.location()].add(state);

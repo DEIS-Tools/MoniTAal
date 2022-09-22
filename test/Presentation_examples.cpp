@@ -34,7 +34,7 @@ using namespace monitaal;
 BOOST_AUTO_TEST_CASE(presentation_interval) {
     TA pos = Parser::parse("models/a-b30.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b30.xml", "not_a_leadsto_b");
-    auto div = TA::time_divergence_ta({"a", "b", "c"});
+    auto div = TA::time_divergence_ta({"a", "b", "c"}, false);
 
     std::cout << "<<<<<< Parsing models >>>>>>\n\nPositive Model:\n" << pos << "\nNegative Model:\n" << neg;
 
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(presentation_interval) {
 BOOST_AUTO_TEST_CASE(presentation_concrete) {
     TA pos = Parser::parse("models/a-b30.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b30.xml", "not_a_leadsto_b");
-    auto div = TA::time_divergence_ta({"a", "b", "c"});
+    auto div = TA::time_divergence_ta({"a", "b", "c"}, false);
 
     std::cout << "<<<<<< Parsing models >>>>>>\n\nPositive Model:\n" << pos << "\nNegative Model:\n" << neg;
 

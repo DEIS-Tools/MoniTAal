@@ -30,7 +30,7 @@ namespace monitaal {
         symbolic_state_map_t waiting;
         symbolic_state_map_t passed;
 
-//         We have to take at least one step
+        // We have to take at least one step
         for (const auto& [_, s] : states) {
             for (const auto& e : T.edges_to(s.location())) {
                 auto state = s;
@@ -40,7 +40,7 @@ namespace monitaal {
         }
 
         while (not waiting.is_empty()) {
-            auto s = waiting.begin()->second;
+            symbolic_state_t s = waiting.begin()->second;
             waiting.remove(s.location());
 
             if (passed.has_state(s.location()) && s.is_included_in(passed.at(s.location())))
@@ -49,9 +49,9 @@ namespace monitaal {
             passed.insert(s);
 
             for (const auto& e : T.edges_to(s.location())) {
-                 auto pred = s;
+                auto pred = s;
                 pred.do_transition_backward(e);
-                 waiting.insert(pred);
+                waiting.insert(pred);
             }
         }
 
