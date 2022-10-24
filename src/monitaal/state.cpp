@@ -129,7 +129,7 @@ namespace monitaal {
     }
 
     bool symbolic_state_t::equals(const symbolic_state_t& state) const {
-        return _federation.is_equal(state._federation);
+        return _federation.is_approx_equal(state._federation);
     }
 
     bool symbolic_state_t::satisfies(const constraint_t &constraint) const {
