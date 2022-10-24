@@ -77,12 +77,11 @@ namespace monitaal {
         _federation.interval_delay((pardibaal::val_t) interval.first, (pardibaal::val_t) interval.second);
     }
 
-    //TODO:
     bool symbolic_state_t::do_transition(const edge_t& edge) {
         if (edge.from() != _location) return false;
 
         // If the transition is not possible, do nothing and return false
-        if (not _federation.satisfies(edge.guard()))
+        if (not _federation.is_satisfying(edge.guard()))
             return false;
 
         if (!edge.guard().empty()) {
@@ -122,21 +121,23 @@ namespace monitaal {
     }
 
     bool symbolic_state_t::is_included_in(const symbolic_state_t &state) const {
-        if (state._location == _location)
-            return _federation.subset(state._federation);
+        if (state._location == _location) {
+            auto rel = _federation.approx_relation(state._federation);
+            return rel.is_equal() || rel.is_subset();
+        }
         return false;
     }
 
     bool symbolic_state_t::equals(const symbolic_state_t& state) const {
-        return _federation.equal(state._federation);
+        return _federation.is_equal(state._federation);
     }
 
     bool symbolic_state_t::satisfies(const constraint_t &constraint) const {
-        return _federation.satisfies(constraint);
+        return _federation.is_satisfying(constraint);
     }
 
     bool symbolic_state_t::satisfies(const constraints_t &constraints) const {
-        return _federation.satisfies(constraints);
+        return _federation.is_satisfying(constraints);
     }
 
     location_id_t symbolic_state_t::location() const {

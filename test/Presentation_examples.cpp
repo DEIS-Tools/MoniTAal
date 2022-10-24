@@ -34,7 +34,7 @@ using namespace monitaal;
 BOOST_AUTO_TEST_CASE(presentation_interval) {
     TA pos = Parser::parse("models/a-b30.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b30.xml", "not_a_leadsto_b");
-    auto div = TA::time_divergence_ta({"a", "b", "c"}, false);
+    auto div = TA::time_divergence_ta({"a", "b", "c"}, true);
 
     std::cout << "<<<<<< Parsing models >>>>>>\n\nPositive Model:\n" << pos << "\nNegative Model:\n" << neg;
 
@@ -50,16 +50,16 @@ BOOST_AUTO_TEST_CASE(presentation_interval) {
 
     /* Conjunction with Divergence automaton */
 
-    // pos.intersection(div);
-    // neg.intersection(div);
+    pos.intersection(div);
+    neg.intersection(div);
 
-    // std::cout << "\n<<<<<< Conjuntion with divergence automaton >>>>>>\n\n" << "Positive Model:\n" << pos << "\nNegative Model:\n" << neg << "\n\n";
+    std::cout << "\n<<<<<< Conjuntion with divergence automaton >>>>>>\n\n" << "Positive Model:\n" << pos << "\nNegative Model:\n" << neg << "\n\n";
 
-    // std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
-    // Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+    std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
+    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
 
-    // std::cout << "Negative fixpoint states:\n";
-    // Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+    std::cout << "Negative fixpoint states:\n";
+    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
 
     std::cout << "<<<<<< Monitoring >>>>>>\n\n";
     std::vector<interval_input> word1 = {
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(presentation_interval) {
 BOOST_AUTO_TEST_CASE(presentation_concrete) {
     TA pos = Parser::parse("models/a-b30.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b30.xml", "not_a_leadsto_b");
-    auto div = TA::time_divergence_ta({"a", "b", "c"}, false);
+    auto div = TA::time_divergence_ta({"a", "b", "c"}, true);
 
     std::cout << "<<<<<< Parsing models >>>>>>\n\nPositive Model:\n" << pos << "\nNegative Model:\n" << neg;
 
@@ -151,10 +151,10 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
 
     /* Conjunction with Divergence automaton */
 
-//    pos.intersection(div);
-//    neg.intersection(div);
+   pos.intersection(div);
+   neg.intersection(div);
 
-//    std::cout << "\n<<<<<< Conjuntion with divergence automaton >>>>>>\n\n" << "Positive Model:\n" << pos << "\nNegative Model:\n" << neg << "\n\n";
+   std::cout << "\n<<<<<< Conjuntion with divergence automaton >>>>>>\n\n" << "Positive Model:\n" << pos << "\nNegative Model:\n" << neg << "\n\n";
 
    std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);

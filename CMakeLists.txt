@@ -25,7 +25,7 @@ ExternalProject_add(pugixml
 
 ExternalProject_add(pardibaal
     GIT_REPOSITORY git@github.com:DEIS-Tools/PARDIBAAL.git
-    GIT_TAG delay
+    GIT_TAG main
     CMAKE_ARGS (
         -DBUILD_TESTING=OFF
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
