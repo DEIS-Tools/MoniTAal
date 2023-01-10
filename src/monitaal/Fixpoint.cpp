@@ -35,7 +35,8 @@ namespace monitaal {
             for (const auto& e : T.edges_to(s.location())) {
                 auto state = s;
                 state.do_transition_backward(e);
-                waiting.insert(state);
+                state.restrict(T.locations().at(e.from()).invariant());
+                waiting.insert(state); //Checks for emptyness of the state before inserting
             }
         }
 
@@ -51,6 +52,7 @@ namespace monitaal {
             for (const auto& e : T.edges_to(s.location())) {
                 auto pred = s;
                 pred.do_transition_backward(e);
+                pred.restrict(T.locations().at(e.from()).invariant());
                 waiting.insert(pred);
             }
         }
