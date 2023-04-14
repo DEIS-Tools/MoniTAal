@@ -245,7 +245,7 @@ namespace monitaal {
 
     // Empty because we don't need restriction for concrete states.
     void concrete_state_t::restrict(const constraints_t &constraints) {
-        if (this->satisfies(constraints))
+        if (!this->satisfies(constraints))
             _valuation[0] = -1;
     }
 
@@ -283,18 +283,20 @@ namespace monitaal {
     }
 
     bool concrete_state_t::is_included_in(const symbolic_state_t &states) const {
-        if (states.location() != _location) {
+        if (states.location() != _location || states.is_empty()) {
             return false;
-        } else if (not states.is_empty()) {
-            for (const auto &dbm : states.federation())
-
+        } else {
+            for (const auto &dbm : states.federation()) {
+                bool sat = true;
                 for (pardibaal::dim_t i = 0; i < dbm.dimension(); ++i)
                     for (pardibaal::dim_t j = 0; j < dbm.dimension(); ++j)
                         if (!satisfies(i, j, dbm.at(i, j)))
-                            return false;
+                            sat = false;
+                if (sat) return true;
+            }
         }
 
-        return true;
+        return false;
     }
 
     bool concrete_state_t::is_included_in(const symbolic_state_map_t &states) const {
