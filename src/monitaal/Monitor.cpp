@@ -55,6 +55,7 @@ namespace monitaal {
 
     template<bool is_interval> typename Monitor<is_interval>::single_monitor_answer_e
     Monitor<is_interval>::Single_monitor::input(const timed_input_t<is_interval>& input) {
+
         std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
                 next_states;
 

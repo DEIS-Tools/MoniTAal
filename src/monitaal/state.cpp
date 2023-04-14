@@ -81,7 +81,7 @@ namespace monitaal {
         if (edge.from() != _location) return false;
 
         // If the transition is not possible, do nothing and return false
-        if (not _federation.is_satisfying(edge.guard()))
+        if (not this->satisfies(edge.guard()))
             return false;
 
         if (!edge.guard().empty()) {
@@ -244,20 +244,22 @@ namespace monitaal {
     }
 
     // Empty because we don't need restriction for concrete states.
-    void concrete_state_t::restrict(const constraints_t &constraints) {}
+    void concrete_state_t::restrict(const constraints_t &constraints) {
+        if (!this->satisfies(constraints))
+            _valuation[0] = -1;
+    }
 
     bool concrete_state_t::do_transition(const edge_t &edge) {
-        if (edge.from() != _location) return false;
-        // If the transition is not possible, do nothing and return false
-        for (const auto& c : edge.guard()) {
-            if (c._bound.is_strict()) {
-                if (_valuation[c._i] - _valuation[c._j] >= c._bound.get_bound())
-                    return false;
-            } else {
-                if (_valuation[c._i] - _valuation[c._j] > c._bound.get_bound())
-                    return false;
-            }
+        if (edge.from() != _location) {
+            _valuation[0] = -1; // if the first is -1 then the valuation is empty/invalid
+            return false;
         }
+        // If the transition is not possible, do nothing and return false
+        for (const auto& c : edge.guard())
+            if (!satisfies(c)) {
+                _valuation[0] = -1;
+                return false;
+            }
 
         _location = edge.to();
 
@@ -276,28 +278,25 @@ namespace monitaal {
         return _location;
     }
 
+    bool concrete_state_t::is_empty() const {
+        return _valuation[0] < 0;
+    }
+
     bool concrete_state_t::is_included_in(const symbolic_state_t &states) const {
-        if (states.location() != _location) {
+        if (states.location() != _location || states.is_empty()) {
             return false;
-        } else if (not states.is_empty()) {
-            for (const auto &dbm : states.federation())
-
+        } else {
+            for (const auto &dbm : states.federation()) {
+                bool sat = true;
                 for (pardibaal::dim_t i = 0; i < dbm.dimension(); ++i)
-                    for (pardibaal::dim_t j = 0; j < dbm.dimension(); ++j) {
-
-                        if (dbm.at(i, j).is_inf()) continue;
-
-                        if (dbm.at(i, j).is_strict()) {
-                            if (_valuation[i] - _valuation[j] >= dbm.at(i, j).get_bound())
-                                return false;
-                        } else {
-                            if (_valuation[i] - _valuation[j] > dbm.at(i, j).get_bound())
-                                return false;
-                        }
-                    }
+                    for (pardibaal::dim_t j = 0; j < dbm.dimension(); ++j)
+                        if (!satisfies(i, j, dbm.at(i, j)))
+                            sat = false;
+                if (sat) return true;
+            }
         }
 
-        return true;
+        return false;
     }
 
     bool concrete_state_t::is_included_in(const symbolic_state_map_t &states) const {
@@ -309,12 +308,20 @@ namespace monitaal {
 
     }
 
-    bool concrete_state_t::satisfies(const constraint_t &constraint) const {
-        if (constraint._bound.is_strict()) {
-            return (_valuation[constraint._i] - _valuation[constraint._j] < constraint._bound.get_bound());
+    bool concrete_state_t::satisfies(pardibaal::dim_t i, pardibaal::dim_t j, pardibaal::bound_t bound) const {
+        if (_valuation[0] < 0) 
+            return false;
+        if (bound.is_inf()) 
+            return true;
+        if (bound.is_strict()) {
+            return (_valuation[i] - _valuation[j] < bound.get_bound());
         } else {
-            return (_valuation[constraint._i] - _valuation[constraint._j] <= constraint._bound.get_bound());
+            return (_valuation[i] - _valuation[j] <= bound.get_bound());
         }
+    }
+
+    bool concrete_state_t::satisfies(const constraint_t &constraint) const {
+        return satisfies(constraint._i, constraint._j, constraint._bound);
     }
 
     bool concrete_state_t::satisfies(const constraints_t &constraints) const {
