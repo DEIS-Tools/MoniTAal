@@ -67,8 +67,9 @@ namespace monitaal {
                 continue;
 
             auto state = s;
-            for (const auto& edge : _automaton.edges_from(s.location()))
-                if (std::strcmp(edge.label().c_str(), input.label.c_str()) == 0) //for all edges with input label
+            for (const auto& edge : _automaton.edges_from(s.location())) {
+
+                if (std::strcmp(edge.label().c_str(), input.label.c_str()) == 0) { //for all edges with input label
 
                     // If we can do the transition (then do it) and also satisfies the invariant, then explore this
                     if (state.do_transition(edge) && state.satisfies(_automaton.locations()
@@ -78,8 +79,10 @@ namespace monitaal {
                         // Only add the state if it is included in the possible accept space
                         if (state.is_included_in(_accepting_space))
                             next_states.push_back(state);
-                        state = s;
                     }
+                    state = s;
+                }
+            }
         }
 
         // Only possible accept states are added. If empty, then we are out
