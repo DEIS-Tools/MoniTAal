@@ -122,7 +122,7 @@ namespace monitaal {
 
     bool symbolic_state_t::is_included_in(const symbolic_state_t &state) const {
         if (state._location == _location) {
-            auto rel = _federation.approx_relation(state._federation);
+            auto rel = _federation.exact_relation(state._federation);
             return rel.is_equal() || rel.is_subset();
         }
         return false;
