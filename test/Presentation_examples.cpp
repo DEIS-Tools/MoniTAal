@@ -86,6 +86,7 @@ BOOST_AUTO_TEST_CASE(presentation_interval) {
     monitor.input(word1);
 
     std::cout << "\nConclusion: " << monitor.status() << "\nState estimate positive:\n";
+    BOOST_CHECK(monitor.status() == monitor_answer_e::INCONCLUSIVE);
 
     if (monitor.positive_state_estimate().empty())
         std::cout << "empty\n";
@@ -112,6 +113,7 @@ BOOST_AUTO_TEST_CASE(presentation_interval) {
     monitor.input(word2);
 
     std::cout << "\nConclusion: " << monitor.status() << "\nState estimate positive:\n";
+    BOOST_CHECK(monitor.status() == monitor_answer_e::NEGATIVE);
 
     if (monitor.positive_state_estimate().empty())
         std::cout << "empty\n";
@@ -154,13 +156,15 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
    pos.intersection(div);
    neg.intersection(div);
 
-   std::cout << "\n<<<<<< Conjuntion with divergence automaton >>>>>>\n\n" << "Positive Model:\n" << pos << "\nNegative Model:\n" << neg << "\n\n";
+    std::cout << "\n TIME DIV automata\n" << div << "\n";
 
-   std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
-   Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+    std::cout << "\n<<<<<< Conjuntion with divergence automaton >>>>>>\n\n" << "Positive Model:\n" << pos << "\nNegative Model:\n" << neg << "\n\n";
 
-   std::cout << "Negative fixpoint states:\n";
-   Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+    std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
+    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+
+    std::cout << "Negative fixpoint states:\n";
+    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
 
 
 
@@ -191,7 +195,8 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
     monitor.input(word1);
 
     std::cout << "\nConclusion: " << monitor.status() << "\nState estimate positive:\n";
-
+    BOOST_CHECK(monitor.status() == monitor_answer_e::INCONCLUSIVE);
+    
     int i;
     if (monitor.positive_state_estimate().empty())
         std::cout << "empty\n";
@@ -223,6 +228,7 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
     monitor.input(word2);
 
     std::cout << "\nConclusion: " << monitor.status() << "\nState estimate positive:\n";
+    BOOST_CHECK(monitor.status() == monitor_answer_e::NEGATIVE);
 
     if (monitor.positive_state_estimate().empty())
         std::cout << "empty\n";

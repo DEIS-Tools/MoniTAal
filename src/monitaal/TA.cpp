@@ -146,7 +146,7 @@ namespace monitaal {
                                                   (c._j == 0 ? 0 : c._j + clock_size), c._bound));
                 }
 
-                location_t new_loc1(false, tmp_id, loc1.name() + '_' + loc2.name() + "_1", constr);
+                location_t new_loc1(loc1.is_accept(), tmp_id, loc1.name() + '_' + loc2.name() + "_1", constr);
                 location_t new_loc2(loc2.is_accept(), tmp_id+1, loc1.name() + '_' + loc2.name() + "_2", constr);
 
                 new_locations.push_back(new_loc1);
@@ -174,15 +174,14 @@ namespace monitaal {
 
                             const std::string label = e1.label();
 
-                            const auto& [l1, l2] = new_loc_indir.at({e1.to(), e2.to()});
+                            const auto& [to_l1, to_l2] = new_loc_indir.at({e1.to(), e2.to()});
+                            const auto& [from_l1, from_l2] = new_loc_indir.at({e1.from(), e2.from()});
 
-                            edge_t new_e1(new_loc_indir.at({e1.from(), e2.from()}).first,
-                                          (this->locations().at(e1.from()).is_accept() ? l2 : l1),
-                                              guard, reset, label);
+                            edge_t new_e1(from_l1, (this->locations().at(e1.from()).is_accept() 
+                                                     ? to_l2 : to_l1), guard, reset, label);
 
-                            edge_t new_e2(new_loc_indir.at({e1.from(), e2.from()}).second,
-                                          (other.locations().at(e2.from()).is_accept() ? l1 : l2),
-                                          guard, reset, label);
+                            edge_t new_e2(from_l2, (other.locations().at(e2.from()).is_accept() 
+                                                     ? to_l1 : to_l2), guard, reset, label);
 
                             new_edges.push_back(new_e1);
                             new_edges.push_back(new_e2);
