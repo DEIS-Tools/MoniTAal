@@ -43,7 +43,7 @@ namespace monitaal {
 
     using zone_val_t = pardibaal::val_t;
 
-    using constraint_t  = pardibaal::clock_constraint_t;
+    using constraint_t  = pardibaal::difference_bound_t;
     using constraints_t = std::vector<constraint_t>;
 
     using clock_index_t = pardibaal::dim_t;
