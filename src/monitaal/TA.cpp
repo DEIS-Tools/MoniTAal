@@ -215,17 +215,59 @@ namespace monitaal {
         return TA("time_divergence", clocks, locations, edges, 0);
     }
 
+    void TA::print_dot(std::ostream& out) const {
+        out << "digraph \"" << _name << "\" {";
+        
+        out << "\tinit [label=\"\", shape=\"none\"]; init -> " << _initial << ";\n\n";
+        for (const auto& [id, loc] : _locations) {
+
+            out << "\t" << id << " [label=\"" << loc.name();
+            if (!loc.invariant().empty()) {
+                out << "\\n";
+                print_constraint(out, loc.invariant());
+            }
+            out << "\"";
+            if (loc.is_accept())
+                out << ", shape=\"doublecircle\"";
+            out << "];\n";
+        }
+
+        out << "\n";
+
+        for (const auto& [l_id, edges] : this->_forward_edges) {
+            for (const auto& e : edges) {
+                out << "\t" << l_id << " -> " << e.to() << " [label=\"" << e.label();
+
+                if (!e.guard().empty()) {
+                    out << "\\n";
+                    this->print_constraint(out, e.guard());
+                }
+                
+                if (!e.reset().empty()) {
+                    out << "\\n";
+                    bool first = true;
+                    for (const auto& x : e.reset()) {
+                        if (first) first = false;
+                        else out << ", ";
+                        out << this->clock_name(x) << " := 0";
+                    }
+                }
+
+                out << "\"];\n";
+            }
+        }
+        out << "}";
+    }
+
     std::ostream& operator<<(std::ostream& out, const TA& T) {
         out << T._name << "\n  Locations: (" << T._locations.at(T._initial).name() << ")\n";
-        for (const auto& loc : T._locations) {
-            out << "\n    " << loc.second.name() << " ";
-            if (loc.second.is_accept()) out << "(accept) ";
+        for (const auto& [_,loc] : T._locations) {
+            out << "\n    " << loc.name();
+            if (loc.is_accept()) out << " (accept)";
 
-            out << "invariant: ";
-            for (const auto& c : loc.second.invariant()) {
-                if (c._i != 0) out << T._clock_names.at(c._i) << ' ';
-                if (c._j != 0) out << "- " << T._clock_names.at(c._j) << ' ';
-                out << (c._bound.is_strict() ? "< " : "<= ") << c._bound.get_bound() << ", ";
+            if (!loc.invariant().empty()) {
+                out << " invariant: ";
+                T.print_constraint(out, loc.invariant());
             }
         }
 
@@ -233,20 +275,34 @@ namespace monitaal {
         for (const auto& es : T._backward_edges) {
             for (const auto& e : es.second) {
                 out << "    " << T._locations.at(e.from()).name() << " -> " << T._locations.at(e.to()).name();
-                out << ": reset: ";
-                for (const auto& x : e.reset())
-                    out << T._clock_names.at(x) << ", ";
-                out << " guard: ";
-                for (const auto& g : e.guard()) {
-                    if (g._i != 0) out << T._clock_names.at(g._i) << ' ';
-                    if (g._j != 0) out << "- " << T._clock_names.at(g._j) << ' ';
-                    out << (g._bound.is_strict() ? "< " : "<= ") << g._bound.get_bound() << ", ";
-                }
-                out << " label: " << e.label() << '\n';
+                
+                out << " [" << e.label() << ']';
 
+                if (!e.reset().empty()) {
+                    out << " reset: ";
+                    for (const auto& x : e.reset())
+                        out << T._clock_names.at(x) << ", ";
+                }
+                
+                if (!e.guard().empty()) {
+                    out << " guard: ";
+                    T.print_constraint(out, e.guard());
+                }
+                out << "\n";
             }
         }
 
         return out;
+    }
+
+    void TA::print_constraint(std::ostream& out, const constraints_t& constraints) const {
+        bool first = true;
+        for (const auto& c : constraints) {
+            if (first) first = false;
+            else out << " & ";
+            if (c._i != 0) out << this->clock_name(c._i) << ' ';
+            if (c._j != 0) out << "- " << this->clock_name(c._j) << ' ';
+            out << (c._bound.is_strict() ? "< " : "<= ") << c._bound.get_bound();
+        }
     }
 }

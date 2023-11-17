@@ -33,10 +33,10 @@ using namespace monitaal;
 BOOST_AUTO_TEST_CASE(time_div_print) {
     auto div = TA::time_divergence_ta({"a", "b", "c"}, false);
 
-    std::cout << div;
+    //std::cout << div;
 }
 
-BOOST_AUTO_TEST_CASE(some_test) {
+BOOST_AUTO_TEST_CASE(monitor_test1) {
     TA pos = Parser::parse("models/a-b.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b.xml", "not_a_leadsto_b");
 
@@ -65,11 +65,11 @@ BOOST_AUTO_TEST_CASE(intersection_test_1) {
     TA T1 = Parser::parse("models/small1.xml", "small1");
     TA T2 = Parser::parse("models/small2.xml", "small2");
 
-    std::cout << T1 << T2;
+    //std::cout << T1 << T2;
 
     T1.intersection(T2);
 
-    std::cout << T1;
+    //std::cout << T1;
 }
 
 BOOST_AUTO_TEST_CASE(time_converge_test_1) {
