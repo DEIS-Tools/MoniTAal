@@ -216,6 +216,10 @@ namespace monitaal {
     }
 
     void TA::print_dot(std::ostream& out) const {
+        std::string colours[4] = {"purple", "red", "black", "green2"};
+        int col_count = 0;
+        int col_max = 4;
+
         out << "digraph \"" << _name << "\" {";
         
         out << "\tinit [label=\"\", shape=\"none\"]; init -> " << _initial << ";\n\n";
@@ -253,7 +257,8 @@ namespace monitaal {
                     }
                 }
 
-                out << "\"];\n";
+                out << "\", color=\"" << colours[col_count] << "\", fontcolor=\"" << colours[col_count] << "\"];\n";
+                col_count = (col_count + 1) % col_max;
             }
         }
         out << "}";
