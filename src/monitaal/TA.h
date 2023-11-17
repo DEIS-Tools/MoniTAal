@@ -91,6 +91,8 @@ namespace monitaal {
 
         clock_index_t _number_of_clocks;
 
+        void print_constraint(std::ostream& out, const constraints_t& constraints) const;
+
     public:
 
         TA(std::string name, clock_map_t clocks, const locations_t &locations, const edges_t &edges, location_id_t initial);
@@ -110,6 +112,8 @@ namespace monitaal {
         void intersection (const TA& other);
 
         static TA time_divergence_ta(const std::vector<std::string>& alphabet, bool deterministic);
+
+        void print_dot(std::ostream& out) const;
 
         friend std::ostream& operator<<(std::ostream& out, const TA& T);
     };
