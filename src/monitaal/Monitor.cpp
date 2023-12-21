@@ -77,7 +77,8 @@ namespace monitaal {
                         state.restrict(_automaton.locations().at(edge.to()).invariant());
 
                         // Only add the state if it is included in the possible accept space
-                        if (state.is_included_in(_accepting_space))
+                        state.intersection(_accepting_space);
+                        if (!state.is_empty())
                             next_states.push_back(state);
                     }
                     state = s;

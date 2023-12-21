@@ -59,9 +59,18 @@ namespace monitaal {
             _federation.free(x);
     }
 
-    void symbolic_state_t::intersect(const symbolic_state_t& state) {
+    void symbolic_state_t::intersection(const symbolic_state_t& state) {
         if (state._location == _location)
             _federation.intersection(state._federation);
+        else
+            this->_federation.restrict(0,0, {-1, true});
+    }
+
+    void symbolic_state_t::intersection(const symbolic_state_map_t& states) {
+        if (states.has_state(this->_location))
+            this->intersection(states.at(this->_location));
+        else
+            this->_federation.restrict(0,0, {-1, true});
     }
 
     void symbolic_state_t::add(const symbolic_state_t& state) {
@@ -190,7 +199,7 @@ namespace monitaal {
 
         for(auto &[l, _] : this->_states) {
             if (states.has_state(l)) {
-                this->_states[l].intersect(states.at(l));
+                this->_states[l].intersection(states.at(l));
             } else {
                 erase_list.push_back(l);
             }
@@ -246,6 +255,16 @@ namespace monitaal {
     // Empty because we don't need restriction for concrete states.
     void concrete_state_t::restrict(const constraints_t &constraints) {
         if (!this->satisfies(constraints))
+            _valuation[0] = -1;
+    }
+
+    void concrete_state_t::intersection(const symbolic_state_t& state) {
+        if (!this->is_included_in(state))
+            _valuation[0] = -1;
+    }
+
+    void concrete_state_t::intersection(const symbolic_state_map_t& states) {
+        if (!this->is_included_in(states))
             _valuation[0] = -1;
     }
 
