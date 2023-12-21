@@ -51,7 +51,8 @@ namespace monitaal {
 
         void free(const clocks_t& clocks);
 
-        void intersect(const symbolic_state_t& state);
+        void intersection(const symbolic_state_t& state);
+        void intersection(const symbolic_state_map_t& states);
 
         void add(const symbolic_state_t& state);
 
@@ -124,6 +125,9 @@ namespace monitaal {
         // Small hack: This is used in the monitor template, but only relevant for symbolic states.
         // Therefore this is just an empty implementation.
         void restrict(const constraints_t& constraints);
+
+        void intersection(const symbolic_state_t& state);
+        void intersection(const symbolic_state_map_t& states);
 
         /**
          * Do a transition if possible. Returns false if the guard was not satisfied.
