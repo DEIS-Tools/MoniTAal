@@ -12,14 +12,17 @@ set(HEADER_FILES
         Fixpoint.h
         Parser.h
         types.h
-        Monitor.h)
+        Monitor.h
+        EventParser.h)
 
 add_library(MoniTAal
+        ${HEADER_FILES}
         TA.cpp
         state.cpp
         Fixpoint.cpp
         Parser.cpp
-        Monitor.cpp)
+        Monitor.cpp
+        EventParser.cpp)
 
 target_link_libraries(MoniTAal PRIVATE
         -lpugixml

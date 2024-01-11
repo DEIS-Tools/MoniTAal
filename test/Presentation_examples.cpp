@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(presentation_interval) {
 
     std::vector<interval_input> word2 = {
             interval_input({0, 10}, "a"),
-            interval_input({30, 40}, "c")};
+            interval_input({31, 40}, "c")};
 
     Interval_monitor monitor(pos, neg);
 
