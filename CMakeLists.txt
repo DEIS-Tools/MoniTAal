@@ -36,6 +36,8 @@ ExternalProject_add(pardibaal
 include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 
+include_directories(include)
+
 add_subdirectory(src/monitaal)
 target_include_directories(MoniTAal INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
