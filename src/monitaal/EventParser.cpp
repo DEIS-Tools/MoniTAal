@@ -32,11 +32,20 @@
 
 namespace monitaal {
 
+    void skip_space(std::istream* stream) {
+        char c = stream->peek();
+        while(c == ' ' || c == '\t') {
+            stream->get(); 
+            c = stream->peek();
+        }
+        return;
+    }
+
     void read_seperator(std::istream* stream) {
         char c;
-        *stream >> std::ws;
+        skip_space(stream);
         if (not (*stream >> c && c == '@'))
-            throw base_error("Expected a @ separator at ", stream->tellg(), " but got \"", stream->peek(), "\"");
+            throw base_error("Expected a @ separator at ", stream->tellg(), " but got \"", c, "\"");
         return;
     }
 
@@ -65,16 +74,13 @@ namespace monitaal {
         std::string observation = "";
         char c;
         
-        *stream >> std::ws;
+        skip_space(stream);
 
         c = stream->peek();
-        while (c != ' ' && c != '\t' && c != '\n' && c != '@') {
+        while (c != '\n' && c != '@' && !stream->eof()) {
             observation += stream->get();
             c = stream->peek();
         }
-
-        if (observation.length() == 0)
-            throw base_error("Expected a label string not containing whitespace or @ at ", stream->tellg(), " but got \"", stream->peek(), "\"");
 
         return observation;
     }

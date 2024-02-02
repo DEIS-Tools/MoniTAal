@@ -59,29 +59,40 @@ namespace monitaal {
         std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
                 next_states;
 
-        for (auto& s : _current_states) {
-            s.delay(input.time);
-            if (s.satisfies(_automaton.locations().at(s.location()).invariant()))
-                s.restrict(_automaton.locations().at(s.location()).invariant());
-            else
-                continue;
 
-            auto state = s;
-            for (const auto& edge : _automaton.edges_from(s.location())) {
+        if (input.label == "") { // If label is empty, we do not take any transitions, only delay
+            for (auto& s : _current_states) {
+                s.delay(input.time);
+                if (s.satisfies(_automaton.locations().at(s.location()).invariant())) {
+                    s.restrict(_automaton.locations().at(s.location()).invariant());
+                    next_states.push_back(s);
+                }
+            }
+        } else {
+            for (auto& s : _current_states) {
+                s.delay(input.time);
+                if (s.satisfies(_automaton.locations().at(s.location()).invariant()))
+                    s.restrict(_automaton.locations().at(s.location()).invariant());
+                else
+                    continue;
 
-                if (std::strcmp(edge.label().c_str(), input.label.c_str()) == 0) { //for all edges with input label
+                auto state = s;
+                for (const auto& edge : _automaton.edges_from(s.location())) {
 
-                    // If we can do the transition (then do it) and also satisfies the invariant, then explore this
-                    if (state.do_transition(edge) && state.satisfies(_automaton.locations()
-                                                          .at(edge.to()).invariant())) {
-                        state.restrict(_automaton.locations().at(edge.to()).invariant());
+                    if (std::strcmp(edge.label().c_str(), input.label.c_str()) == 0) { //for all edges with input label
 
-                        // Only add the state if it is included in the possible accept space
-                        state.intersection(_accepting_space);
-                        if (!state.is_empty())
-                            next_states.push_back(state);
+                        // If we can do the transition (then do it) and also satisfies the invariant, then explore this
+                        if (state.do_transition(edge) && state.satisfies(_automaton.locations()
+                                                            .at(edge.to()).invariant())) {
+                            state.restrict(_automaton.locations().at(edge.to()).invariant());
+
+                            // Only add the state if it is included in the possible accept space
+                            state.intersection(_accepting_space);
+                            if (!state.is_empty())
+                                next_states.push_back(state);
+                        }
+                        state = s;
                     }
-                    state = s;
                 }
             }
         }

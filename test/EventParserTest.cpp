@@ -48,3 +48,21 @@ BOOST_AUTO_TEST_CASE(concrete_parsing_test1) {
 
     BOOST_CHECK(input.size() == 6);
 }
+
+BOOST_AUTO_TEST_CASE(empty_label_test1) {
+    std::stringstream stream("@1 \n@2 a\n@3 \n@4 b", std::ios_base::in);
+
+    std::vector<concrete_input> input;
+
+    input = EventParser::parse_concrete_input(&stream);
+
+    BOOST_CHECK(input.size() == 4);
+    BOOST_CHECK(input[0].label == "");
+    BOOST_CHECK(input[1].label == "a");
+    BOOST_CHECK(input[2].label == "");
+    BOOST_CHECK(input[3].label == "b");
+    BOOST_CHECK(input[0].time == 1);
+    BOOST_CHECK(input[1].time == 2);
+    BOOST_CHECK(input[2].time == 3);
+    BOOST_CHECK(input[3].time == 4);
+}
