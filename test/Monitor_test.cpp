@@ -24,6 +24,7 @@
 
 #include "monitaal/Monitor.h"
 #include "monitaal/Parser.h"
+#include "monitaal/EventParser.h"
 
 #include <boost/test/unit_test.hpp>
 #include <filesystem>
@@ -82,4 +83,137 @@ BOOST_AUTO_TEST_CASE(time_converge_test_1) {
     auto non_empty_states = Fixpoint::buchi_accept_fixpoint(converge_ta);
 
     BOOST_CHECK(non_empty_states.is_empty());
+}
+
+BOOST_AUTO_TEST_CASE(absentBQR_test1) {
+    TA pos = Parser::parse("models/absentBQR.xml", "positive");
+    TA neg = Parser::parse("models/absentBQR.xml", "negative");
+    
+    std::filebuf fb;
+    fb.open("models/absentBQRinput.txt", std::ios::in);
+
+    std::istream stream(&fb);
+
+    auto events = EventParser::parse_concrete_input(&stream);
+
+    Concrete_monitor monitor(pos, neg);
+
+    int count = 0;
+
+    for (const auto& e : events) {
+        monitor.input(e);
+        ++count;
+        if (count < 10011)
+            BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+        else
+            BOOST_CHECK(monitor.status() == NEGATIVE);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(absentAQ_test1) {
+    TA pos = Parser::parse("models/absentAQ.xml", "positive");
+    TA neg = Parser::parse("models/absentAQ.xml", "negative");
+    
+    std::filebuf fb;
+    fb.open("models/absentAQinput.txt", std::ios::in);
+
+    std::istream stream(&fb);
+
+    auto events = EventParser::parse_concrete_input(&stream);
+
+    Concrete_monitor monitor(pos, neg);
+
+    int count = 0;
+
+    for (const auto& e : events) {
+        monitor.input(e);
+        ++count;
+
+        if (count < 10028)
+            BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+        else
+            BOOST_CHECK(monitor.status() == NEGATIVE);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(absentBR_test1) {
+    TA pos = Parser::parse("models/absentBR.xml", "positive");
+    TA neg = Parser::parse("models/absentBR.xml", "negative");
+    
+    std::filebuf fb;
+    fb.open("models/absentBRinput.txt", std::ios::in);
+
+    std::istream stream(&fb);
+
+    auto events = EventParser::parse_concrete_input(&stream);
+
+    Concrete_monitor monitor(pos, neg);
+
+    int count = 0;
+
+    for (const auto& e : events) {
+        monitor.input(e);
+        ++count;
+
+        if (count < 10028)
+            BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+        else
+            BOOST_CHECK(monitor.status() == NEGATIVE);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(recurBQR_test1) {
+    TA pos = Parser::parse("models/recurBQR.xml", "positive");
+    TA neg = Parser::parse("models/recurBQR.xml", "negative");
+    
+    std::filebuf fb;
+    fb.open("models/recurBQRinput.txt", std::ios::in);
+
+    std::istream stream(&fb);
+
+    auto events = EventParser::parse_concrete_input(&stream);
+
+    Concrete_monitor monitor(pos, neg);
+
+    int count = 0;
+
+    for (const auto& e : events) {
+        monitor.input(e);
+        ++count;
+
+        if (count < 10014)
+            BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+        else
+            BOOST_CHECK(monitor.status() == NEGATIVE);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(recurGLB_test1) {
+    TA pos = Parser::parse("models/recurGLB.xml", "positive");
+    TA neg = Parser::parse("models/recurGLB.xml", "negative");
+    
+    std::filebuf fb;
+    fb.open("models/recurGLBinput.txt", std::ios::in);
+
+    std::istream stream(&fb);
+
+    auto events = EventParser::parse_concrete_input(&stream);
+
+    Concrete_monitor monitor(pos, neg);
+
+    int count = 0;
+
+    for (const auto& e : events) {
+        // if (monitor.status() != INCONCLUSIVE) {
+        //     std::cout << "status: " << monitor.status() << " count: " << count << '\n';
+        //     break;
+        // }
+        monitor.input(e);
+        ++count;
+
+        if (count < 10015)
+            BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+        else
+            BOOST_CHECK(monitor.status() == NEGATIVE);
+    }
 }
