@@ -49,8 +49,8 @@ namespace monitaal {
         return;
     }
 
-    concrete_time_t read_concrete_time(std::istream* stream) {
-        concrete_time_t time;
+    long double read_concrete_time(std::istream* stream) {
+        long double time;
         *stream >> time;
         return time;
     }
@@ -89,13 +89,20 @@ namespace monitaal {
         char separator;
         std::string observation;
         concrete_time_t time;
+        long double global_time = 0, tmp;
 
         std::vector<concrete_input> events;
 
         *stream >> std::ws;
         while (not stream->eof()) {
             read_seperator(stream);
-            time = read_concrete_time(stream);
+            tmp = read_concrete_time(stream);
+            if (tmp < global_time)
+                throw base_error("Error on parsing event: Time must be non-decreasing");
+            
+            time = tmp - global_time;
+            global_time = tmp;
+            
             observation = read_observation(stream);
 
             events.emplace_back(time, observation);
