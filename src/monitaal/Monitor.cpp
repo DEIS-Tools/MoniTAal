@@ -65,7 +65,9 @@ namespace monitaal {
                 s.delay(input.time);
                 if (s.satisfies(_automaton.locations().at(s.location()).invariant())) {
                     s.restrict(_automaton.locations().at(s.location()).invariant());
-                    next_states.push_back(s);
+                    s.intersection(_accepting_space);
+                    if (!s.is_empty())
+                        next_states.push_back(s);
                 }
             }
         } else {
