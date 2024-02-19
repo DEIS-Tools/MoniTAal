@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+clock c;
+chan p;</declaration>
+	<template>
+		<name x="5" y="5">positive</name>
+		<declaration>// Place local declarations here.
+</declaration>
+		<location id="id0" x="0" y="0">
+			<name x="-10" y="-34">l0_a</name>
+		</location>
+		<init ref="id0"/>
+		<transition id="id1">
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="guard" x="8" y="-93">c &lt;= 10</label>
+			<label kind="synchronisation" x="8" y="-68">p!</label>
+			<label kind="assignment" x="8" y="-110">c := 0</label>
+			<nail x="68" y="0"/>
+			<nail x="68" y="-68"/>
+			<nail x="0" y="-68"/>
+		</transition>
+	</template>
+	<template>
+		<name>negative</name>
+		<location id="id2" x="136" y="0">
+			<name x="126" y="-34">l1_a</name>
+		</location>
+		<location id="id3" x="0" y="0">
+			<name x="0" y="8">l0</name>
+		</location>
+		<init ref="id3"/>
+		<transition id="id4">
+			<source ref="id2"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="154" y="-17">p!</label>
+			<nail x="204" y="0"/>
+			<nail x="204" y="-68"/>
+			<nail x="136" y="-68"/>
+		</transition>
+		<transition id="id5">
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="34" y="-25">c &gt; 10</label>
+			<label kind="synchronisation" x="42" y="0">p!</label>
+		</transition>
+		<transition id="id6">
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-59" y="-68">c &lt;= 10</label>
+			<label kind="synchronisation" x="-59" y="-51">p!</label>
+			<label kind="assignment" x="-59" y="-34">c := 0</label>
+			<nail x="-68" y="0"/>
+			<nail x="-68" y="-68"/>
+			<nail x="0" y="-68"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = positive();
+// List one or more processes to be composed into a system.
+system Process;
+</system>
+	<queries>
+		<query>
+			<formula/>
+			<comment/>
+		</query>
+	</queries>
+</nta>
