@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(empty_label_test1) {
     BOOST_CHECK(input[2].label == "");
     BOOST_CHECK(input[3].label == "b");
     BOOST_CHECK(input[0].time == 1);
-    BOOST_CHECK(input[1].time == 1);
-    BOOST_CHECK(input[2].time == 1);
-    BOOST_CHECK(input[3].time == 1);
+    BOOST_CHECK(input[1].time == 2);
+    BOOST_CHECK(input[2].time == 3);
+    BOOST_CHECK(input[3].time == 4);
 }

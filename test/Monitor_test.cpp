@@ -44,17 +44,17 @@ BOOST_AUTO_TEST_CASE(monitor_test1) {
     std::vector<concrete_input> word1 = {
             concrete_input(0, "c"),
             concrete_input(2.5, "b"),
-            concrete_input(100, "b"),
-            concrete_input(2.1, "a"),
-            concrete_input(0, "c"),
-            concrete_input(5, "a"),
-            concrete_input(10, "b"),
-            concrete_input(0, "c"),
-            concrete_input(0, "c")};
+            concrete_input(102.5, "b"),
+            concrete_input(104.6, "a"),
+            concrete_input(104.6, "c"),
+            concrete_input(109.6, "a"),
+            concrete_input(119.6, "b"),
+            concrete_input(119.6, "c"),
+            concrete_input(119.6, "c")};
 
     std::vector<concrete_input> word2 = {
-            concrete_input(0, "a"),
-            concrete_input(101, "c")};
+            concrete_input(119.6, "a"),
+            concrete_input(220.6, "c")};
 
     Concrete_monitor monitor(pos, neg);
 
@@ -95,6 +95,7 @@ BOOST_AUTO_TEST_CASE(absentBQR_test1) {
     std::istream stream(&fb);
 
     auto events = EventParser::parse_concrete_input(&stream);
+    fb.close();
 
     Concrete_monitor monitor(pos, neg);
 
@@ -120,6 +121,7 @@ BOOST_AUTO_TEST_CASE(absentAQ_test1) {
     std::istream stream(&fb);
 
     auto events = EventParser::parse_concrete_input(&stream);
+    fb.close();
 
     Concrete_monitor monitor(pos, neg);
 
@@ -146,7 +148,8 @@ BOOST_AUTO_TEST_CASE(absentBR_test1) {
     std::istream stream(&fb);
 
     auto events = EventParser::parse_concrete_input(&stream);
-
+    fb.close();
+    
     Concrete_monitor monitor(pos, neg);
 
     int count = 0;
@@ -172,6 +175,7 @@ BOOST_AUTO_TEST_CASE(recurBQR_test1) {
     std::istream stream(&fb);
 
     auto events = EventParser::parse_concrete_input(&stream);
+    fb.close();
 
     Concrete_monitor monitor(pos, neg);
 
@@ -198,6 +202,7 @@ BOOST_AUTO_TEST_CASE(recurGLB_test1) {
     std::istream stream(&fb);
 
     auto events = EventParser::parse_concrete_input(&stream);
+    fb.close();
 
     Concrete_monitor monitor(pos, neg);
 

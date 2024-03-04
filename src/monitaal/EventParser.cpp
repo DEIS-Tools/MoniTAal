@@ -77,7 +77,7 @@ namespace monitaal {
         skip_space(stream);
 
         c = stream->peek();
-        while (c != '\n' && c != '@' && !stream->eof()) {
+        while (c != '\n' && c != '@' && !stream->eof() && c != '\000') {
             observation += stream->get();
             c = stream->peek();
         }
@@ -89,20 +89,14 @@ namespace monitaal {
         char separator;
         std::string observation;
         concrete_time_t time;
-        long double global_time = 0, tmp;
 
         std::vector<concrete_input> events;
 
         *stream >> std::ws;
-        while (not stream->eof()) {
+        while (not stream->eof() && stream->peek() != '\000') {
             read_seperator(stream);
-            tmp = read_concrete_time(stream);
-            if (tmp < global_time)
-                throw base_error("Error on parsing event: Time must be non-decreasing");
-            
-            time = tmp - global_time;
-            global_time = tmp;
-            
+            time = read_concrete_time(stream);
+
             observation = read_observation(stream);
 
             events.emplace_back(time, observation);
@@ -115,6 +109,7 @@ namespace monitaal {
 
     std::vector<interval_input> EventParser::parse_interval_input(std::istream* stream) {
         std::string observation;
+        
         interval_t time;
 
         std::vector<interval_input> events;

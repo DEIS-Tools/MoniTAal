@@ -150,6 +150,8 @@ namespace monitaal {
         [[nodiscard]] bool satisfies(const constraint_t& constraint) const;
         [[nodiscard]] bool satisfies(const constraints_t& constraints) const;
 
+        void print(std::ostream& out, const TA& T) const;
+
     private:
         location_id_t _location;
         valuation_t _valuation;
