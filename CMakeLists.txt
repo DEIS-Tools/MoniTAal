@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(EXTERNAL_INSTALL_LOCATION "${CMAKE_BINARY_DIR}/external")
 
+OPTION(MONITAAL_BUILD_BENCHMARK "Builds benchmark binary" OFF)
+
+
 FIND_PACKAGE(Boost 1.40 COMPONENTS program_options REQUIRED )
 
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
@@ -42,6 +45,10 @@ add_subdirectory(src/monitaal)
 target_include_directories(MoniTAal INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 #add_subdirectory(src/monitaal-bin)
+
+if(MONITAAL_BUILD_BENCHMARK)
+    add_subdirectory(benchmark)
+endif()
 
 if(BUILD_TESTING)
     enable_testing()

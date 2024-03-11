@@ -23,10 +23,12 @@
 #include "state.h"
 #include "types.h"
 #include "TA.h"
+#include "errors.h"
 
 #include <pardibaal/Federation.h>
 #include <iostream>
 #include <algorithm>
+#include <cassert>
 
 namespace monitaal {
 
@@ -79,11 +81,15 @@ namespace monitaal {
     }
 
     void symbolic_state_t::delay(symb_time_t value) {
-        _federation.delay(((pardibaal::val_t) value));
+        _federation.future();
+        _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_federation.dimension() - 1, value));
+        _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_federation.dimension() - 1, value));
     }
 
     void symbolic_state_t::delay(interval_t interval) {
-        _federation.interval_delay((pardibaal::val_t) interval.first, (pardibaal::val_t) interval.second);
+        _federation.future();
+        _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_federation.dimension() - 1, interval.first));
+        _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_federation.dimension() - 1, interval.second));
     }
 
     bool symbolic_state_t::do_transition(const edge_t& edge) {
@@ -247,8 +253,11 @@ namespace monitaal {
     }
 
     void concrete_state_t::delay(concrete_time_t value) {
+        auto d = value - _valuation[_valuation.size() - 1];
+        if (d < 0)
+            throw base_error("Error: Observed value <", value, "> is smaller than valuation of global clock <", _valuation[_valuation.size() - 1], ">");
         for (auto& v : _valuation)
-            v += value;
+            v += d;
         _valuation[0] = 0;
     }
 
@@ -309,21 +318,7 @@ namespace monitaal {
                 bool sat = true;
                 for (pardibaal::dim_t i = 0; i < dbm.dimension(); ++i)
                     for (pardibaal::dim_t j = 0; j < dbm.dimension(); ++j)
-                        if (!satisfies(i, j, dbm.at(i, j)))
-                            sat = false;
-                if (sat) return true;
-            }
-        }
-
-        return false;
-    }
-
-    bool concrete_state_t::is_included_in(const symbolic_state_map_t &states) const {
-        if (not states.has_state(_location)) {
-            return false;
-        }
-
-        return is_included_in(states.at(_location));
+-
 
     }
 
@@ -353,5 +348,13 @@ namespace monitaal {
 
     concrete_state_t::concrete_state_t(location_id_t location, pardibaal::dim_t number_of_clocks) : _location(location) {
         _valuation = std::vector<concrete_time_t>(number_of_clocks);
+    }
+    
+    void concrete_state_t::print(std::ostream& out, const TA& T) const {
+        out << T.locations().at(this->_location).name() << " : ";
+        auto max = _valuation.size() - 1;
+        for (int i = 0; i < max; ++i)
+            out << T.clock_name(i) << " = " << _valuation[i] << ", ";
+        out << "global = " << _valuation[max] << '\n';
     }
 }

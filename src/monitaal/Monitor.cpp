@@ -59,7 +59,6 @@ namespace monitaal {
         std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
                 next_states;
 
-
         if (input.label == "") { // If label is empty, we do not take any transitions, only delay
             for (auto& s : _current_states) {
                 s.delay(input.time);
@@ -143,8 +142,9 @@ namespace monitaal {
     monitor_answer_e Monitor<is_interval>::input(const timed_input_t<is_interval>& input) {
         auto pos = _monitor_pos.input(input), neg = _monitor_neg.input(input);
 
-        assert((pos != OUT || neg != OUT) &&
-               "Error: Mismatch between positive and negative automata. Both are out\n");
+        if (pos == OUT && neg == OUT)
+            assert((pos != OUT || neg != OUT) &&
+                "Error: Mismatch between positive and negative automata. Both are out\n");
 
         if (pos == OUT)
             _status = NEGATIVE;

@@ -64,18 +64,18 @@ BOOST_AUTO_TEST_CASE(presentation_interval) {
     std::cout << "<<<<<< Monitoring >>>>>>\n\n";
     std::vector<interval_input> word1 = {
             interval_input({0, 1}, "c"),
-            interval_input({2, 5}, "b"),
+            interval_input({3, 6}, "b"),
             interval_input({50, 100}, "b"),
-            interval_input({2, 3}, "a"),
-            interval_input({0, 0}, "c"),
-            interval_input({1, 5}, "a"),
-            interval_input({0, 30}, "b"),
-            interval_input({1, 20}, "c")};
+            interval_input({102, 103}, "a"),
+            interval_input({103, 103}, "c"),
+            interval_input({105, 110}, "a"),
+            interval_input({115, 150}, "b"),
+            interval_input({140, 150}, "c")};
 
 
     std::vector<interval_input> word2 = {
-            interval_input({0, 10}, "a"),
-            interval_input({31, 40}, "c")};
+            interval_input({160, 170}, "a"),
+            interval_input({201, 210}, "c")};
 
     Interval_monitor monitor(pos, neg);
 
@@ -174,17 +174,17 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
     std::vector<concrete_input> word1 = {
             concrete_input(0, "c"),
             concrete_input(2.5, "b"),
-            concrete_input(100, "b"),
-            concrete_input(2.1, "a"),
-            concrete_input(0, "c"),
-            concrete_input(5, "a"),
-            concrete_input(10, "b"),
-            concrete_input(0, "c"),
-            concrete_input(0, "c")};
+            concrete_input(102.5, "b"),
+            concrete_input(104.6, "a"),
+            concrete_input(105, "c"),
+            concrete_input(110, "a"),
+            concrete_input(120, "b"),
+            concrete_input(120, "c"),
+            concrete_input(120, "c")};
 
     std::vector<concrete_input> word2 = {
-            concrete_input(0, "a"),
-            concrete_input(101, "c")};
+            concrete_input(120, "a"),
+            concrete_input(221, "c")};
 
     Concrete_monitor monitor(pos, neg);
 
@@ -202,11 +202,7 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
         std::cout << "empty\n";
     else
         for (const auto& s : monitor.positive_state_estimate()) {
-            std::cout << pos.locations().at(s.location()).name() << " : ";
-            i = 0;
-            for (const auto& v : s.valuation())
-                std::cout << pos.clock_name(i++) << " = " << v << ", ";
-            std::cout << "\n";
+            s.print(std::cout, pos);
         }
 
     std::cout << "State estimate negative:\n";
@@ -214,11 +210,7 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
         std::cout << "empty\n";
     else
         for (const auto& s : monitor.negative_state_estimate()) {
-            std::cout << neg.locations().at(s.location()).name() << " : ";
-            i = 0;
-            for (const auto& v : s.valuation())
-                std::cout << neg.clock_name(i++) << " = " << v << ", ";
-            std::cout << "\n";
+            s.print(std::cout, neg);
         }
 
     std::cout << "\nMonitoring word: ";
@@ -234,11 +226,7 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
         std::cout << "empty\n";
     else
         for (const auto& s : monitor.positive_state_estimate()) {
-            std::cout << pos.locations().at(s.location()).name() << " : ";
-            i = 0;
-            for (const auto& v : s.valuation())
-                std::cout << pos.clock_name(i++) << " = " << v << ", ";
-            std::cout << "\n";
+            s.print(std::cout, pos);
         }
 
     std::cout << "State estimate negative:\n";
@@ -246,11 +234,6 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
         std::cout << "empty\n";
     else
         for (const auto& s : monitor.negative_state_estimate()) {
-            std::cout << neg.locations().at(s.location()).name() << " : ";
-            i = 0;
-            for (const auto& v : s.valuation()) {
-                std::cout << neg.clock_name(i++) << " = " << v << ", ";
-            }
-            std::cout << "\n";
+            s.print(std::cout, neg);
         }
 }
