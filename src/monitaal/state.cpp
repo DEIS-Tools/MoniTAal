@@ -318,7 +318,21 @@ namespace monitaal {
                 bool sat = true;
                 for (pardibaal::dim_t i = 0; i < dbm.dimension(); ++i)
                     for (pardibaal::dim_t j = 0; j < dbm.dimension(); ++j)
--
+                       if (!satisfies(i, j, dbm.at(i, j)))
+                            sat = false;
+                if (sat) return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool concrete_state_t::is_included_in(const symbolic_state_map_t &states) const {
+        if (not states.has_state(_location)) {
+            return false;
+        }
+
+        return is_included_in(states.at(_location));
 
     }
 

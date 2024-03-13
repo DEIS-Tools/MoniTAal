@@ -70,6 +70,30 @@ namespace monitaal {
         }
     }
 
+    template<bool is_interval> typename std::conditional_t<is_interval, interval_t, long double> 
+    read_time(std::istream* stream);
+
+    template<> long double read_time<false>(std::istream* stream) {
+        long double time;
+        *stream >> time;
+        return time;
+    }
+
+    template<> interval_t read_time<true>(std::istream* stream) {
+        int lower, upper;
+        char c;
+
+        if ( *stream >> std::ws >> c && c == '[' &&
+            *stream >> lower &&
+            *stream >> std::ws >> c && c == ',' &&
+            *stream >> upper &&
+            *stream >> std::ws >> c && c == ']')
+            return {lower, upper};
+        else {
+            throw base_error("Error parsing interval input at ", stream->tellg(), " but got \"", stream->peek(), "\"");
+        }
+    }
+
     std::string read_observation(std::istream* stream) {
         std::string observation = "";
         char c;
@@ -127,5 +151,31 @@ namespace monitaal {
 
         return events;
     }
+
+    template<bool is_interval>
+    std::vector<typename std::conditional_t<is_interval, interval_input, concrete_input>> 
+    EventParser::parse_input(std::istream* stream) {
+        std::string observation;
+        typename std::conditional_t<is_interval, interval_t, long double> time;
+
+        std::vector<typename std::conditional_t<is_interval, interval_input, concrete_input>> events;
+
+        *stream >> std::ws;
+        while (not stream->eof() && stream->peek() != '\000') {
+            read_seperator(stream);
+            time = read_time<is_interval>(stream);
+
+            observation = read_observation(stream);
+
+            events.emplace_back(time, observation);
+
+            *stream >> std::ws;
+        }
+
+        return events;
+    }
+
+    template std::vector<interval_input> EventParser::parse_input<true>(std::istream* stream);
+    template std::vector<concrete_input> EventParser::parse_input<false>(std::istream* stream);
 
 }

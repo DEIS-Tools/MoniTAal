@@ -24,11 +24,14 @@
 #include "monitaal/Fixpoint.h"
 #include "monitaal/state.h"
 #include "monitaal/Monitor.h"
+#include "monitaal/EventParser.h"
+#include "errors.h"
 
 #include <boost/program_options.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <chrono>
 
 namespace po = boost::program_options;
 using namespace monitaal;
@@ -40,7 +43,7 @@ private:
     std::string output_file;
 
 public:
-    [[nodiscard]] std::ofstream open_file(const std::string& file) const {
+    static [[nodiscard]] std::ofstream open_file(const std::string& file) {
         std::ofstream out(file);
         if (!out.is_open()) {
             std::cerr << "Could not open " << file << " for writing\n";
@@ -55,7 +58,7 @@ public:
     }
 
     void write_simple(const TA& T, const symbolic_state_map_t& states) const {
-        std::ofstream out = open_file("out.txt");
+        std::ofstream out = open_file(output_file);
         out << T << '\n';
         states.print(out, T);
         out.close();
@@ -63,59 +66,120 @@ public:
 
     explicit Output(const std::string& caption = "Output Option") : output_options(caption) {
         output_options.add_options()
-                ("print,p", po::value<std::string>(), "Print the analysis in simple format")
+                ("print,p", "Print the analysis in simple format")
                 ("out,o", po::value<std::string>(&output_file)->implicit_value("out.txt"),
-                        "Writes the conclusion to a file in simple format (out.txt by default)");
+                        "Writes the output to a file (out.txt by default)");
     }
 
     [[nodiscard]] const po::options_description& options() const { return output_options; }
 
     void do_output(po::variables_map vm, const TA& T, const symbolic_state_map_t& states) const {
-        if (vm.count("print"))
+        if (vm.count("print")) {
+            if (vm.count("out")) {
+                //output_file = vm["out"].as<std::string>();
+                write_simple(T, states);
+            }
+
             print_simple(T, states);
-        if (vm.count("out")) {
-            write_simple(T, states);
         }
     }
 };
 
-void print_help(const po::options_description& options) {
-    std::cout << options << std::endl;
-}
-
-template <bool is_interval>
-void do_monitoring(const TA& pos, const TA& neg) {
-    auto monitor = Monitor<is_interval>(pos, neg);
-
-    /*
-     * read input from stdin
-     * while (monitor.input(input) == INCONCLUSIVE) {
-     *    word = readstdin;
-     * }
-     *
-     */
-    if (monitor.status() != INCONCLUSIVE) {
-        std::cout << "Monitoring ended, status is:\n" << monitor.status() << std::endl;
+struct membuf : std::streambuf
+{
+    membuf(char* begin, char* end) {
+        this->setg(begin, begin, end);
     }
+};
+
+struct settings_t
+{
+    bool verbose = false;
+    uint32_t event_counter = 0;
+    TA positive, negative;
+
+    settings_t(const TA& positive, const TA& negative) : positive(positive), negative(negative) {};
+};
+
+template<bool is_interval>
+void interactive_monitoring(Monitor<is_interval> monitor, settings_t settings, std::ostream& out, std::istream& in) {
+    std::string input = "";
+
+    std::vector<typename std::conditional_t<is_interval, interval_input, concrete_input>>
+    events;
+
+    if (monitor.status() != INCONCLUSIVE)
+        out << "Interactive monitor (respond with \"q\" to quit)\n";
+
+    while (monitor.status() == INCONCLUSIVE) {
+        if (settings.verbose) {
+            out << "\nPositive state estimate:\n";
+            for (const auto& s : monitor.positive_state_estimate()) {
+                s.print(out, settings.positive);
+            }
+
+            out << "\nNegative state estimate:\n";
+            for (const auto& s : monitor.negative_state_estimate()) {
+                s.print(out, settings.negative);
+            }
+            out << '\n';
+        }
+
+        while (true) {
+            out << "Next event: ";
+            std::getline(in, input);
+            if (input == "q") break;
+
+            membuf sbuf(input.data(), input.data() + input.size());
+            auto in = std::istream(&sbuf);
+
+            try
+            {
+                events = EventParser::parse_input<is_interval>(&in);
+            }
+            catch(const base_error& e)
+            {
+                std::cout << e.what() << '\n';
+                continue;
+            }
+            break;
+        }
+        if (input == "q") break;
+
+        monitor.input(events);
+        settings.event_counter += events.size();
+    }
+    
+    std::cout << "Monitoring ended, verdict is: " << monitor.status() << "\nMonitored " << settings.event_counter << " events\n";
 }
+
+template void interactive_monitoring<true>(Monitor<true> monitor, settings_t settings, std::ostream& out, std::istream& in);
+template void interactive_monitoring<false>(Monitor<false> monitor, settings_t settings, std::ostream& out, std::istream& in);
+
+
 
 int main(int argc, const char** argv) {
 
     po::options_description options;
     options.add_options()
             ("help,h", "Dispay this help message\nExample: monitaal-bin --pos <name> <path> --neg <name> <path>")
-            ("monitor-interval,i", po::value<std::vector<std::string>>(), "<xml file with \u03D5 and \u00AC\u03D5 models> <name of \u03D5> <name of \u00AC\u03D5>");
-            ("monitor-concrete,m", po::value<std::vector<std::string>>(), "<xml file with \u03D5 and \u00AC\u03D5 models> <name of \u03D5> <name of \u00AC\u03D5>");
+            ("pos,p", po::value<std::vector<std::string>>()->required()->multitoken(), "<name of template> <path to xml file> Property automaton.")
+            ("neg,n", po::value<std::vector<std::string>>()->required()->multitoken(), "<name of template> <path to xml file> Negated property automaton.")
+            ("type, t", po::value<std::string>(), "Monitoring procedure (concrete or interval) default = concrete")
+            ("input,i", po::value<std::string>(), "Monitor events contained in file.")
+            ("verbose,v", "Prints more information on the monitoring procedure")
+            ("print-dot,o", "Prints the dot graphs of the given automata")
+            ("div,d", po::value<std::vector<std::string>>()->multitoken(), "<list of labels> Take time divergence into account.");
 
-    Output output("Output Option");
+    //Output output("Output Option");
 
-    options.add(output.options());
+    //options.add(output.options());
 
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(options).run(), vm);
 
     if (vm.count("help")) {
-        print_help(options);
+        std::cout << options << std::endl;
         return 1;
     }
 
@@ -126,10 +190,153 @@ int main(int argc, const char** argv) {
         exit(-1);
     }
 
-    if (vm.count("print")) {
-        TA T = Parser::parse(vm["print"].as<std::string>().c_str(), "");
-        Output::print_simple(T, Fixpoint::buchi_accept_fixpoint(T));
-    } else if (vm.count("monitor-interval") || vm.count("monitor-concrete")) {
+    auto posarg = vm["pos"].as<std::vector<std::string>>();
+    auto negarg = vm["neg"].as<std::vector<std::string>>();
+
+    if (posarg.size() != 2 || negarg.size() != 2) {
+        for (int i = 0; i < posarg.size(); ++i)
+            std::cout << posarg[i];
+        std::cerr << "Error: --pos and --neg args require two arguments\n";
+        exit(-1);
+    }
+
+    TA pos = Parser::parse(&posarg[1][0], &posarg[0][0]);
+    TA neg = Parser::parse(&negarg[1][0], &negarg[0][0]);
+
+    bool is_interval = false;
+    if (vm.count("type")) {
+        std::string type = vm["type"].as<std::string>();
+        if (type == "interval")
+            is_interval = true;
+        else if (type == "concrete")
+            is_interval = false;
+        else {
+            std::cerr << "Error: type must be concrete or interval\n";
+            exit(-1);
+        }
+    }
+
+    if (vm.count("print-dot")) {
+        std::cout << "DOT GRAPHS\n";
+        pos.print_dot(std::cout);
+        std::cout << '\n';
+        neg.print_dot(std::cout);
+        std::cout << '\n';
+    }
+
+    if (vm.count("div")) {
+        auto alphabet = vm["div"].as<std::vector<std::string>>();
+        TA div = TA::time_divergence_ta(alphabet, true);
+        pos.intersection(div);
+        neg.intersection(div);
+
+        if (vm.count("print-dot")) {
+            std::cout << "DOT GRAPHS with time divergence conjunction\n";
+            pos.print_dot(std::cout);
+            std::cout << '\n';
+            neg.print_dot(std::cout);
+            std::cout << '\n';
+        }
+
+    }
+
+    settings_t settings(pos, neg);
+    settings.verbose = vm.count("verbose") > 0;
+
+    Interval_monitor monitor_int(pos, neg);
+    Concrete_monitor monitor_con(pos, neg);
+
+    // Monitoring events from file
+
+    /*
+    if (vm.count("input")) {
+        auto inputarg = vm["input"].as<std::string>();
+        std::ifstream input;
+        input.open(inputarg);
+
+        char read[256];
+
+        while (not input.eof() || monitor.status() == INCONCLUSIVE) {    
+            input.getline(read, 256);
+            
+            if (input.gcount() == 0) // If the line is empty
+                continue;
+
+            assert(not input.fail() && "Error: Too many characters in one line");
+    
+            membuf sbuf(read, read + input.gcount());
+            auto in = std::istream(&sbuf);
+
+            if (concrete) {
+                concrete_events = EventParser::parse_concrete_input(&in);
+                monitor.input(concrete_events);
+                event_counter += concrete_events.size();
+            }
+            else {
+                interval_events = EventParser::parse_interval_input(&in);
+                interval_monitor.input(interval_events);
+                event_counter += interval_events.size();
+            }
+
+        }
+
+        input.close();
+        std::cout << "Monitored " << inputarg << "\n";
+    }*/
+
+
+    // Interactive Monitoring
+
+    if (is_interval)
+        interactive_monitoring<true>(monitor_int, settings, std::cout, std::cin);
+    else
+        interactive_monitoring<false>(monitor_con, settings, std::cout, std::cin);
+    /*
+    std::string input = "";
+    
+    if (monitor.status() != INCONCLUSIVE)
+        std::cout << "Interactive monitor (respond with \"q\" to quit)\n";
+
+    while (monitor.status() == INCONCLUSIVE || input == "q\n") {
+        if (verbose) {
+            std::cout << "\nPositive state estimate:\n";
+            for (const auto& s : monitor.positive_state_estimate()) {
+                std::cout << '\t';
+                s.print(std::cout, pos);
+            }
+
+            std::cout << "\nNegative state estimate:\n";
+            for (const auto& s : monitor.negative_state_estimate()) {
+                std::cout << '\t';
+                s.print(std::cout, neg);
+            }
+            std::cout << '\n';
+        }
+        std::cout << "Next event: ";
+        std::getline(std::cin, input);
+        
+        membuf sbuf(input.data(), input.data() + input.size());
+        auto in = std::istream(&sbuf);
+
+        try
+        {
+            concrete_events = EventParser::parse_concrete_input(&in);
+        }
+        catch(const base_error& e)
+        {
+            std::cout << e.what() << '\n';
+            continue;
+        }
+
+        monitor.input(concrete_events);
+        event_counter += concrete_events.size();
+    }
+    
+    std::cout << "Monitoring ended, verdict is: " << monitor.status() << "\nMonitored " << event_counter << " events\n";
+    */
+
+    /*
+    if (vm.count("monitor-interval") || vm.count("monitor-concrete")) {
         std::vector<std::string> input;
 
         if (vm.count("monitor-interval"))
@@ -150,6 +357,7 @@ int main(int argc, const char** argv) {
         else
             do_monitoring<false>(pos, neg);
     }
+    */
 
     return 0;
 }
