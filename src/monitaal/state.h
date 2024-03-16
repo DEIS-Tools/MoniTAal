@@ -142,6 +142,8 @@ namespace monitaal {
 
         [[nodiscard]] bool is_empty() const;
 
+        [[nodiscard]] bool is_included_in(const concrete_state_t& state) const;
+
         [[nodiscard]] bool is_included_in(const symbolic_state_t& states) const;
 
         [[nodiscard]] bool is_included_in(const symbolic_state_map_t& states) const;
@@ -155,37 +157,6 @@ namespace monitaal {
     private:
         location_id_t _location;
         valuation_t _valuation;
-    };
-    struct concrete_state_map_t {
-        void insert(concrete_state_t state);
-        void remove(location_id_t loc);
-
-        [[nodiscard]] std::vector<concrete_state_t> at(location_id_t loc) const;
-
-        [[nodiscard]] std::vector<concrete_state_t>& operator[](location_id_t loc);
-
-        [[nodiscard]] bool is_empty() const;
-
-        [[nodiscard]] size_t size() const;
-
-        [[nodiscard]] bool has_state(location_id_t loc) const;
-
-        void intersection(const symbolic_state_t& states);
-        void intersection(const symbolic_state_map_t& states);
-
-        [[nodiscard]] std::map<location_id_t, std::vector<concrete_state_t>>::iterator begin();
-        [[nodiscard]] std::map<location_id_t, std::vector<concrete_state_t>>::const_iterator begin() const;
-
-        [[nodiscard]] std::map<location_id_t, std::vector<concrete_state_t>>::iterator end();
-        [[nodiscard]] std::map<location_id_t, std::vector<concrete_state_t>>::const_iterator end() const;
-
-        [[nodiscard]] bool equals(const concrete_state_map_t& rhs) const;
-
-        void print(std::ostream& out, const TA& T) const;
-
-
-    private:
-        std::map<location_id_t, std::vector<concrete_state_t>> _states;
     };
 }
 

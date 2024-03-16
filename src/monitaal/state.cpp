@@ -137,7 +137,7 @@ namespace monitaal {
 
     bool symbolic_state_t::is_included_in(const symbolic_state_t &state) const {
         if (state._location == _location) {
-            auto rel = _federation.exact_relation(state._federation);
+            auto rel = _federation.relation<false>(state._federation);
             return rel.is_equal() || rel.is_subset();
         }
         return false;
@@ -310,6 +310,18 @@ namespace monitaal {
         return _valuation[0] < 0;
     }
 
+    bool concrete_state_t::is_included_in(const concrete_state_t& state) const {
+        auto size = _valuation.size();
+        if (state.valuation().size() != size)
+            return false;
+
+        for (int i = 0; i < size; ++i) {
+            if (_valuation[i] != state.valuation()[i])
+                return false;
+        }
+        return true;
+    }
+
     bool concrete_state_t::is_included_in(const symbolic_state_t &states) const {
         if (states.location() != _location || states.is_empty()) {
             return false;
@@ -370,97 +382,5 @@ namespace monitaal {
         for (int i = 0; i < max; ++i)
             out << T.clock_name(i) << " = " << _valuation[i] << ", ";
         out << "global = " << _valuation[max] << '\n';
-    }
-
-    void concrete_state_map_t::insert(concrete_state_t state) {
-
-        if (not state.is_empty()) {
-            if (not this->has_state(state.location())) {
-                _states.insert({state.location(), {state}});
-            } else {
-                _states[state.location()].push_back(state);
-            }
-        }
-    }
-
-    void concrete_state_map_t::remove(location_id_t loc) {
-        _states.erase(loc);
-    }
-
-    std::vector<concrete_state_t> concrete_state_map_t::at(location_id_t loc) const {
-        return _states.at(loc);
-    }
-
-    std::vector<concrete_state_t> &concrete_state_map_t::operator[](location_id_t loc) {
-        return _states[loc];
-    }
-
-    bool concrete_state_map_t::is_empty() const {
-        return _states.empty();
-    }
-
-    size_t concrete_state_map_t::size() const {
-        return _states.size();
-    }
-
-    bool concrete_state_map_t::has_state(location_id_t loc) const {
-        return _states.find(loc) != _states.end();
-    }
-
-    void concrete_state_map_t::intersection(const symbolic_state_map_t& states) {
-        std::vector<location_id_t> erase_list;
-
-        for(auto &[l, _] : this->_states) {
-            if (states.has_state(l)) {
-                const auto& b = _states[l].begin(),
-                            e = _states[l].end();  
-                _states[l].erase(std::remove_if(b, e, [&states](const concrete_state_t& s){return not s.is_included_in(states);}), e);
-            } else {
-                erase_list.push_back(l);
-            }
-        }
-
-        for (const auto& l : erase_list)
-            remove(l);
-    }
-
-    std::map<location_id_t, std::vector<concrete_state_t>>::iterator concrete_state_map_t::begin() {
-        return _states.begin();
-    }
-
-    std::map<location_id_t, std::vector<concrete_state_t>>::const_iterator concrete_state_map_t::begin() const {
-        return _states.begin();
-    }
-
-    std::map<location_id_t, std::vector<concrete_state_t>>::iterator concrete_state_map_t::end() {
-        return _states.end();
-    }
-
-    std::map<location_id_t, std::vector<concrete_state_t>>::const_iterator concrete_state_map_t::end() const {
-        return _states.end();
-    }
-
-    bool concrete_state_map_t::equals(const concrete_state_map_t& rhs) const {
-        return false;
-        // if (this->size() != rhs.size())
-        //     return false;
-
-        // return std::all_of(_states.begin(), _states.end(),
-        //                    [&rhs](const std::pair<location_id_t, concrete_state_t>& s) {
-        //     return rhs.at(s.first).equals(s.second); });
-    }
-
-    void concrete_state_map_t::print(std::ostream& out, const TA& T) const {
-        out << "Locations:\n";
-        for (const auto& [loc, _] : _states)
-            out << T.locations().at(loc).name() << "\n";
-
-        out << "\nStates:\n";
-        for (const auto& [_, s] : _states) {
-            for (const auto& e : s) {
-                e.print(out, T);
-                out << '\n';
-            }
-        }
     }
 }
