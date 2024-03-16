@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(absentBQR_test1) {
 
     std::istream stream(&fb);
 
-    auto events = EventParser::parse_concrete_input(&stream);
+    auto events = EventParser::parse_input<false>(&stream, 0);
     fb.close();
 
     Concrete_monitor monitor(pos, neg);
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(absentAQ_test1) {
 
     std::istream stream(&fb);
 
-    auto events = EventParser::parse_concrete_input(&stream);
+    auto events = EventParser::parse_input<false>(&stream, 0);
     fb.close();
 
     Concrete_monitor monitor(pos, neg);
@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(absentBR_test1) {
 
     std::istream stream(&fb);
 
-    auto events = EventParser::parse_concrete_input(&stream);
+    auto events = EventParser::parse_input<false>(&stream, 0);
     fb.close();
     
     Concrete_monitor monitor(pos, neg);
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(recurBQR_test1) {
 
     std::istream stream(&fb);
 
-    auto events = EventParser::parse_concrete_input(&stream);
+    auto events = EventParser::parse_input<false>(&stream, 0);
     fb.close();
 
     Concrete_monitor monitor(pos, neg);
@@ -201,7 +201,7 @@ BOOST_AUTO_TEST_CASE(recurGLB_test1) {
 
     std::istream stream(&fb);
 
-    auto events = EventParser::parse_concrete_input(&stream);
+    auto events = EventParser::parse_input<false>(&stream, 0);
     fb.close();
 
     Concrete_monitor monitor(pos, neg);

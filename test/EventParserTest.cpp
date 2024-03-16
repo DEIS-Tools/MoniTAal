@@ -30,11 +30,11 @@
 using namespace monitaal;
 
 BOOST_AUTO_TEST_CASE(interval_parsing_test1) {
-    std::stringstream stream("@[0, 10] \ta\n@[5, 10] b@[10, 10] a\n@[20, 25] b @[25, 30] a\n\n", std::ios_base::in);
+    std::stringstream stream("@[0, 10] \ta\n@[5, 10] b @[10, 10] a\n@[20, 25] b @[25, 30] a\n\n", std::ios_base::in);
 
     std::vector<interval_input> input;
 
-    input = EventParser::parse_interval_input(&stream);
+    input = EventParser::parse_input<true>(&stream, 0);
 
     BOOST_CHECK(input.size() == 5);
 }
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(concrete_parsing_test1) {
 
     std::vector<concrete_input> input;
 
-    input = EventParser::parse_concrete_input(&stream);
+    input = EventParser::parse_input<false>(&stream, 0);
 
     BOOST_CHECK(input.size() == 6);
 }
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(empty_label_test1) {
 
     std::vector<concrete_input> input;
 
-    input = EventParser::parse_concrete_input(&stream);
+    input = EventParser::parse_input<false>(&stream, 0);
 
     BOOST_CHECK(input.size() == 4);
     BOOST_CHECK(input[0].label == "");
