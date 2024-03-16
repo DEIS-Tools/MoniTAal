@@ -170,6 +170,22 @@ namespace monitaal {
 
         [[nodiscard]] bool has_state(location_id_t loc) const;
 
+        void delay(concrete_time_t value);
+
+        // Small hack: This is used in the monitor template, but only relevant for symbolic states.
+        // Therefore this is just an empty implementation.
+        void restrict(const constraints_t& constraints);
+
+        bool do_transition(const edge_t& edge);
+
+        [[nodiscard]] bool is_included_in(const symbolic_state_t& states) const;
+
+        [[nodiscard]] bool is_included_in(const symbolic_state_map_t& states) const;
+
+        [[nodiscard]] bool satisfies(pardibaal::dim_t i, pardibaal::dim_t j, pardibaal::bound_t bound) const;
+        [[nodiscard]] bool satisfies(const constraint_t& constraint) const;
+        [[nodiscard]] bool satisfies(const constraints_t& constraints) const;
+
         void intersection(const symbolic_state_t& states);
         void intersection(const symbolic_state_map_t& states);
 

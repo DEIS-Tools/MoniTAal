@@ -77,7 +77,7 @@ namespace monitaal {
 
             single_monitor_answer_e input(const timed_input_t<is_interval>& input);
 
-            std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+            typename std::conditional_t<is_interval, symbolic_state_map_t, concrete_state_map_t>
             state_estimate();
         };
 
@@ -94,10 +94,10 @@ namespace monitaal {
 
         monitor_answer_e input(const timed_input_t<is_interval>& input);
 
-        std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+        typename std::conditional_t<is_interval, symbolic_state_map_t, concrete_state_map_t>
         positive_state_estimate();
 
-        std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
+        typename std::conditional_t<is_interval, symbolic_state_map_t, concrete_state_map_t>
         negative_state_estimate();
 
         [[nodiscard]] monitor_answer_e status() const;

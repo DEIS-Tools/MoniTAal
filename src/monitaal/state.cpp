@@ -200,6 +200,23 @@ namespace monitaal {
         return _states.find(loc) != _states.end();
     }
 
+    void symbolic_state_map::delay(concrete_time_t value) {
+        for (auto& [_,s] : _states)
+            s.delay(value);
+    }
+
+    void symbolic_state_map::restrict(const constraints_t& constraints);
+
+    bool symbolic_state_map::do_transition(const edge_t& edge);
+
+    [[nodiscard]] bool symbolic_state_map::is_included_in(const symbolic_state_t& states) const;
+
+    [[nodiscard]] bool symbolic_state_map::is_included_in(const symbolic_state_map_t& states) const;
+
+    [[nodiscard]] bool symbolic_state_map::satisfies(pardibaal::dim_t i, pardibaal::dim_t j, pardibaal::bound_t bound) const;
+    [[nodiscard]] bool symbolic_state_map::satisfies(const constraint_t& constraint) const;
+    [[nodiscard]] bool symbolic_state_map::satisfies(const constraints_t& constraints) const;
+
     void symbolic_state_map_t::intersection(const symbolic_state_map_t& states) {
         std::vector<location_id_t> erase_list;
 
@@ -405,6 +422,85 @@ namespace monitaal {
 
     bool concrete_state_map_t::has_state(location_id_t loc) const {
         return _states.find(loc) != _states.end();
+    }
+
+    void concrete_state_map_t::delay(concrete_time_t value) {
+        for (auto& [_, vs] : _states)
+            for (auto& v : vs) {
+                v.delay(value);
+            }
+    }
+
+    void concrete_state_map_t::restrict(const constraints_t &constraints) {
+        for (auto& [l, vs] : _states) {
+            auto b = vs.begin(), e = vs.end();
+            vs.erase(std::remove_if(b, e, [&constraints](const concrete_state_t& s){return not s.satisfies(constraints);}), e);
+            
+            if (vs.size() == 0) 
+                this->remove(l);
+        }
+    }
+
+    bool concrete_state_map_t::do_transition(const edge_t &edge) {
+        bool nonempty = false;
+        for (auto& [l, vs] : _states) {
+            auto b = vs.begin(), e = vs.end();
+            vs.erase(std::remove_if(b, e, [&edge](concrete_state_t& s){return not s.do_transition(edge);}), e);
+            
+            if (vs.size() == 0)
+                this->remove(l);
+            else
+                nonempty = true;
+        }
+
+        return nonempty;
+    }
+
+    bool concrete_state_map_t::is_included_in(const symbolic_state_t &states) const {
+        if (states.is_empty() || this->is_empty())
+            return this->is_empty();
+        
+        for (const auto& [_, vs] : _states)
+            for (const auto& v : vs)
+                if (not v.is_included_in(states))
+                    return false;
+
+        return true;
+    }
+
+    bool concrete_state_map_t::is_included_in(const symbolic_state_map_t &states) const {
+        for (const auto& [l, vs] : _states) {
+            if (not states.has_state(l))
+                return false;
+
+            for (const auto& v : vs)
+                if (not v.is_included_in(states[l]))
+                    return false;
+        }
+        return true;
+    }
+
+
+    bool concrete_state_map_t::satisfies(pardibaal::dim_t i, pardibaal::dim_t j, pardibaal::bound_t bound) const {
+        for (const auto& [_, vs] : _states) {
+            for (const auto v : vs) {
+                if (v.satifsfies(pardibaal::dim_t i, pardibaal::dim_t j, pardibaal::bound_t bound))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    bool concrete_state_map_t::satisfies(const constraint_t &constraint) const {
+        return satisfies(constraint._i, constraint._j, constraint._bound);
+    }
+
+    bool concrete_state_map_t::satisfies(const constraints_t &constraints) const {
+        for (const auto& c : constraints)
+            if (not this->satisfies(c))
+                return false;
+
+        return true;
     }
 
     void concrete_state_map_t::intersection(const symbolic_state_map_t& states) {
