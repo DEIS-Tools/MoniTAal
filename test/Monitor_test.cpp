@@ -85,6 +85,24 @@ BOOST_AUTO_TEST_CASE(time_converge_test_1) {
     BOOST_CHECK(non_empty_states.is_empty());
 }
 
+BOOST_AUTO_TEST_CASE(time_divergence_test_1) {
+    TA pos = Parser::parse("models/time-must-pass.xml", "positive");
+    TA neg = Parser::parse("models/time-must-pass.xml", "negative");
+
+    pos.intersection(TA::time_divergence_ta({"a"}, true));
+    neg.intersection(TA::time_divergence_ta({"a"}, true));
+
+    BOOST_CHECK(Fixpoint::buchi_accept_fixpoint(neg).is_empty());
+    BOOST_CHECK(not Fixpoint::buchi_accept_fixpoint(pos).is_empty());
+    
+    Interval_monitor monitor_int(pos, neg);
+    Concrete_monitor monitor_con(pos, neg);
+
+    BOOST_CHECK(monitor_int.status());
+    BOOST_CHECK(monitor_con.status());
+
+}
+
 BOOST_AUTO_TEST_CASE(absentBQR_test1) {
     TA pos = Parser::parse("models/absentBQR.xml", "positive");
     TA neg = Parser::parse("models/absentBQR.xml", "negative");

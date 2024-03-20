@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+</declaration>
+	<template>
+		<name x="5" y="5">positive</name>
+		<declaration>// Place local declarations here.
+</declaration>
+		<location id="id0" x="170" y="0">
+			<name x="160" y="-34">q2_a</name>
+		</location>
+		<location id="id1" x="0" y="0">
+			<name x="-10" y="-34">q1</name>
+		</location>
+		<init ref="id1"/>
+		<transition id="id2">
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="154" y="-85">a!</label>
+			<nail x="136" y="-68"/>
+			<nail x="204" y="-68"/>
+		</transition>
+		<transition id="id3">
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-16" y="-102">x &lt; 20</label>
+			<label kind="synchronisation" x="-16" y="-85">a!</label>
+			<nail x="-34" y="-68"/>
+			<nail x="34" y="-68"/>
+		</transition>
+		<transition id="id4">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="59" y="-25">x &gt;= 20</label>
+			<label kind="synchronisation" x="76" y="0">a!</label>
+		</transition>
+	</template>
+	<template>
+		<name>negative</name>
+		<location id="id5" x="136" y="0">
+			<name x="126" y="-34">q2</name>
+		</location>
+		<location id="id6" x="0" y="0">
+			<name x="-10" y="-34">q1_a</name>
+		</location>
+		<init ref="id6"/>
+		<transition id="id7">
+			<source ref="id6"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-16" y="-102">x &lt; 20</label>
+			<label kind="synchronisation" x="-16" y="-85">a!</label>
+			<nail x="-34" y="-68"/>
+			<nail x="34" y="-68"/>
+		</transition>
+		<transition id="id8">
+			<source ref="id5"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="120" y="-85">a!</label>
+			<nail x="102" y="-68"/>
+			<nail x="170" y="-68"/>
+		</transition>
+		<transition id="id9">
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="34" y="-25">x &gt;= 20</label>
+			<label kind="synchronisation" x="51" y="0">a!</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+</system>
+	<queries>
+		<query>
+			<formula/>
+			<comment/>
+		</query>
+	</queries>
+</nta>
