@@ -63,9 +63,9 @@ namespace monitaal {
 
     class EventParser {
 public:
-        static std::vector<concrete_input> parse_concrete_input(std::istream* stream);
-
-        static std::vector<interval_input> parse_interval_input(std::istream* stream);
+        template<bool is_interval>
+        static std::vector<typename std::conditional_t<is_interval, interval_input, concrete_input>> 
+        parse_input(std::istream* stream, uint32_t limit);
     };
 
 }

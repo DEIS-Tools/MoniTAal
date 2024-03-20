@@ -35,16 +35,17 @@ namespace monitaal {
                                               label_t label) : time(time), label(std::move(label)) {}
 
     template<bool is_interval>
-    Monitor<is_interval>::Single_monitor::Single_monitor(const TA &automaton) :
-    _automaton(automaton), _accepting_space(Fixpoint::buchi_accept_fixpoint(automaton)) {
+    Monitor<is_interval>::Single_monitor::Single_monitor(const TA &automaton, bool inclusion) :
+    _automaton(automaton), _accepting_space(Fixpoint::buchi_accept_fixpoint(automaton)), inclusion(inclusion) {
         
         typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>
             init(_automaton.initial_location(), _automaton.number_of_clocks());
 
-        if (init.is_included_in(_accepting_space))
-            _status = ACTIVE;
-        else
+        init.intersection(_accepting_space);
+        if (init.is_empty())
             _status = OUT;
+        else
+            _status = ACTIVE;
 
 
         _current_states = std::vector{init};
@@ -65,8 +66,17 @@ namespace monitaal {
                 if (s.satisfies(_automaton.locations().at(s.location()).invariant())) {
                     s.restrict(_automaton.locations().at(s.location()).invariant());
                     s.intersection(_accepting_space);
-                    if (!s.is_empty())
-                        next_states.push_back(s);
+                    if (!s.is_empty()) {
+                        bool add = true;
+                        if (inclusion) {
+                            for (const auto& next_s : next_states) {
+                                if (s.is_included_in(next_s))
+                                    add = false;
+                            }
+                        }
+                        if (add)
+                            next_states.push_back(s);
+                    }
                 }
             }
         } else {
@@ -89,8 +99,17 @@ namespace monitaal {
 
                             // Only add the state if it is included in the possible accept space
                             state.intersection(_accepting_space);
-                            if (!state.is_empty())
-                                next_states.push_back(state);
+                            if (!state.is_empty()) {
+                                bool add = true;
+                                if (inclusion) {
+                                    for (const auto& next_s : next_states) {
+                                        if (state.is_included_in(next_s))
+                                            add = false;
+                                    }
+                                }
+                                if (add)
+                                    next_states.push_back(state);
+                            }
                         }
                         state = s;
                     }
@@ -114,7 +133,21 @@ namespace monitaal {
 
     template<bool is_interval>
     Monitor<is_interval>::Monitor(const TA& pos, const TA& neg)
-            : _monitor_pos(Single_monitor(pos)), _monitor_neg(Single_monitor(neg)) {
+            : _monitor_pos(Single_monitor(pos, false)), _monitor_neg(Single_monitor(neg, false)) {
+
+        assert((_monitor_pos.status() != OUT || _monitor_neg.status() != OUT) &&
+               "Error: Mismatch between positive and negative automata. Both are out\n");
+        if (_monitor_pos.status() == OUT)
+            _status = NEGATIVE;
+        else if (_monitor_neg.status() == OUT)
+            _status = POSITIVE;
+        else
+            _status = INCONCLUSIVE;
+    }
+
+    template<bool is_interval>
+    Monitor<is_interval>::Monitor(const TA& pos, const TA& neg, bool inclusion)
+            : _monitor_pos(Single_monitor(pos, inclusion)), _monitor_neg(Single_monitor(neg, inclusion)) {
 
         assert((_monitor_pos.status() != OUT || _monitor_neg.status() != OUT) &&
                "Error: Mismatch between positive and negative automata. Both are out\n");

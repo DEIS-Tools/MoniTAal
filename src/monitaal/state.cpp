@@ -137,7 +137,7 @@ namespace monitaal {
 
     bool symbolic_state_t::is_included_in(const symbolic_state_t &state) const {
         if (state._location == _location) {
-            auto rel = _federation.exact_relation(state._federation);
+            auto rel = _federation.relation<false>(state._federation);
             return rel.is_equal() || rel.is_subset();
         }
         return false;
@@ -310,6 +310,18 @@ namespace monitaal {
         return _valuation[0] < 0;
     }
 
+    bool concrete_state_t::is_included_in(const concrete_state_t& state) const {
+        auto size = _valuation.size();
+        if (state.valuation().size() != size)
+            return false;
+
+        for (int i = 0; i < size; ++i) {
+            if (_valuation[i] != state.valuation()[i])
+                return false;
+        }
+        return true;
+    }
+
     bool concrete_state_t::is_included_in(const symbolic_state_t &states) const {
         if (states.location() != _location || states.is_empty()) {
             return false;
@@ -318,7 +330,21 @@ namespace monitaal {
                 bool sat = true;
                 for (pardibaal::dim_t i = 0; i < dbm.dimension(); ++i)
                     for (pardibaal::dim_t j = 0; j < dbm.dimension(); ++j)
--
+                       if (!satisfies(i, j, dbm.at(i, j)))
+                            sat = false;
+                if (sat) return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool concrete_state_t::is_included_in(const symbolic_state_map_t &states) const {
+        if (not states.has_state(_location)) {
+            return false;
+        }
+
+        return is_included_in(states.at(_location));
 
     }
 

@@ -106,7 +106,7 @@ namespace monitaal {
         pugi::xml_parse_result result = doc.load_file(path);
 
         if (result) {
-            std::cout << "Parsed \"" << path << "\" without errors\n";
+            //std::cout << "Parsed \"" << path << "\" without errors\n";
             return true;
         }
         else {
