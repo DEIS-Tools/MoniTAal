@@ -63,15 +63,9 @@ void run_benchmark_concrete(Concrete_monitor& monitor, settings_t& settings, int
     auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t2);
 
     for (int i = 0; i < limit-1; ++i) {
-        if (advance) {
-            t1 = std::chrono::high_resolution_clock::now();
-            monitor.input(concrete_input(0+i, "a"));
-            t2 = std::chrono::high_resolution_clock::now();
-        } else {
-            t1 = std::chrono::high_resolution_clock::now();
-            monitor.input({0, "a"});
-            t2 = std::chrono::high_resolution_clock::now();
-        }
+        t1 = std::chrono::high_resolution_clock::now();
+        monitor.input(concrete_input(i, "a"));
+        t2 = std::chrono::high_resolution_clock::now();
 
         res_tmp = ms_int.count();
         ms_int += std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1);
@@ -81,15 +75,9 @@ void run_benchmark_concrete(Concrete_monitor& monitor, settings_t& settings, int
         tmp = monitor.positive_state_estimate().size() + monitor.negative_state_estimate().size();
         max_states = tmp > max_states ? tmp : max_states;
     }
-    if (advance) {
-        t1 = std::chrono::high_resolution_clock::now();
-        monitor.input({11+limit, "b"});
-        t2 = std::chrono::high_resolution_clock::now();
-    } else {
-        t1 = std::chrono::high_resolution_clock::now();
-        monitor.input({11, "b"});
-        t2 = std::chrono::high_resolution_clock::now();
-    }
+    t1 = std::chrono::high_resolution_clock::now();
+    monitor.input({11+limit, "b"});
+    t2 = std::chrono::high_resolution_clock::now();
     res_tmp = ms_int.count();
     ms_int += std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1);
     res_tmp = ms_int.count() - res_tmp;
@@ -111,12 +99,14 @@ void run_benchmark_interval(Interval_monitor& monitor, settings_t& settings, int
 
     for (int i = 0; i < limit-1; ++i) {
         if (overlap) {
+            interval_input e({0+i, 10+i}, "a");
             t1 = std::chrono::high_resolution_clock::now();
-            monitor.input({{0+i,10+i}, "a"});
+            monitor.input(e);
             t2 = std::chrono::high_resolution_clock::now();
         } else {
+            interval_input e({0, 10}, "a");
             t1 = std::chrono::high_resolution_clock::now();
-            monitor.input({{0,10}, "a"});
+            monitor.input(e);
             t2 = std::chrono::high_resolution_clock::now();
         }
         res_tmp = ms_int.count();
