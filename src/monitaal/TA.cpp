@@ -230,9 +230,11 @@ namespace monitaal {
                 out << "\\n";
                 print_constraint(out, loc.invariant());
             }
-            out << "\"";
+            out << "\", shape=\"";
             if (loc.is_accept())
-                out << ", shape=\"doublecircle\"";
+                out << "doublecircle\"";
+            else
+                out << "circle\"";
             out << "];\n";
         }
 
