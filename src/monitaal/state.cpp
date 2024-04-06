@@ -37,47 +37,25 @@ namespace monitaal {
         _federation = Federation();
     }
 
-    symbolic_state_t::symbolic_state_t(location_id_t location, const Federation& federation) : _location(location) {
-        _federation = federation;
+    symbolic_state_t::symbolic_state_t(location_id_t location, clock_index_t clocks) : 
+            symbolic_state_base(location, clocks + 1) {}
+
+    symbolic_state_t symbolic_state_t::unconstrained(location_id_t location, clock_index_t clocks) {
+        auto rtn = symbolic_state_t();
+        rtn._location = location;
+        rtn._federation = Federation::unconstrained(clocks + 1);
+        return rtn;
     }
 
-    void symbolic_state_t::down() {
-        _federation.past();
-    }
-
-    void symbolic_state_t::restrict_to_zero(const clocks_t& clocks) {
-        for (const auto& x : clocks) {
-            _federation.restrict(x, 0, pardibaal::bound_t::non_strict(0));
-        }
-    }
-
-    void symbolic_state_t::restrict(const constraints_t& constraints) {
-        for (const auto& c : constraints)
-            _federation.restrict(c);
-    }
-
-    void symbolic_state_t::free(const clocks_t& clocks) {
-        for (const auto& x : clocks)
-            _federation.free(x);
-    }
-
-    void symbolic_state_t::intersection(const symbolic_state_t& state) {
-        if (state._location == _location)
-            _federation.intersection(state._federation);
+    void symbolic_state_t::intersection(const symbolic_state_map_t& map) {
+        if (map.has_state(this->_location))
+            intersection(map.at(this->_location));
         else
             this->_federation.restrict(0,0, {-1, true});
     }
 
-    void symbolic_state_t::intersection(const symbolic_state_map_t& states) {
-        if (states.has_state(this->_location))
-            this->intersection(states.at(this->_location));
-        else
-            this->_federation.restrict(0,0, {-1, true});
-    }
-
-    void symbolic_state_t::add(const symbolic_state_t& state) {
-        if (state.location() == _location)
-            _federation.add(state._federation);
+    void symbolic_state_t::intersection(const symbolic_state_base& state) {
+        symbolic_state_base::intersection(state);
     }
 
     void symbolic_state_t::delay(symb_time_t value) {
@@ -92,77 +70,15 @@ namespace monitaal {
         _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_federation.dimension() - 1, interval.second));
     }
 
-    bool symbolic_state_t::do_transition(const edge_t& edge) {
-        if (edge.from() != _location) return false;
-
-        // If the transition is not possible, do nothing and return false
-        if (not this->satisfies(edge.guard()))
+    bool symbolic_state_t::is_included_in(const symbolic_state_map_t& map) const {
+        if (not map.has_state(_location))
             return false;
 
-        if (!edge.guard().empty()) {
-            for (auto& c : edge.guard())
-                _federation.restrict(c);
-        }
-
-        for (const auto& r : edge.reset())
-            _federation.assign(r, 0);
-
-        _location = edge.to();
-        return true;
+        return is_included_in(map.at(_location));
     }
 
-    void symbolic_state_t::do_transition_backward(const edge_t& edge) {
-
-        if (edge.to() == _location) {
-            _location = edge.from();
-
-            this->down();
-            this->restrict_to_zero(edge.reset());
-            this->free(edge.reset());
-            this->restrict(edge.guard());
-            this->down();
-        }
-    }
-
-    bool symbolic_state_t::is_empty() const {
-        return _federation.is_empty();
-    }
-
-    bool symbolic_state_t::is_included_in(const symbolic_state_map_t &states) const {
-        if (not states.has_state(_location))
-            return false;
-
-        return is_included_in(states.at(_location));
-    }
-
-    bool symbolic_state_t::is_included_in(const symbolic_state_t &state) const {
-        if (state._location == _location) {
-            auto rel = _federation.relation<false>(state._federation);
-            return rel.is_equal() || rel.is_subset();
-        }
-        return false;
-    }
-
-    bool symbolic_state_t::equals(const symbolic_state_t& state) const {
-        return _federation.is_approx_equal(state._federation);
-    }
-
-    bool symbolic_state_t::satisfies(const constraint_t &constraint) const {
-        return _federation.is_satisfying(constraint);
-    }
-
-    bool symbolic_state_t::satisfies(const constraints_t &constraints) const {
-        return _federation.is_satisfying(constraints);
-    }
-
-    location_id_t symbolic_state_t::location() const {
-        return _location;
-    }
-
-    Federation symbolic_state_t::federation() const { return _federation; }
-
-    void symbolic_state_t::print(std::ostream &out, const TA &T) const {
-        out << T.locations().at(_location).name() << ' ' << _federation;
+    bool symbolic_state_t::is_included_in(const symbolic_state_base &state) const {
+        return symbolic_state_base::is_included_in(state);
     }
 
     void symbolic_state_map_t::insert(symbolic_state_t state) {
@@ -373,7 +289,7 @@ namespace monitaal {
     }
 
     concrete_state_t::concrete_state_t(location_id_t location, pardibaal::dim_t number_of_clocks) : _location(location) {
-        _valuation = std::vector<concrete_time_t>(number_of_clocks);
+        _valuation = std::vector<concrete_time_t>(number_of_clocks + 1);
     }
     
     void concrete_state_t::print(std::ostream& out, const TA& T) const {

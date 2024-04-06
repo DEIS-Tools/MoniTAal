@@ -25,6 +25,7 @@
 
 #include "types.h"
 #include "TA.h"
+#include "symbolic_state_base.h"
 
 #include <map>
 #include <vector>
@@ -35,52 +36,21 @@ namespace monitaal {
     class symbolic_state_map_t;
 
     //symbolic state
-    struct symbolic_state_t {
+    struct symbolic_state_t : public symbolic_state_base {
 
         symbolic_state_t();
-        symbolic_state_t(location_id_t location, const Federation &federation);
+        symbolic_state_t(location_id_t location, clock_index_t clocks);
 
-        void down();
+        [[nodiscard]] static symbolic_state_t unconstrained(location_id_t location, clock_index_t clocks);
 
-        /**
-         * restricts the zone by all the given clocks at zero
-         */
-        void restrict_to_zero(const clocks_t& clocks);
-
-        void restrict(const constraints_t& constraints);
-
-        void free(const clocks_t& clocks);
-
-        void intersection(const symbolic_state_t& state);
-        void intersection(const symbolic_state_map_t& states);
-
-        void add(const symbolic_state_t& state);
-
-        bool do_transition(const edge_t& edge);
-        void do_transition_backward(const edge_t& edge);
+        void intersection(const symbolic_state_map_t& map);
+        void intersection(const symbolic_state_base& state);
 
         void delay(symb_time_t value);
         void delay(interval_t interval);
 
-
-        [[nodiscard]] bool is_empty() const;
-        [[nodiscard]] bool is_included_in(const symbolic_state_map_t &states) const;
-        [[nodiscard]] bool is_included_in(const symbolic_state_t& state) const;
-        [[nodiscard]] bool equals(const symbolic_state_t& state) const;
-
-        [[nodiscard]] bool satisfies(const constraint_t& constraint) const;
-        [[nodiscard]] bool satisfies(const constraints_t& constraints) const;
-
-        [[nodiscard]] location_id_t location() const;
-
-        [[nodiscard]] Federation federation() const;
-
-        void print(std::ostream& out, const TA& T) const;
-
-    private:
-        location_id_t _location;
-
-        Federation _federation;
+        [[nodiscard]] bool is_included_in(const symbolic_state_map_t& map) const;
+        [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
     };
 
     /**

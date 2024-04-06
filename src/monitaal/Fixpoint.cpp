@@ -65,7 +65,7 @@ namespace monitaal {
 
         for (const auto& [_, loc] : T.locations()) {
             if (loc.is_accept())
-                accept_states.insert(symbolic_state_t(loc.id(), Federation::unconstrained(T.number_of_clocks())));
+                accept_states.insert(symbolic_state_t::unconstrained(loc.id(), T.number_of_clocks()));
         }
 
         return accept_states;

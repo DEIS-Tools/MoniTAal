@@ -13,7 +13,9 @@ set(HEADER_FILES
         Parser.h
         types.h
         Monitor.h
-        EventParser.h)
+        EventParser.h
+        delay_state_t.h
+        symbolic_state_base.h)
 
 add_library(MoniTAal
         ${HEADER_FILES}
@@ -22,7 +24,9 @@ add_library(MoniTAal
         Fixpoint.cpp
         Parser.cpp
         Monitor.cpp
-        EventParser.cpp)
+        EventParser.cpp
+        delay_state_t.cpp
+        symbolic_state_base.cpp)
 
 target_link_libraries(MoniTAal PRIVATE
         -lpugixml

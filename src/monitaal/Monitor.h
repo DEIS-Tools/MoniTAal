@@ -85,8 +85,6 @@ namespace monitaal {
 
         Single_monitor _monitor_pos, _monitor_neg;
 
-        std::vector<timed_input_t<is_interval>> _word;
-
         monitor_answer_e _status;
 
     public:
