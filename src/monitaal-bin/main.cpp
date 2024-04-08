@@ -45,17 +45,17 @@ struct membuf : std::streambuf
         this->setg(begin, begin, end);
     }
 };
-struct settings_t
+struct bin_settings_t
 {
     bool verbose = false;
     bool silent = false;
     uint32_t event_counter = 0;
     TA positive, negative;
 
-    settings_t(const TA& positive, const TA& negative) : positive(positive), negative(negative) {};
+    bin_settings_t(const TA& positive, const TA& negative) : positive(positive), negative(negative) {};
 };
 
-void run_benchmark_concrete(Concrete_monitor& monitor, settings_t& settings, int limit, bool advance) {
+void run_benchmark_concrete(Concrete_monitor& monitor, bin_settings_t& settings, int limit, bool advance) {
     int max_states = 0, tmp = 0;
     int max_response = 0, res_tmp;
     auto t1 = std::chrono::high_resolution_clock::now(),
@@ -90,7 +90,7 @@ void run_benchmark_concrete(Concrete_monitor& monitor, settings_t& settings, int
     return;
 }
 
-void run_benchmark_interval(Interval_monitor& monitor, settings_t& settings, int limit, bool overlap) {
+void run_benchmark_interval(Interval_monitor& monitor, bin_settings_t& settings, int limit, bool overlap) {
     int max_states = 0, tmp;
     int max_response = 0, res_tmp;
     auto t1 = std::chrono::high_resolution_clock::now(),
@@ -138,12 +138,11 @@ void run_benchmark_interval(Interval_monitor& monitor, settings_t& settings, int
     return;
 }
 
-template<bool is_interval>
-void interactive_monitoring(Monitor<is_interval>& monitor, settings_t& settings, std::ostream& out, std::istream& in) {
+template<class state_t>
+void interactive_monitoring(Monitor<state_t>& monitor, bin_settings_t& settings, std::ostream& out, std::istream& in) {
     std::string input = "";
 
-    std::vector<typename std::conditional_t<is_interval, interval_input, concrete_input>>
-    events;
+    std::vector<timed_input_t> events;
 
     if (monitor.status() == INCONCLUSIVE)
         out << "Interactive monitor (respond with \"q\" to quit)\n";
@@ -172,7 +171,7 @@ void interactive_monitoring(Monitor<is_interval>& monitor, settings_t& settings,
 
             try
             {
-                events = EventParser::parse_input<is_interval>(&in, 0);
+                events = EventParser::parse_input(&in, 0);
             }
             catch(const base_error& e)
             {
@@ -188,23 +187,24 @@ void interactive_monitoring(Monitor<is_interval>& monitor, settings_t& settings,
     }
 }
 
-template void interactive_monitoring<true>(Monitor<true>& monitor, settings_t& settings, std::ostream& out, std::istream& in);
-template void interactive_monitoring<false>(Monitor<false>& monitor, settings_t& settings, std::ostream& out, std::istream& in);
+template void interactive_monitoring<concrete_state_t>(Monitor<concrete_state_t>& monitor, bin_settings_t& settings, std::ostream& out, std::istream& in);
+template void interactive_monitoring<symbolic_state_t>(Monitor<symbolic_state_t>& monitor, bin_settings_t& settings, std::ostream& out, std::istream& in);
+template void interactive_monitoring<delay_state_t>(Monitor<delay_state_t>& monitor, bin_settings_t& settings, std::ostream& out, std::istream& in);
 
-template <bool is_interval>
-void monitor_from_file(Monitor<is_interval>& monitor, settings_t& settings, std::ostream& out, std::istream& input) {
-    std::vector<typename std::conditional_t<is_interval, interval_input, concrete_input>>
-    events;
+template <class state_t>
+void monitor_from_file(Monitor<state_t>& monitor, bin_settings_t& settings, std::ostream& out, std::istream& input) {
+    std::vector<timed_input_t> events;
 
     while (not input.eof() || monitor.status() == INCONCLUSIVE) {        
-        events = EventParser::parse_input<is_interval>(&input, 1000);
+        events = EventParser::parse_input(&input, 1000);
         monitor.input(events);
         settings.event_counter += events.size();
     }
 }
 
-template void monitor_from_file<true>(Monitor<true>& monitor, settings_t& settings, std::ostream& out, std::istream& input);
-template void monitor_from_file<false>(Monitor<false>& monitor, settings_t& settings, std::ostream& out, std::istream& input);
+template void monitor_from_file<concrete_state_t>(Monitor<concrete_state_t>& monitor, bin_settings_t& settings, std::ostream& out, std::istream& input);
+template void monitor_from_file<symbolic_state_t>(Monitor<symbolic_state_t>& monitor, bin_settings_t& settings, std::ostream& out, std::istream& input);
+template void monitor_from_file<delay_state_t>(Monitor<delay_state_t>& monitor, bin_settings_t& settings, std::ostream& out, std::istream& input);
 
 bool arg_type(const po::variables_map& vm) {
     if (vm.count("type")) {
@@ -295,12 +295,15 @@ int main(int argc, const char** argv) {
 
     }
 
-    settings_t settings(pos, neg);
+    bin_settings_t settings(pos, neg);
     settings.verbose = vm.count("verbose") > 0;
     settings.silent = vm.count("silent") > 0;
 
-    Interval_monitor monitor_int(pos, neg, vm.count("inclusion"));
-    Concrete_monitor monitor_con(pos, neg, vm.count("inclusion"));
+    settings_t mon_setting = settings_t();
+    mon_setting.inclusion = vm.count("inclusion");
+
+    Interval_monitor monitor_int(pos, neg, mon_setting);
+    Concrete_monitor monitor_con(pos, neg, mon_setting);
 
     if (vm.count("benchmark")) {
         if (is_interval) {
@@ -327,18 +330,18 @@ int main(int argc, const char** argv) {
         std::istream stream(&fb);
 
         if (is_interval)
-            monitor_from_file<true>(monitor_int, settings, std::cout, stream);
+            monitor_from_file<symbolic_state_t>(monitor_int, settings, std::cout, stream);
         else
-            monitor_from_file<false>(monitor_con, settings, std::cout, stream);
+            monitor_from_file<concrete_state_t>(monitor_con, settings, std::cout, stream);
 
         fb.close();
     }
     else {
         // Interactive Monitoring
         if (is_interval)
-            interactive_monitoring<true>(monitor_int, settings, std::cout, std::cin);
+            interactive_monitoring<symbolic_state_t>(monitor_int, settings, std::cout, std::cin);
         else
-            interactive_monitoring<false>(monitor_con, settings, std::cout, std::cin);
+            interactive_monitoring<concrete_state_t>(monitor_con, settings, std::cout, std::cin);
     }
 
 

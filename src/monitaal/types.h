@@ -28,15 +28,20 @@
 #include <cinttypes>
 #include <vector>
 #include <map>
+#include <type_traits>
+#include <concepts>
 
 namespace monitaal {
 
     struct location_t;
     struct edge_t;
     struct symbolic_state_t;
+    struct concrete_state_t;
+    struct symbolic_state_base;
+    struct delay_state_t;
 
-    template<bool is_interval> struct timed_input_t;
-    template<bool is_interval> class Monitor;
+    struct timed_input_t;
+    template<class state_t> class Monitor;
 
     using Federation = pardibaal::Federation;
     using Zone       = pardibaal::DBM;
@@ -62,14 +67,15 @@ namespace monitaal {
     using symb_time_t = uint32_t;
     using interval_t = std::pair<symb_time_t, symb_time_t>;
 
-    using concrete_time_t = float;
+    using concrete_time_t = uint32_t;
     using valuation_t = std::vector<concrete_time_t>;
 
-    using interval_input = timed_input_t<true>;
-    using concrete_input = timed_input_t<false>;
+    using interval_input = timed_input_t;
+    using concrete_input = timed_input_t;
 
-    using Interval_monitor = Monitor<true>;
-    using Concrete_monitor = Monitor<false>;
+    using Interval_monitor = Monitor<symbolic_state_t>;
+    using Concrete_monitor = Monitor<concrete_state_t>;
+    using Delay_monitor    = Monitor<delay_state_t>;
 
 }
 

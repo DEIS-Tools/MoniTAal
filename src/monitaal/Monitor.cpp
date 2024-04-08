@@ -30,16 +30,16 @@
 
 namespace monitaal {
 
-    template<bool is_interval>
-    timed_input_t<is_interval>::timed_input_t(typename std::conditional_t<is_interval, interval_t, concrete_time_t> time,
-                                              label_t label) : time(time), label(std::move(label)) {}
+    timed_input_t::timed_input_t(interval_t time, label_t label) : time(time), label(std::move(label)) {}
+    timed_input_t::timed_input_t(symb_time_t time, label_t label) : time({time, time}), label(std::move(label)) {}
 
-    template<bool is_interval>
-    Monitor<is_interval>::Single_monitor::Single_monitor(const TA &automaton, bool inclusion) :
-    _automaton(automaton), _accepting_space(Fixpoint::buchi_accept_fixpoint(automaton)), inclusion(inclusion) {
+    template<>
+    Monitor<delay_state_t>::Single_monitor::Single_monitor(const TA &automaton, const settings_t& setting) :
+    _automaton(automaton), 
+    _accepting_space(Fixpoint<delay_state_t>::buchi_accept_fixpoint(automaton)),
+    _inclusion(setting.inclusion) {
         
-        typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>
-            init(_automaton.initial_location(), _automaton.number_of_clocks());
+        delay_state_t init = delay_state_t(_automaton.initial_location(), _automaton.number_of_clocks(), setting.latency, setting.jitter);
 
         init.intersection(_accepting_space);
         if (init.is_empty())
@@ -51,14 +51,31 @@ namespace monitaal {
         _current_states = std::vector{init};
     }
 
-    template<bool is_interval> typename Monitor<is_interval>::single_monitor_answer_e
-    Monitor<is_interval>::Single_monitor::status() { return _status; }
+    template<class state_t>
+    Monitor<state_t>::Single_monitor::Single_monitor(const TA &automaton, const settings_t& setting) :
+    _automaton(automaton), 
+    _accepting_space(Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(automaton)),
+    _inclusion(setting.inclusion) {
+        
+        state_t init = state_t(_automaton.initial_location(), _automaton.number_of_clocks());
 
-    template<bool is_interval> typename Monitor<is_interval>::single_monitor_answer_e
-    Monitor<is_interval>::Single_monitor::input(const timed_input_t<is_interval>& input) {
+        init.intersection(_accepting_space);
+        if (init.is_empty())
+            _status = OUT;
+        else
+            _status = ACTIVE;
 
-        std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
-                next_states;
+
+        _current_states = std::vector{init};
+    }
+
+    template<class state_t> Monitor<state_t>::single_monitor_answer_e
+    Monitor<state_t>::Single_monitor::status() { return _status; }
+
+    template<class state_t> Monitor<state_t>::single_monitor_answer_e
+    Monitor<state_t>::Single_monitor::input(const timed_input_t& input) {
+
+        std::vector<state_t> next_states;
 
         if (input.label == "") { // If label is empty, we do not take any transitions, only delay
             for (auto& s : _current_states) {
@@ -68,7 +85,7 @@ namespace monitaal {
                     s.intersection(_accepting_space);
                     if (!s.is_empty()) {
                         bool add = true;
-                        if (inclusion) {
+                        if (_inclusion) {
                             for (const auto& next_s : next_states) {
                                 if (s.is_included_in(next_s))
                                     add = false;
@@ -101,7 +118,7 @@ namespace monitaal {
                             state.intersection(_accepting_space);
                             if (!state.is_empty()) {
                                 bool add = true;
-                                if (inclusion) {
+                                if (_inclusion) {
                                     for (const auto& next_s : next_states) {
                                         if (state.is_included_in(next_s))
                                             add = false;
@@ -128,12 +145,12 @@ namespace monitaal {
         return _status;
     }
 
-    template<bool is_interval> typename std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
-    Monitor<is_interval>::Single_monitor::state_estimate() { return _current_states; };
+    template<class state_t> std::vector<state_t>
+    Monitor<state_t>::Single_monitor::state_estimate() { return _current_states; };
 
-    template<bool is_interval>
-    Monitor<is_interval>::Monitor(const TA& pos, const TA& neg)
-            : _monitor_pos(Single_monitor(pos, false)), _monitor_neg(Single_monitor(neg, false)) {
+    template<class state_t>
+    Monitor<state_t>::Monitor(const TA& pos, const TA& neg)
+            : _monitor_pos(Single_monitor(pos, settings_t())), _monitor_neg(Single_monitor(neg, settings_t())) {
 
         assert((_monitor_pos.status() != OUT || _monitor_neg.status() != OUT) &&
                "Error: Mismatch between positive and negative automata. Both are out\n");
@@ -145,9 +162,9 @@ namespace monitaal {
             _status = INCONCLUSIVE;
     }
 
-    template<bool is_interval>
-    Monitor<is_interval>::Monitor(const TA& pos, const TA& neg, bool inclusion)
-            : _monitor_pos(Single_monitor(pos, inclusion)), _monitor_neg(Single_monitor(neg, inclusion)) {
+    template<class state_t>
+    Monitor<state_t>::Monitor(const TA& pos, const TA& neg, const settings_t& setting)
+            : _monitor_pos(Single_monitor(pos, setting)), _monitor_neg(Single_monitor(neg, setting)) {
 
         assert((_monitor_pos.status() != OUT || _monitor_neg.status() != OUT) &&
                "Error: Mismatch between positive and negative automata. Both are out\n");
@@ -160,8 +177,8 @@ namespace monitaal {
 
     }
 
-    template<bool is_interval>
-    monitor_answer_e Monitor<is_interval>::input(const std::vector<timed_input_t<is_interval>> &input) {
+    template<class state_t>
+    monitor_answer_e Monitor<state_t>::input(const std::vector<timed_input_t>& input) {
         for (const auto& i : input) {
             _status = this->input(i);
             if (_status != INCONCLUSIVE)
@@ -171,8 +188,8 @@ namespace monitaal {
         return _status;
     }
 
-    template<bool is_interval>
-    monitor_answer_e Monitor<is_interval>::input(const timed_input_t<is_interval>& input) {
+    template<class state_t>
+    monitor_answer_e Monitor<state_t>::input(const timed_input_t& input) {
         auto pos = _monitor_pos.input(input), neg = _monitor_neg.input(input);
 
         if (pos == OUT && neg == OUT)
@@ -187,20 +204,20 @@ namespace monitaal {
         return _status;
     }
 
-    template<bool is_interval>
-    monitor_answer_e Monitor<is_interval>::status() const {
+    template<class state_t>
+    monitor_answer_e Monitor<state_t>::status() const {
         return _status;
     }
 
-    template<bool is_interval>
-    std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
-    Monitor<is_interval>::positive_state_estimate() {
+    template<class state_t>
+    std::vector<state_t>
+    Monitor<state_t>::positive_state_estimate() {
         return _monitor_pos.state_estimate();
     }
 
-    template<bool is_interval>
-    std::vector<typename std::conditional_t<is_interval, symbolic_state_t, concrete_state_t>>
-    Monitor<is_interval>::negative_state_estimate() {
+    template<class state_t>
+    std::vector<state_t>
+    Monitor<state_t>::negative_state_estimate() {
         return _monitor_neg.state_estimate();
     }
 
@@ -213,8 +230,7 @@ namespace monitaal {
         return out;
     }
 
-    template struct timed_input_t<true>;
-    template struct timed_input_t<false>;
-    template class Monitor<true>;
-    template class Monitor<false>;
+    template class Monitor<symbolic_state_t>;
+    template class Monitor<delay_state_t>;
+    template class Monitor<concrete_state_t>;
 }

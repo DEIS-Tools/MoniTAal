@@ -14,7 +14,6 @@ set(HEADER_FILES
         types.h
         Monitor.h
         EventParser.h
-        delay_state_t.h
         symbolic_state_base.h)
 
 add_library(MoniTAal
@@ -25,7 +24,6 @@ add_library(MoniTAal
         Parser.cpp
         Monitor.cpp
         EventParser.cpp
-        delay_state_t.cpp
         symbolic_state_base.cpp)
 
 target_link_libraries(MoniTAal PRIVATE

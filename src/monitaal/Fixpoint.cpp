@@ -26,9 +26,10 @@
 
 namespace monitaal {
 
-    symbolic_state_map_t Fixpoint::reach(const symbolic_state_map_t &states, const TA& T) {
-        symbolic_state_map_t waiting;
-        symbolic_state_map_t passed;
+    template<class state_t>
+    symbolic_state_map_t<state_t> Fixpoint<state_t>::reach(const symbolic_state_map_t<state_t>& states, const TA& T) {
+        symbolic_state_map_t<state_t> waiting;
+        symbolic_state_map_t<state_t> passed;
 
         // We have to take at least one step
         for (const auto& [_, s] : states) {
@@ -41,7 +42,7 @@ namespace monitaal {
         }
 
         while (not waiting.is_empty()) {
-            symbolic_state_t s = waiting.begin()->second;
+            state_t s = waiting.begin()->second;
             waiting.remove(s.location());
 
             if (passed.has_state(s.location()) && s.is_included_in(passed.at(s.location())))
@@ -60,18 +61,20 @@ namespace monitaal {
         return passed;
     }
 
-    symbolic_state_map_t Fixpoint::accept_states(const TA &T) {
-        symbolic_state_map_t accept_states;
+    template<class state_t>
+    symbolic_state_map_t<state_t> Fixpoint<state_t>::accept_states(const TA &T) {
+        symbolic_state_map_t<state_t> accept_states;
 
         for (const auto& [_, loc] : T.locations()) {
             if (loc.is_accept())
-                accept_states.insert(symbolic_state_t::unconstrained(loc.id(), T.number_of_clocks()));
+                accept_states.insert(state_t::unconstrained(loc.id(), T.number_of_clocks()));
         }
 
         return accept_states;
     }
 
-    symbolic_state_map_t Fixpoint::buchi_accept_fixpoint(const TA &T) {
+    template<class state_t>
+    symbolic_state_map_t<state_t> Fixpoint<state_t>::buchi_accept_fixpoint(const TA &T) {
         auto reach_a = reach(accept_states(T), T);
 
 
@@ -103,5 +106,8 @@ namespace monitaal {
 
         return reach_a;
     }
+
+    template class Fixpoint<symbolic_state_t>;
+    template class Fixpoint<delay_state_t>;
 
 }

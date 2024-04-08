@@ -33,6 +33,7 @@
 
 namespace monitaal {
 
+    template<class state_t>
     class symbolic_state_map_t;
 
     //symbolic state
@@ -43,26 +44,47 @@ namespace monitaal {
 
         [[nodiscard]] static symbolic_state_t unconstrained(location_id_t location, clock_index_t clocks);
 
-        void intersection(const symbolic_state_map_t& map);
+        void intersection(const symbolic_state_map_t<symbolic_state_t>& map);
         void intersection(const symbolic_state_base& state);
 
         void delay(symb_time_t value);
         void delay(interval_t interval);
 
-        [[nodiscard]] bool is_included_in(const symbolic_state_map_t& map) const;
+        [[nodiscard]] bool is_included_in(const symbolic_state_map_t<symbolic_state_t>& map) const;
         [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
+    };
+
+    struct delay_state_t : public symbolic_state_base {
+        delay_state_t();
+        delay_state_t(location_id_t location, clock_index_t clocks, interval_t latency, symb_time_t jitter);
+
+        [[nodiscard]] static delay_state_t unconstrained(location_id_t location, clock_index_t clocks);
+
+        void intersection(const symbolic_state_base& state);
+        void intersection(const symbolic_state_map_t<delay_state_t>& map);
+
+        void delay(symb_time_t value);
+        void delay(interval_t interval);
+
+        [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
+        [[nodiscard]] bool is_included_in(const symbolic_state_map_t<delay_state_t>& map) const;
+
+    private:
+        clock_index_t _etime, _time;
+        symb_time_t _jitter;
     };
 
     /**
      * states_map_t represents a set of symbolic states, stored in a map structure from locations to federations.
      */
+    template<class state_t>
     struct symbolic_state_map_t {
-        void insert(symbolic_state_t state);
+        void insert(state_t state);
         void remove(location_id_t loc);
 
-        [[nodiscard]] symbolic_state_t at(location_id_t loc) const;
+        [[nodiscard]] state_t at(location_id_t loc) const;
 
-        [[nodiscard]] symbolic_state_t& operator[](location_id_t loc);
+        [[nodiscard]] state_t& operator[](location_id_t loc);
 
         [[nodiscard]] bool is_empty() const;
 
@@ -72,32 +94,33 @@ namespace monitaal {
 
         void intersection(const symbolic_state_map_t& states);
 
-        [[nodiscard]] std::map<location_id_t, symbolic_state_t>::iterator begin();
-        [[nodiscard]] std::map<location_id_t, symbolic_state_t>::const_iterator begin() const;
+        [[nodiscard]] std::map<location_id_t, state_t>::iterator begin();
+        [[nodiscard]] std::map<location_id_t, state_t>::const_iterator begin() const;
 
-        [[nodiscard]] std::map<location_id_t, symbolic_state_t>::iterator end();
-        [[nodiscard]] std::map<location_id_t, symbolic_state_t>::const_iterator end() const;
+        [[nodiscard]] std::map<location_id_t, state_t>::iterator end();
+        [[nodiscard]] std::map<location_id_t, state_t>::const_iterator end() const;
 
-        [[nodiscard]] bool equals(const symbolic_state_map_t& rhs) const;
+        [[nodiscard]] bool equals(const symbolic_state_map_t<state_t>& rhs) const;
 
         void print(std::ostream& out, const TA& T) const;
 
 
     private:
-        std::map<location_id_t, symbolic_state_t> _states;
+        std::map<location_id_t, state_t> _states;
     };
 
     struct concrete_state_t {
         concrete_state_t(location_id_t location, pardibaal::dim_t number_of_clocks);
 
-        void delay(concrete_time_t value);
+        void delay(symb_time_t value);
+        void delay(interval_t interval);
 
         // Small hack: This is used in the monitor template, but only relevant for symbolic states.
         // Therefore this is just an empty implementation.
         void restrict(const constraints_t& constraints);
 
         void intersection(const symbolic_state_t& state);
-        void intersection(const symbolic_state_map_t& states);
+        void intersection(const symbolic_state_map_t<symbolic_state_t>& states);
 
         /**
          * Do a transition if possible. Returns false if the guard was not satisfied.
@@ -116,7 +139,7 @@ namespace monitaal {
 
         [[nodiscard]] bool is_included_in(const symbolic_state_t& states) const;
 
-        [[nodiscard]] bool is_included_in(const symbolic_state_map_t& states) const;
+        [[nodiscard]] bool is_included_in(const symbolic_state_map_t<symbolic_state_t>& states) const;
 
         [[nodiscard]] bool satisfies(pardibaal::dim_t i, pardibaal::dim_t j, pardibaal::bound_t bound) const;
         [[nodiscard]] bool satisfies(const constraint_t& constraint) const;
