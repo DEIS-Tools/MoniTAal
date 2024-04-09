@@ -28,7 +28,8 @@ add_library(MoniTAal
 
 target_link_libraries(MoniTAal PRIVATE
         -lpugixml
-        -lpardibaal)
+        -lpardibaal
+        ${Boost_LIBRARIES})
 
 add_dependencies(MoniTAal pardibaal)
 

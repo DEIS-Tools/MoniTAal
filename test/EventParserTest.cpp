@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(interval_parsing_test1) {
 }
 
 BOOST_AUTO_TEST_CASE(concrete_parsing_test1) {
-    std::stringstream stream("@1 a\n@2 b@3 a\n@4b @5 a\n@6.2 a\n", std::ios_base::in);
+    std::stringstream stream("@1 a\n@2 b@3 a\n@4b @5 a\n@6 a\n", std::ios_base::in);
 
     std::vector<concrete_input> input;
 

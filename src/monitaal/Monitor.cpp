@@ -44,11 +44,10 @@ namespace monitaal {
         init.intersection(_accepting_space);
         if (init.is_empty())
             _status = OUT;
-        else
+        else {
             _status = ACTIVE;
-
-
-        _current_states = std::vector{init};
+            _current_states = std::vector{init};
+        }
     }
 
     template<class state_t>
@@ -62,11 +61,10 @@ namespace monitaal {
         init.intersection(_accepting_space);
         if (init.is_empty())
             _status = OUT;
-        else
+        else {
             _status = ACTIVE;
-
-
-        _current_states = std::vector{init};
+            _current_states = std::vector{init};
+        }
     }
 
     template<class state_t> Monitor<state_t>::single_monitor_answer_e
@@ -219,6 +217,38 @@ namespace monitaal {
     std::vector<state_t>
     Monitor<state_t>::negative_state_estimate() {
         return _monitor_neg.state_estimate();
+    }
+
+    template<class state_t>
+    void Monitor<state_t>::Single_monitor::print_status(std::ostream& out) const {
+        out << "Number of states: " << _current_states.size() << '\n';
+    }
+
+    template<>
+    void Monitor<delay_state_t>::Single_monitor::print_status(std::ostream& out) const {
+        out << "Consistent latencies: ";
+        symb_time_t jitter = 0;
+
+        auto latencies = boost::icl::interval_set<symb_time_t>();
+
+        for (const auto& s : _current_states) {
+            latencies += s.get_latency();
+            jitter = s.get_jitter_bound();
+        }
+
+        out << latencies << "\nJitter bound: " << jitter << '\n';
+    }
+
+    template<class state_t>
+    void Monitor<state_t>::print_status(std::ostream& out) const {
+        out << "Verdict: " << status() << '\n';
+        if (status() == INCONCLUSIVE || true) {
+            out << "Positive:\n";
+            _monitor_pos.print_status(out);
+            out << "\nNegative:\n";
+            _monitor_neg.print_status(out);
+            out << '\n';
+        }
     }
 
     std::ostream& operator<<(std::ostream &out, const monitor_answer_e value) {

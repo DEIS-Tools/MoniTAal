@@ -27,6 +27,9 @@
 #include "TA.h"
 #include "symbolic_state_base.h"
 
+#include <boost/icl/interval.hpp>
+#include <boost/icl/interval_set.hpp>
+
 #include <map>
 #include <vector>
 
@@ -65,6 +68,9 @@ namespace monitaal {
 
         void delay(symb_time_t value);
         void delay(interval_t interval);
+
+        [[nodiscard]] boost::icl::interval_set<symb_time_t> get_latency() const;
+        [[nodiscard]] symb_time_t get_jitter_bound() const;
 
         [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
         [[nodiscard]] bool is_included_in(const symbolic_state_map_t<delay_state_t>& map) const;
@@ -148,6 +154,8 @@ namespace monitaal {
         void print(std::ostream& out, const TA& T) const;
 
     private:
+        void set_empty();
+        
         location_id_t _location;
         valuation_t _valuation;
     };

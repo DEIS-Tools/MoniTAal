@@ -125,6 +125,28 @@ namespace monitaal {
         _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime, interval.second));
     }
 
+    boost::icl::interval_set<symb_time_t> delay_state_t::get_latency() const {
+        auto latencies = boost::icl::interval_set<symb_time_t>();
+
+        for (const auto dbm : _federation) {
+            auto lower = dbm.at(_time, _etime),
+                 upper = dbm.at(_etime, _time);
+            if (lower.is_strict()) {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::open(lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::left_open(lower.get_bound(), upper.get_bound());
+            } else {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::right_open(lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::closed(lower.get_bound(), upper.get_bound());
+            }
+        }
+
+        return latencies;
+    }
+
+    symb_time_t delay_state_t::get_jitter_bound() const { return _jitter; }
+
     bool delay_state_t::is_included_in(const symbolic_state_map_t<delay_state_t>& map) const {
         if (not map.has_state(_location))
             return false;
@@ -255,28 +277,28 @@ namespace monitaal {
     // Empty because we don't need restriction for concrete states.
     void concrete_state_t::restrict(const constraints_t &constraints) {
         if (!this->satisfies(constraints))
-            _valuation[0] = -1;
+            set_empty();
     }
 
     void concrete_state_t::intersection(const symbolic_state_t& state) {
         if (!this->is_included_in(state))
-            _valuation[0] = -1;
+            set_empty();
     }
 
     void concrete_state_t::intersection(const symbolic_state_map_t<symbolic_state_t>& states) {
         if (!this->is_included_in(states))
-            _valuation[0] = -1;
+            set_empty();
     }
 
     bool concrete_state_t::do_transition(const edge_t &edge) {
         if (edge.from() != _location) {
-            _valuation[0] = -1; // if the first is -1 then the valuation is empty/invalid
+            set_empty();
             return false;
         }
         // If the transition is not possible, do nothing and return false
         for (const auto& c : edge.guard())
             if (!satisfies(c)) {
-                _valuation[0] = -1;
+                set_empty();
                 return false;
             }
 
@@ -298,13 +320,15 @@ namespace monitaal {
     }
 
     bool concrete_state_t::is_empty() const {
-        return _valuation[0] < 0;
+        return _valuation[0] != 0;
     }
 
     bool concrete_state_t::is_included_in(const concrete_state_t& state) const {
         auto size = _valuation.size();
         if (state.valuation().size() != size)
             return false;
+        if (this->is_empty())
+            return state.is_empty();
 
         for (int i = 0; i < size; ++i) {
             if (_valuation[i] != state.valuation()[i])
@@ -314,6 +338,8 @@ namespace monitaal {
     }
 
     bool concrete_state_t::is_included_in(const symbolic_state_t &states) const {
+        if (this->is_empty()) return true;
+
         if (states.location() != _location || states.is_empty()) {
             return false;
         } else {
@@ -331,6 +357,7 @@ namespace monitaal {
     }
 
     bool concrete_state_t::is_included_in(const symbolic_state_map_t<symbolic_state_t> &states) const {
+        if (this->is_empty()) return true;
         if (not states.has_state(_location)) {
             return false;
         }
@@ -340,14 +367,14 @@ namespace monitaal {
     }
 
     bool concrete_state_t::satisfies(pardibaal::dim_t i, pardibaal::dim_t j, pardibaal::bound_t bound) const {
-        if (_valuation[0] < 0) 
+        if (this->is_empty()) 
             return false;
         if (bound.is_inf()) 
             return true;
         if (bound.is_strict()) {
-            return (_valuation[i] - _valuation[j] < bound.get_bound());
+            return ((zone_val_t) _valuation[i] - (zone_val_t) _valuation[j] < bound.get_bound());
         } else {
-            return (_valuation[i] - _valuation[j] <= bound.get_bound());
+            return ((zone_val_t) _valuation[i] - (zone_val_t) _valuation[j] <= bound.get_bound());
         }
     }
 
@@ -365,6 +392,10 @@ namespace monitaal {
 
     concrete_state_t::concrete_state_t(location_id_t location, pardibaal::dim_t number_of_clocks) : _location(location) {
         _valuation = std::vector<concrete_time_t>(number_of_clocks + 1);
+    }
+
+    void concrete_state_t::set_empty() {
+        _valuation[0] = 2;
     }
     
     void concrete_state_t::print(std::ostream& out, const TA& T) const {

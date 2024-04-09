@@ -57,7 +57,8 @@ BOOST_AUTO_TEST_CASE(monitor_test1) {
             timed_input_t(220, "c")};
 
     Concrete_monitor monitor(pos, neg);
-
+    
+    BOOST_CHECK(monitor.status() == INCONCLUSIVE);
     BOOST_CHECK(monitor.input(word1) == INCONCLUSIVE);
     BOOST_CHECK(monitor.input(word2) == NEGATIVE);
 }
@@ -100,9 +101,22 @@ BOOST_AUTO_TEST_CASE(time_divergence_test_1) {
     Interval_monitor monitor_int(pos, neg);
     Concrete_monitor monitor_con(pos, neg);
 
-    BOOST_CHECK(monitor_int.status());
-    BOOST_CHECK(monitor_con.status());
+    BOOST_CHECK(monitor_int.status() == POSITIVE);
+    BOOST_CHECK(not monitor_con.positive_state_estimate().empty());
+    BOOST_CHECK(monitor_con.negative_state_estimate().empty());
+    BOOST_CHECK(monitor_con.status() == POSITIVE);
 
+
+}
+
+BOOST_AUTO_TEST_CASE(concrete_state_test1) {
+    concrete_state_t s(0, 5);
+    symbolic_state_t z1(0, 5);
+    symbolic_state_t z2(1, 5);
+
+    BOOST_CHECK(s.is_included_in(z1));
+    z1.intersection(z2);
+    BOOST_CHECK(not s.is_included_in(z1));
 }
 
 BOOST_AUTO_TEST_CASE(absentBQR_test1) {

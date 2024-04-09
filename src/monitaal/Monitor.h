@@ -28,6 +28,9 @@
 #include "state.h"
 #include "Fixpoint.h"
 
+#include <boost/icl/interval.hpp>
+#include <boost/icl/interval_set.hpp>
+
 #include <vector>
 #include <type_traits>
 
@@ -85,6 +88,8 @@ namespace monitaal {
             single_monitor_answer_e input(const timed_input_t& input);
 
             std::vector<state_t> state_estimate();
+
+            void print_status(std::ostream& out) const;
         };
 
         Single_monitor _monitor_pos, _monitor_neg;
@@ -104,6 +109,8 @@ namespace monitaal {
         std::vector<state_t> negative_state_estimate();
 
         [[nodiscard]] monitor_answer_e status() const;
+
+        void print_status(std::ostream& out) const;
 
     };
 
