@@ -26,6 +26,7 @@
 #include "monitaal/Monitor.h"
 #include "monitaal/EventParser.h"
 
+#include <cstdlib>
 #include <boost/program_options.hpp>
 #include <filesystem>
 #include <fstream>
@@ -35,43 +36,120 @@
 namespace po = boost::program_options;
 using namespace monitaal;
 
-struct membuf : std::streambuf
-{
-    membuf(char* begin, char* end) {
-        this->setg(begin, begin, end);
-    }
-};
+void run_gearcontroller2(int limit) {
+    char* prop = "gear-control-properties.xml";
+    settings_t setting{false, {0, 100}, 5};
+    std::vector<Delay_monitor> monitors = {
+        Delay_monitor(Parser::parse(prop, "CloseClutch"), Parser::parse(prop, "NotCloseClutch"), setting),
+        Delay_monitor(Parser::parse(prop, "OpenClutch"), Parser::parse(prop, "NotOpenClutch"), setting),
+        Delay_monitor(Parser::parse(prop, "ReqSet"), Parser::parse(prop, "NotReqSet"), setting),
+        Delay_monitor(Parser::parse(prop, "ReqNeu"), Parser::parse(prop, "NotReqNeu"), setting),
+        Delay_monitor(Parser::parse(prop, "SpeedSet"), Parser::parse(prop, "NotSpeedSet"), setting),
+        Delay_monitor(Parser::parse(prop, "test1"), Parser::parse(prop, "Nottest1"), setting)
+    };
 
-void run_benchmark(TA& pos, TA& neg, std::istream& input) {
-    char read[256];
-    
-    Concrete_monitor monitor(pos, neg);
-
+    auto size = monitors.size();
+    bool is_firm = false;
     int event_counter = 0;
 
+    int tmp = 0;
+    int max_states = 0;
+    int max_response_time = 0;
+    int response_time = 0;
+    int time_horizon = 0;
+
+    std::filebuf fb;
+    fb.open("gear-control-input3.txt", std::ios::in);
+    std::istream stream(&fb);
+    std::vector<timed_input_t> events;
+    
     auto t1 = std::chrono::high_resolution_clock::now();
-
-    while (not input.eof() || monitor.status() == INCONCLUSIVE) {    
-        input.getline(read, 256);
-        
-        if (input.gcount() == 0) // If the line is empty
-            continue;
-
-        assert(not input.fail() && "Error: Too many characters in one line");
-
-        membuf sbuf(read, read + input.gcount());
-        auto in = std::istream(&sbuf);
-
-        auto events = EventParser::parse_concrete_input(&in);
-
-        monitor.input(events);
-        ++event_counter;
-    }
-
     auto t2 = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 
-    std::cout << "Monitored " << event_counter << " events in " << time.count() << "ms\nMonitor verdict is " << monitor.status() << '\n';
+    while ((not is_firm) && (limit == 0 || event_counter < limit)) {
+
+        events = EventParser::parse_input(&stream, 1);
+        if (events.size() == 0) break;
+        
+        for (int i = 0; i < size; ++i) {
+            monitors[i].input(events);
+        }
+        event_counter += events.size();
+        
+    }
+    t2 = std::chrono::high_resolution_clock::now();
+    time = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+
+    fb.close();
+    std::cout << "Monitored " << event_counter << " events in " << time.count() << "ms\n";
+}
+
+void run_gearcontroller(int limit) {
+    char* prop = "gear-control-properties.xml";
+    settings_t setting{false, {0, 0}, 0};
+    std::vector<Delay_monitor> monitors = {
+        Delay_monitor(Parser::parse(prop, "CloseClutch"), Parser::parse(prop, "NotCloseClutch"), setting),
+        Delay_monitor(Parser::parse(prop, "OpenClutch"), Parser::parse(prop, "NotOpenClutch"), setting),
+        Delay_monitor(Parser::parse(prop, "ReqSet"), Parser::parse(prop, "NotReqSet"), setting),
+        Delay_monitor(Parser::parse(prop, "ReqNeu"), Parser::parse(prop, "NotReqNeu"), setting),
+        Delay_monitor(Parser::parse(prop, "SpeedSet"), Parser::parse(prop, "NotSpeedSet"), setting),
+        Delay_monitor(Parser::parse(prop, "test1"), Parser::parse(prop, "Nottest1"), setting)
+    };
+
+    auto size = monitors.size();
+    bool is_firm = false;
+    int event_counter = 0;
+
+    int tmp = 0;
+    int max_states = 0;
+    int max_response_time = 0;
+    int response_time = 0;
+    int time_horizon = 0;
+
+    std::filebuf fb;
+    fb.open("gear-control-input3.txt", std::ios::in);
+    std::istream stream(&fb);
+    std::vector<timed_input_t> events;
+    
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t2);
+
+    while ((not is_firm) && (limit == 0 || event_counter < limit)) {
+
+        events = EventParser::parse_input(&stream, 1);
+        if (events.size() == 0) break;
+        
+        t1 = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < size; ++i) {
+            monitors[i].input(events);
+        }
+        t2 = std::chrono::high_resolution_clock::now();
+        
+        tmp = time.count();
+        time += std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1);
+        response_time = time.count() - tmp;
+        max_response_time = response_time > max_response_time ? response_time : max_response_time;
+        // std::cout << "Response time: " << response_time << "ns\n";
+
+        tmp = max_states;
+        max_states = 0;
+
+        for (int i = 0; i < size; ++i) {
+            max_states += monitors[i].positive_state_estimate().size() + 
+                          monitors[i].negative_state_estimate().size();
+        }
+
+        max_states = tmp > max_states ? tmp : max_states;
+        
+        event_counter += events.size();
+        time_horizon = events[events.size()-1].time.second;
+    }
+
+    fb.close();
+    std::cout << "Monitored " << event_counter << " events in " << time.count() << 
+                 "ns\nMax states: "<< max_states << "\nmax response: "<< max_response_time << "ns\nTime Horizon: " << time_horizon <<"\nMemory: " << sizeof(monitors) <<"\nMonitor verdicts are\n";
 }
 
 int main(int argc, const char** argv) {
@@ -79,10 +157,8 @@ int main(int argc, const char** argv) {
     po::options_description options;
     options.add_options()
             ("help,h", "Dispay this help message\nExample: monitaal-benchmark --pos <name> <path> --neg <name> <path> --input <path>")
-            ("pos,p", po::value<std::vector<std::string>>()->required()->multitoken(), "<name of template> <path to xml file>")
-            ("neg,n", po::value<std::vector<std::string>>()->required()->multitoken(), "<name of template> <path to xml file>")
-            ("input,i", po::value<std::string>()->required(), "Path to file containing observations")
-            ("div,d", po::value<std::vector<std::string>>(), "<list of labels> Take time divergence into account.");
+            ("G1",po::value<int>(), "Run Gear controller benchmark")
+            ("G2",po::value<int>(), "Run Gear controller benchmark");
 
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(options).run(), vm);
@@ -99,33 +175,11 @@ int main(int argc, const char** argv) {
         exit(-1);
     }
 
-    auto posarg = vm["pos"].as<std::vector<std::string>>();
-    auto negarg = vm["neg"].as<std::vector<std::string>>();
-    auto inputarg = vm["input"].as<std::string>();
+    if (vm.count("G1"))
+        run_gearcontroller(vm["G1"].as<int>());
+    if (vm.count("G2"))
+        run_gearcontroller2(vm["G2"].as<int>());
 
-    if (posarg.size() != 2 || negarg.size() != 2) {
-        for (int i = 0; i < posarg.size(); ++i)
-            std::cout << posarg[i];
-        std::cerr << "Error: --pos and --neg args require two arguments\n";
-        exit(-1);
-    }
-
-    TA pos = Parser::parse(&posarg[1][0], &posarg[0][0]);
-    TA neg = Parser::parse(&negarg[1][0], &negarg[0][0]);
-
-    if (vm.count("div")) {
-        auto alphabet = vm["div"].as<std::vector<std::string>>();
-        TA div = TA::time_divergence_ta(alphabet, true);
-        pos.intersection(div);
-        neg.intersection(div);
-    }
-
-    std::ifstream input;
-    input.open(inputarg);
-
-    run_benchmark(pos, neg, input);
-
-    input.close();
 
     return 0;
 }

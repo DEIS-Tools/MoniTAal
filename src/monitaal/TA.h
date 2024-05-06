@@ -27,6 +27,7 @@
 
 #include <pardibaal/DBM.h>
 #include <map>
+#include <unordered_set>
 
 namespace monitaal {
 
@@ -91,6 +92,8 @@ namespace monitaal {
 
         clock_index_t _number_of_clocks;
 
+        std::unordered_set<label_t> _labels = std::unordered_set<label_t>();
+
         void print_constraint(std::ostream& out, const constraints_t& constraints) const;
 
     public:
@@ -108,6 +111,8 @@ namespace monitaal {
         [[nodiscard]] location_id_t initial_location() const;
 
         [[nodiscard]] clock_index_t number_of_clocks() const;
+
+        [[nodiscard]] const std::unordered_set<label_t>& labels() const;
 
         void intersection (const TA& other);
 

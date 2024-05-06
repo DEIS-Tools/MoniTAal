@@ -133,12 +133,12 @@ namespace monitaal {
                  upper = dbm.at(_etime, _time);
             if (lower.is_strict()) {
                 latencies += upper.is_strict() ? 
-                    boost::icl::interval<symb_time_t>::open(lower.get_bound(), upper.get_bound()) :
-                    boost::icl::interval<symb_time_t>::left_open(lower.get_bound(), upper.get_bound());
+                    boost::icl::interval<symb_time_t>::open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::left_open(-lower.get_bound(), upper.get_bound());
             } else {
                 latencies += upper.is_strict() ? 
-                    boost::icl::interval<symb_time_t>::right_open(lower.get_bound(), upper.get_bound()) :
-                    boost::icl::interval<symb_time_t>::closed(lower.get_bound(), upper.get_bound());
+                    boost::icl::interval<symb_time_t>::right_open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::closed(-lower.get_bound(), upper.get_bound());
             }
         }
 

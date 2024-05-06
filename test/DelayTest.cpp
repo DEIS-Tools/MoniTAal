@@ -170,3 +170,83 @@ BOOST_AUTO_TEST_CASE(delay_test4) {
     monitor.input(word3);
     BOOST_CHECK(monitor.status() == NEGATIVE);
 }
+
+BOOST_AUTO_TEST_CASE(delay_test5) {
+    TA pos = Parser::parse("models/delay-example.xml", "positive");
+    TA neg = Parser::parse("models/delay-example.xml", "negative");
+    settings_t setting{true, {0, 100}, 2};
+    Monitor<delay_state_t> monitor(pos, neg, setting);
+
+    monitor.input({173, "a"});
+    BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+    monitor.input({271, "b"});
+    
+    BOOST_CHECK(monitor.status() == NEGATIVE);
+}
+
+BOOST_AUTO_TEST_CASE(delay_test6) {
+    TA pos = Parser::parse("models/delay-example.xml", "positive");
+    TA neg = Parser::parse("models/delay-example.xml", "negative");
+    settings_t setting{true, {0, 100}, 3};
+    Monitor<delay_state_t> monitor(pos, neg, setting);
+
+    monitor.input({173, "a"});
+    BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+    monitor.input({271, "b"});
+    
+    BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+}
+
+BOOST_AUTO_TEST_CASE(delay_test7) {
+    TA pos = Parser::parse("models/delay-example.xml", "positive");
+    TA neg = Parser::parse("models/delay-example.xml", "negative");
+    settings_t setting{true, {0, 100}, 2};
+
+    Monitor<delay_state_t> monitor(pos, neg, setting);
+
+    monitor.input({173, "a"});
+    BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+    monitor.input({275, "b"});
+    
+    BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+}
+
+BOOST_AUTO_TEST_CASE(delay_test8) {
+    TA pos = Parser::parse("models/delay-example.xml", "positive");
+    TA neg = Parser::parse("models/delay-example.xml", "negative");
+    settings_t setting{true, {0, 100}, 2};
+
+    Monitor<delay_state_t> monitor(pos, neg, setting);
+
+    std::cout << "Input: (a, 73)\n";
+    monitor.input({173, "a"});
+
+
+    monitor.print_status(std::cout);
+
+    BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+    
+    std::cout << "Input: (b, 171)\n";
+    monitor.input({275, "b"});
+    
+
+    monitor.print_status(std::cout);
+
+    BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+}
+
+BOOST_AUTO_TEST_CASE(delay_test9) {
+    TA pos = Parser::parse("models/delay-example.xml", "positive");
+    TA neg = Parser::parse("models/delay-example.xml", "negative");
+    settings_t setting{true, {0, 100}, 2};
+
+    Monitor<delay_state_t> monitor(pos, neg, setting);
+    monitor.input({173, "a"});
+
+    BOOST_CHECK(monitor.status() == INCONCLUSIVE);
+    
+    monitor.input({271, "b"});
+    
+    
+    BOOST_CHECK(monitor.status() == NEGATIVE);
+}

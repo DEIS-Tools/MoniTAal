@@ -75,7 +75,7 @@ namespace monitaal {
 
         std::vector<state_t> next_states;
 
-        if (input.label == "") { // If label is empty, we do not take any transitions, only delay
+        if (input.label == "" || not _automaton.labels().contains(input.label)) { // If label is empty, we do not take any transitions, only delay
             for (auto& s : _current_states) {
                 s.delay(input.time);
                 if (s.satisfies(_automaton.locations().at(s.location()).invariant())) {
