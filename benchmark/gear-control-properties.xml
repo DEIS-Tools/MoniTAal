@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+</declaration>
+	<template>
+		<name>CloseClutch</name>
+		<location id="id0" x="85" y="99">
+			<name x="75" y="65">q0_a</name>
+		</location>
+		<location id="id1" x="289" y="99">
+			<name x="279" y="65">q_1</name>
+		</location>
+		<init ref="id0"/>
+		<transition id="id2">
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="17" y="133">ClutchIsClosed!</label>
+			<nail x="17" y="133"/>
+			<nail x="17" y="65"/>
+		</transition>
+		<transition id="id3">
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="307" y="99">CloseClutch!</label>
+			<nail x="357" y="133"/>
+			<nail x="357" y="65"/>
+		</transition>
+		<transition id="id4">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="161" y="-12">x &lt;= 150</label>
+			<label kind="synchronisation" x="144" y="5">ClutchIsClosed!</label>
+			<nail x="187" y="31"/>
+		</transition>
+		<transition id="id5">
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="153" y="184">CloseClutch!</label>
+			<label kind="assignment" x="170" y="209">x := 0</label>
+			<nail x="187" y="167"/>
+		</transition>
+	</template>
+	<template>
+		<name>NotCloseClutch</name>
+		<location id="id6" x="127" y="-85">
+			<name x="117" y="-119">q2_a</name>
+		</location>
+		<location id="id7" x="-272" y="-85">
+			<name x="-282" y="-119">q0</name>
+		</location>
+		<location id="id8" x="-68" y="-85">
+			<name x="-78" y="-119">q1</name>
+		</location>
+		<init ref="id7"/>
+		<transition id="id9">
+			<source ref="id6"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="127" y="-68">ClutchIsClosed!</label>
+			<nail x="127" y="-17"/>
+			<nail x="170" y="-34"/>
+		</transition>
+		<transition id="id10">
+			<source ref="id6"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="137" y="-153">CloseClutch!</label>
+			<nail x="119" y="-136"/>
+			<nail x="187" y="-136"/>
+		</transition>
+		<transition id="id11">
+			<source ref="id8"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-8" y="-161">x &gt; 150</label>
+			<label kind="synchronisation" x="-17" y="-110">CloseClutch!</label>
+			<nail x="42" y="-85"/>
+		</transition>
+		<transition id="id12">
+			<source ref="id8"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-8" y="-144">x &gt; 150</label>
+			<label kind="synchronisation" x="-34" y="-127">ClutchIsClosed!</label>
+		</transition>
+		<transition id="id13">
+			<source ref="id7"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-425" y="-144">ClutchIsClosed!</label>
+			<nail x="-340" y="-51"/>
+			<nail x="-340" y="-119"/>
+		</transition>
+		<transition id="id14">
+			<source ref="id8"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-25" y="8">x &lt;= 150</label>
+			<label kind="synchronisation" x="-94" y="34">CloseClutch!</label>
+			<nail x="-34" y="17"/>
+			<nail x="-94" y="17"/>
+		</transition>
+		<transition id="id15">
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-196" y="-196">x &lt;= 150</label>
+			<label kind="synchronisation" x="-213" y="-179">ClutchIsClosed!</label>
+			<nail x="-170" y="-153"/>
+		</transition>
+		<transition id="id16">
+			<source ref="id7"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-272" y="-25">CloseClutch!</label>
+			<label kind="assignment" x="-246" y="0">x := 0</label>
+			<nail x="-170" y="-17"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">OpenClutch</name>
+		<declaration>// Place local declarations here.
+</declaration>
+		<location id="id17" x="0" y="136">
+			<name x="-10" y="102">q0_a</name>
+		</location>
+		<location id="id18" x="204" y="136">
+			<name x="194" y="102">q_1</name>
+		</location>
+		<init ref="id17"/>
+		<transition id="id19">
+			<source ref="id17"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-68" y="170">ClutchIsOpen!</label>
+			<nail x="-68" y="170"/>
+			<nail x="-68" y="102"/>
+		</transition>
+		<transition id="id20">
+			<source ref="id18"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="222" y="136">OpenClutch!</label>
+			<nail x="272" y="170"/>
+			<nail x="272" y="102"/>
+		</transition>
+		<transition id="id21">
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="guard" x="76" y="25">x &lt;= 150</label>
+			<label kind="synchronisation" x="59" y="42">ClutchIsOpen!</label>
+			<nail x="102" y="68"/>
+		</transition>
+		<transition id="id22">
+			<source ref="id17"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="68" y="221">OpenClutch!</label>
+			<label kind="assignment" x="85" y="246">x := 0</label>
+			<nail x="102" y="204"/>
+		</transition>
+	</template>
+	<template>
+		<name>NotOpenClutch</name>
+		<location id="id23" x="-68" y="-85">
+			<name x="-78" y="-119">q1</name>
+		</location>
+		<location id="id24" x="127" y="-85">
+			<name x="117" y="-119">q2_a</name>
+		</location>
+		<location id="id25" x="-272" y="-85">
+			<name x="-282" y="-119">q0</name>
+		</location>
+		<init ref="id25"/>
+		<transition id="id26">
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="157" y="-140">ClutchIsOpen!</label>
+			<nail x="170" y="-102"/>
+			<nail x="144" y="-144"/>
+		</transition>
+		<transition id="id27">
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="123" y="-76">OpenClutch!</label>
+			<nail x="119" y="-34"/>
+			<nail x="161" y="-25"/>
+		</transition>
+		<transition id="id28">
+			<source ref="id23"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-8" y="-161">x &gt; 150</label>
+			<label kind="synchronisation" x="-17" y="-110">OpenClutch!</label>
+			<nail x="42" y="-85"/>
+		</transition>
+		<transition id="id29">
+			<source ref="id23"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-8" y="-144">x &gt; 150</label>
+			<label kind="synchronisation" x="-34" y="-127">ClutchIsOpen!</label>
+		</transition>
+		<transition id="id30">
+			<source ref="id25"/>
+			<target ref="id25"/>
+			<label kind="synchronisation" x="-425" y="-144">ClutchIsOpen!</label>
+			<nail x="-340" y="-51"/>
+			<nail x="-340" y="-119"/>
+		</transition>
+		<transition id="id31">
+			<source ref="id23"/>
+			<target ref="id23"/>
+			<label kind="guard" x="-25" y="8">x &lt;= 150</label>
+			<label kind="synchronisation" x="-94" y="34">OpenClutch!</label>
+			<nail x="-34" y="17"/>
+			<nail x="-94" y="17"/>
+		</transition>
+		<transition id="id32">
+			<source ref="id23"/>
+			<target ref="id25"/>
+			<label kind="guard" x="-196" y="-196">x &lt;= 150</label>
+			<label kind="synchronisation" x="-213" y="-179">ClutchIsOpen!</label>
+			<nail x="-170" y="-153"/>
+		</transition>
+		<transition id="id33">
+			<source ref="id25"/>
+			<target ref="id23"/>
+			<label kind="synchronisation" x="-272" y="-25">OpenClutch!</label>
+			<label kind="assignment" x="-246" y="0">x := 0</label>
+			<nail x="-170" y="-17"/>
+		</transition>
+	</template>
+	<template>
+		<name>ReqSet</name>
+		<location id="id34" x="0" y="136">
+			<name x="-10" y="102">q0_a</name>
+		</location>
+		<location id="id35" x="204" y="136">
+			<name x="194" y="102">q_1</name>
+		</location>
+		<init ref="id34"/>
+		<transition id="id36">
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="-68" y="170">GearSet!</label>
+			<nail x="-68" y="170"/>
+			<nail x="-68" y="102"/>
+		</transition>
+		<transition id="id37">
+			<source ref="id35"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="222" y="136">ReqSet!</label>
+			<nail x="272" y="170"/>
+			<nail x="272" y="102"/>
+		</transition>
+		<transition id="id38">
+			<source ref="id35"/>
+			<target ref="id34"/>
+			<label kind="guard" x="76" y="25">x &lt;= 300</label>
+			<label kind="synchronisation" x="59" y="42">GearSet!</label>
+			<nail x="102" y="68"/>
+		</transition>
+		<transition id="id39">
+			<source ref="id34"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="68" y="221">ReqSet!</label>
+			<label kind="assignment" x="85" y="246">x := 0</label>
+			<nail x="102" y="204"/>
+		</transition>
+	</template>
+	<template>
+		<name>NotReqSet</name>
+		<location id="id40" x="-68" y="-85">
+			<name x="-78" y="-119">q1</name>
+		</location>
+		<location id="id41" x="127" y="-85">
+			<name x="117" y="-119">q2_a</name>
+		</location>
+		<location id="id42" x="-272" y="-85">
+			<name x="-282" y="-119">q0</name>
+		</location>
+		<init ref="id42"/>
+		<transition id="id43">
+			<source ref="id41"/>
+			<target ref="id41"/>
+			<label kind="synchronisation" x="118" y="-76">ReqSet!</label>
+			<nail x="110" y="-34"/>
+			<nail x="170" y="-25"/>
+		</transition>
+		<transition id="id44">
+			<source ref="id41"/>
+			<target ref="id41"/>
+			<label kind="synchronisation" x="157" y="-123">GearSet!</label>
+			<nail x="187" y="-127"/>
+			<nail x="136" y="-136"/>
+		</transition>
+		<transition id="id45">
+			<source ref="id40"/>
+			<target ref="id41"/>
+			<label kind="guard" x="-8" y="-161">x &gt; 300</label>
+			<label kind="synchronisation" x="-17" y="-110">ReqSet!</label>
+			<nail x="42" y="-85"/>
+		</transition>
+		<transition id="id46">
+			<source ref="id40"/>
+			<target ref="id41"/>
+			<label kind="guard" x="-8" y="-144">x &gt; 300</label>
+			<label kind="synchronisation" x="-34" y="-127">GearSet!</label>
+		</transition>
+		<transition id="id47">
+			<source ref="id42"/>
+			<target ref="id42"/>
+			<label kind="synchronisation" x="-425" y="-144">GearSet!</label>
+			<nail x="-340" y="-51"/>
+			<nail x="-340" y="-119"/>
+		</transition>
+		<transition id="id48">
+			<source ref="id40"/>
+			<target ref="id40"/>
+			<label kind="guard" x="-25" y="8">x &lt;= 300</label>
+			<label kind="synchronisation" x="-94" y="34">ReqSet!</label>
+			<nail x="-34" y="17"/>
+			<nail x="-94" y="17"/>
+		</transition>
+		<transition id="id49">
+			<source ref="id40"/>
+			<target ref="id42"/>
+			<label kind="guard" x="-196" y="-196">x &lt;= 300</label>
+			<label kind="synchronisation" x="-213" y="-179">GearSet!</label>
+			<nail x="-170" y="-153"/>
+		</transition>
+		<transition id="id50">
+			<source ref="id42"/>
+			<target ref="id40"/>
+			<label kind="synchronisation" x="-272" y="-25">ReqSet!</label>
+			<label kind="assignment" x="-246" y="0">x := 0</label>
+			<nail x="-170" y="-17"/>
+		</transition>
+	</template>
+	<template>
+		<name>ReqNeu</name>
+		<location id="id51" x="-535" y="-153">
+			<name x="-545" y="-187">q0_a</name>
+		</location>
+		<location id="id52" x="-331" y="-153">
+			<name x="-341" y="-187">q_1</name>
+		</location>
+		<init ref="id51"/>
+		<transition id="id53">
+			<source ref="id51"/>
+			<target ref="id51"/>
+			<label kind="synchronisation" x="-603" y="-119">GearNeu!</label>
+			<nail x="-603" y="-119"/>
+			<nail x="-603" y="-187"/>
+		</transition>
+		<transition id="id54">
+			<source ref="id52"/>
+			<target ref="id52"/>
+			<label kind="synchronisation" x="-313" y="-153">ReqNeu!</label>
+			<nail x="-263" y="-119"/>
+			<nail x="-263" y="-187"/>
+		</transition>
+		<transition id="id55">
+			<source ref="id52"/>
+			<target ref="id51"/>
+			<label kind="guard" x="-459" y="-264">x &lt;= 200</label>
+			<label kind="synchronisation" x="-476" y="-247">GearNeu!</label>
+			<nail x="-433" y="-221"/>
+		</transition>
+		<transition id="id56">
+			<source ref="id51"/>
+			<target ref="id52"/>
+			<label kind="synchronisation" x="-467" y="-68">ReqNeu!</label>
+			<label kind="assignment" x="-450" y="-43">x := 0</label>
+			<nail x="-433" y="-85"/>
+		</transition>
+	</template>
+	<template>
+		<name>NotReqNeu</name>
+		<location id="id57" x="-68" y="-85">
+			<name x="-78" y="-119">q1</name>
+		</location>
+		<location id="id58" x="127" y="-85">
+			<name x="117" y="-119">q2_a</name>
+		</location>
+		<location id="id59" x="-272" y="-85">
+			<name x="-282" y="-119">q0</name>
+		</location>
+		<init ref="id59"/>
+		<transition id="id60">
+			<source ref="id58"/>
+			<target ref="id58"/>
+			<label kind="synchronisation" x="145" y="-119">GearNeu!</label>
+			<nail x="204" y="-119"/>
+			<nail x="161" y="-170"/>
+		</transition>
+		<transition id="id61">
+			<source ref="id58"/>
+			<target ref="id58"/>
+			<label kind="synchronisation" x="123" y="-72">ReqNeu!</label>
+			<nail x="119" y="-25"/>
+			<nail x="161" y="-25"/>
+		</transition>
+		<transition id="id62">
+			<source ref="id57"/>
+			<target ref="id58"/>
+			<label kind="guard" x="-8" y="-161">x &gt; 200</label>
+			<label kind="synchronisation" x="-17" y="-110">ReqNeu!</label>
+			<nail x="42" y="-85"/>
+		</transition>
+		<transition id="id63">
+			<source ref="id57"/>
+			<target ref="id58"/>
+			<label kind="guard" x="-8" y="-144">x &gt; 200</label>
+			<label kind="synchronisation" x="-34" y="-127">GearNeu!</label>
+		</transition>
+		<transition id="id64">
+			<source ref="id59"/>
+			<target ref="id59"/>
+			<label kind="synchronisation" x="-425" y="-144">GearNeu!</label>
+			<nail x="-340" y="-51"/>
+			<nail x="-340" y="-119"/>
+		</transition>
+		<transition id="id65">
+			<source ref="id57"/>
+			<target ref="id57"/>
+			<label kind="guard" x="-25" y="8">x &lt;= 200</label>
+			<label kind="synchronisation" x="-94" y="34">ReqNeu!</label>
+			<nail x="-34" y="17"/>
+			<nail x="-94" y="17"/>
+		</transition>
+		<transition id="id66">
+			<source ref="id57"/>
+			<target ref="id59"/>
+			<label kind="guard" x="-196" y="-196">x &lt;= 200</label>
+			<label kind="synchronisation" x="-213" y="-179">GearNeu!</label>
+			<nail x="-170" y="-153"/>
+		</transition>
+		<transition id="id67">
+			<source ref="id59"/>
+			<target ref="id57"/>
+			<label kind="synchronisation" x="-272" y="-25">ReqNeu!</label>
+			<label kind="assignment" x="-246" y="0">x := 0</label>
+			<nail x="-170" y="-17"/>
+		</transition>
+	</template>
+	<template>
+		<name>SpeedSet</name>
+		<location id="id68" x="-535" y="-153">
+			<name x="-545" y="-187">q0_a</name>
+		</location>
+		<location id="id69" x="-331" y="-153">
+			<name x="-341" y="-187">q_1</name>
+		</location>
+		<init ref="id68"/>
+		<transition id="id70">
+			<source ref="id68"/>
+			<target ref="id68"/>
+			<label kind="synchronisation" x="-603" y="-119">ReqTorque!</label>
+			<nail x="-603" y="-119"/>
+			<nail x="-603" y="-187"/>
+		</transition>
+		<transition id="id71">
+			<source ref="id69"/>
+			<target ref="id69"/>
+			<label kind="synchronisation" x="-313" y="-153">SpeedSet!</label>
+			<nail x="-263" y="-119"/>
+			<nail x="-263" y="-187"/>
+		</transition>
+		<transition id="id72">
+			<source ref="id69"/>
+			<target ref="id68"/>
+			<label kind="guard" x="-459" y="-264">x &lt;= 500</label>
+			<label kind="synchronisation" x="-476" y="-247">ReqTorque!</label>
+			<nail x="-433" y="-221"/>
+		</transition>
+		<transition id="id73">
+			<source ref="id68"/>
+			<target ref="id69"/>
+			<label kind="synchronisation" x="-467" y="-68">SpeedSet!</label>
+			<label kind="assignment" x="-450" y="-43">x := 0</label>
+			<nail x="-433" y="-85"/>
+		</transition>
+	</template>
+	<template>
+		<name>NotSpeedSet</name>
+		<location id="id74" x="-68" y="-85">
+			<name x="-78" y="-119">q1</name>
+		</location>
+		<location id="id75" x="127" y="-85">
+			<name x="102" y="-119">q2_a</name>
+		</location>
+		<location id="id76" x="-272" y="-85">
+			<name x="-282" y="-119">q0</name>
+		</location>
+		<init ref="id76"/>
+		<transition id="id77">
+			<source ref="id75"/>
+			<target ref="id75"/>
+			<label kind="synchronisation" x="144" y="-123">ReqTorque!</label>
+			<nail x="161" y="-127"/>
+			<nail x="127" y="-144"/>
+		</transition>
+		<transition id="id78">
+			<source ref="id75"/>
+			<target ref="id75"/>
+			<label kind="synchronisation" x="131" y="-72">SpeedSet!</label>
+			<nail x="136" y="-25"/>
+			<nail x="178" y="-51"/>
+		</transition>
+		<transition id="id79">
+			<source ref="id74"/>
+			<target ref="id75"/>
+			<label kind="guard" x="-8" y="-161">x &gt; 500</label>
+			<label kind="synchronisation" x="-17" y="-110">SpeedSet!</label>
+			<nail x="42" y="-85"/>
+		</transition>
+		<transition id="id80">
+			<source ref="id74"/>
+			<target ref="id75"/>
+			<label kind="guard" x="-8" y="-144">x &gt; 500</label>
+			<label kind="synchronisation" x="-34" y="-127">ReqTorque!</label>
+		</transition>
+		<transition id="id81">
+			<source ref="id76"/>
+			<target ref="id76"/>
+			<label kind="synchronisation" x="-425" y="-144">ReqTorque!</label>
+			<nail x="-340" y="-51"/>
+			<nail x="-340" y="-119"/>
+		</transition>
+		<transition id="id82">
+			<source ref="id74"/>
+			<target ref="id74"/>
+			<label kind="guard" x="-25" y="8">x &lt;= 500</label>
+			<label kind="synchronisation" x="-94" y="34">SpeedSet!</label>
+			<nail x="-34" y="17"/>
+			<nail x="-94" y="17"/>
+		</transition>
+		<transition id="id83">
+			<source ref="id74"/>
+			<target ref="id76"/>
+			<label kind="guard" x="-196" y="-196">x &lt;= 500</label>
+			<label kind="synchronisation" x="-213" y="-179">ReqTorque!</label>
+			<nail x="-170" y="-153"/>
+		</transition>
+		<transition id="id84">
+			<source ref="id76"/>
+			<target ref="id74"/>
+			<label kind="synchronisation" x="-272" y="-25">SpeedSet!</label>
+			<label kind="assignment" x="-246" y="0">x := 0</label>
+			<nail x="-170" y="-17"/>
+		</transition>
+	</template>
+	<template>
+		<name>test1</name>
+		<location id="id85" x="-535" y="-153">
+			<name x="-545" y="-187">q0_a</name>
+		</location>
+		<location id="id86" x="-331" y="-153">
+			<name x="-341" y="-187">q_1</name>
+		</location>
+		<init ref="id85"/>
+		<transition id="id87">
+			<source ref="id85"/>
+			<target ref="id85"/>
+			<label kind="synchronisation" x="-603" y="-119">ReqTorque!</label>
+			<nail x="-603" y="-119"/>
+			<nail x="-603" y="-187"/>
+		</transition>
+		<transition id="id88">
+			<source ref="id86"/>
+			<target ref="id86"/>
+			<label kind="synchronisation" x="-313" y="-153">test1!</label>
+			<nail x="-263" y="-119"/>
+			<nail x="-263" y="-187"/>
+		</transition>
+		<transition id="id89">
+			<source ref="id86"/>
+			<target ref="id85"/>
+			<label kind="guard" x="-459" y="-264">x &lt;= 900</label>
+			<label kind="synchronisation" x="-476" y="-247">ReqTorque!</label>
+			<nail x="-433" y="-221"/>
+		</transition>
+		<transition id="id90">
+			<source ref="id85"/>
+			<target ref="id86"/>
+			<label kind="synchronisation" x="-467" y="-68">test1!</label>
+			<label kind="assignment" x="-450" y="-43">x := 0</label>
+			<nail x="-433" y="-85"/>
+		</transition>
+	</template>
+	<template>
+		<name>Nottest1</name>
+		<location id="id91" x="-68" y="-85">
+			<name x="-78" y="-119">q1</name>
+		</location>
+		<location id="id92" x="127" y="-85">
+			<name x="102" y="-119">q2_a</name>
+		</location>
+		<location id="id93" x="-272" y="-85">
+			<name x="-282" y="-119">q0</name>
+		</location>
+		<init ref="id93"/>
+		<transition id="id94">
+			<source ref="id92"/>
+			<target ref="id92"/>
+			<label kind="synchronisation" x="148" y="-131">ReqTorque!</label>
+			<nail x="170" y="-144"/>
+			<nail x="127" y="-153"/>
+		</transition>
+		<transition id="id95">
+			<source ref="id92"/>
+			<target ref="id92"/>
+			<label kind="synchronisation" x="144" y="-72">test1!</label>
+			<nail x="161" y="-25"/>
+			<nail x="170" y="-102"/>
+		</transition>
+		<transition id="id96">
+			<source ref="id91"/>
+			<target ref="id92"/>
+			<label kind="guard" x="-8" y="-161">x &gt; 900</label>
+			<label kind="synchronisation" x="-17" y="-110">test1!</label>
+			<nail x="42" y="-85"/>
+		</transition>
+		<transition id="id97">
+			<source ref="id91"/>
+			<target ref="id92"/>
+			<label kind="guard" x="-8" y="-144">x &gt; 900</label>
+			<label kind="synchronisation" x="-34" y="-127">ReqTorque!</label>
+		</transition>
+		<transition id="id98">
+			<source ref="id93"/>
+			<target ref="id93"/>
+			<label kind="synchronisation" x="-425" y="-144">ReqTorque!</label>
+			<nail x="-340" y="-51"/>
+			<nail x="-340" y="-119"/>
+		</transition>
+		<transition id="id99">
+			<source ref="id91"/>
+			<target ref="id91"/>
+			<label kind="guard" x="-25" y="8">x &lt;= 900</label>
+			<label kind="synchronisation" x="-94" y="34">test1!</label>
+			<nail x="-34" y="17"/>
+			<nail x="-94" y="17"/>
+		</transition>
+		<transition id="id100">
+			<source ref="id91"/>
+			<target ref="id93"/>
+			<label kind="guard" x="-196" y="-196">x &lt;= 900</label>
+			<label kind="synchronisation" x="-213" y="-179">ReqTorque!</label>
+			<nail x="-170" y="-153"/>
+		</transition>
+		<transition id="id101">
+			<source ref="id93"/>
+			<target ref="id91"/>
+			<label kind="synchronisation" x="-272" y="-25">test1!</label>
+			<label kind="assignment" x="-246" y="0">x := 0</label>
+			<nail x="-170" y="-17"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+</system>
+	<queries>
+		<query>
+			<formula/>
+			<comment/>
+		</query>
+	</queries>
+</nta>
