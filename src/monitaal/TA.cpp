@@ -24,6 +24,7 @@
 #include "TA.h"
 
 #include <utility>
+#include <iostream>
 
 namespace monitaal {
 
@@ -78,7 +79,7 @@ namespace monitaal {
     label_t edge_t::label() const {return _label;}
 
     TA::TA(std::string name, clock_map_t clocks, const locations_t &locations, const edges_t &edges, location_id_t initial) :
-            _name(std::move(name)), _number_of_clocks(clocks.size() + 1), _clock_names(clocks), _initial(initial) {
+            _name(std::move(name)), _number_of_clocks(clocks.size()), _clock_names(clocks), _initial(initial) {
         location_map_t loc_map;
         edge_map_t backward_edges, forward_edges;
 
@@ -87,6 +88,7 @@ namespace monitaal {
 
             edges_t to, from;
             for (const auto &e : edges) {
+                _labels.insert(e.label());
                 if (e.to() == l.id())
                     to.push_back(e);
                 if (e.from() == l.id())
@@ -113,6 +115,8 @@ namespace monitaal {
     location_id_t TA::initial_location() const { return _initial; }
 
     clock_index_t TA::number_of_clocks() const { return _number_of_clocks; }
+
+    const std::unordered_set<label_t>& TA::labels() const { return _labels;}
 
     void TA::intersection(const TA &other) {
 

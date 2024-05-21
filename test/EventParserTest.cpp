@@ -34,17 +34,17 @@ BOOST_AUTO_TEST_CASE(interval_parsing_test1) {
 
     std::vector<interval_input> input;
 
-    input = EventParser::parse_input<true>(&stream, 0);
+    input = EventParser::parse_input(&stream, 0);
 
     BOOST_CHECK(input.size() == 5);
 }
 
 BOOST_AUTO_TEST_CASE(concrete_parsing_test1) {
-    std::stringstream stream("@1 a\n@2 b@3 a\n@4b @5 a\n@6.2 a\n", std::ios_base::in);
+    std::stringstream stream("@1 a\n@2 b@3 a\n@4b @5 a\n@6 a\n", std::ios_base::in);
 
     std::vector<concrete_input> input;
 
-    input = EventParser::parse_input<false>(&stream, 0);
+    input = EventParser::parse_input(&stream, 0);
 
     BOOST_CHECK(input.size() == 6);
 }
@@ -54,15 +54,15 @@ BOOST_AUTO_TEST_CASE(empty_label_test1) {
 
     std::vector<concrete_input> input;
 
-    input = EventParser::parse_input<false>(&stream, 0);
+    input = EventParser::parse_input(&stream, 0);
 
     BOOST_CHECK(input.size() == 4);
     BOOST_CHECK(input[0].label == "");
     BOOST_CHECK(input[1].label == "a");
     BOOST_CHECK(input[2].label == "");
     BOOST_CHECK(input[3].label == "b");
-    BOOST_CHECK(input[0].time == 1);
-    BOOST_CHECK(input[1].time == 2);
-    BOOST_CHECK(input[2].time == 3);
-    BOOST_CHECK(input[3].time == 4);
+    BOOST_CHECK(input[0].time.first == 1);
+    BOOST_CHECK(input[1].time.first == 2);
+    BOOST_CHECK(input[2].time.first == 3);
+    BOOST_CHECK(input[3].time.first == 4);
 }

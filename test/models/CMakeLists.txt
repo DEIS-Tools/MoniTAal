@@ -7,6 +7,7 @@ configure_file(only_ab_until10.xml only_ab_until10.xml COPYONLY)
 configure_file(c_after_20.xml      c_after_20.xml COPYONLY)
 configure_file("f(g(notb)_and_g(f(a)).xml" "f(g(notb)_and_g(f(a)).xml" COPYONLY)
 configure_file("time-must-pass.xml" "time-must-pass.xml" COPYONLY)
+configure_file(delay-example.xml   delay-example.xml COPYONLY)
 
 configure_file(absentBQR.xml       absentBQR.xml COPYONLY)
 configure_file(absentBQRinput.txt  absentBQRinput.txt COPYONLY)

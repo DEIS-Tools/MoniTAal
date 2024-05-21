@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(EXTERNAL_INSTALL_LOCATION "${CMAKE_BINARY_DIR}/external")
 
 OPTION(MONITAAL_BUILD_TEST "Builds tests" OFF)
-OPTION(MONITAAL_BUILD_BIN "Builds benchmark binary" OFF)
+OPTION(MONITAAL_BUILD_BIN "Builds binary" OFF)
+OPTION(MONITAAL_BUILD_BENCH "Builds benchmark binary" OFF)
 
 FIND_PACKAGE(Boost REQUIRED)
 
@@ -46,6 +47,10 @@ target_include_directories(MoniTAal INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 if(MONITAAL_BUILD_BIN)
     add_subdirectory(src/monitaal-bin)
+endif()
+
+if(MONITAAL_BUILD_BENCH)
+    add_subdirectory(benchmark)
 endif()
     
 if(MONITAAL_BUILD_TEST)

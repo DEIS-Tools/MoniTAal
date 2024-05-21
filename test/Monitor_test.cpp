@@ -41,23 +41,24 @@ BOOST_AUTO_TEST_CASE(monitor_test1) {
     TA pos = Parser::parse("models/a-b.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b.xml", "not_a_leadsto_b");
 
-    std::vector<concrete_input> word1 = {
-            concrete_input(0, "c"),
-            concrete_input(2.5, "b"),
-            concrete_input(102.5, "b"),
-            concrete_input(104.6, "a"),
-            concrete_input(104.6, "c"),
-            concrete_input(109.6, "a"),
-            concrete_input(119.6, "b"),
-            concrete_input(119.6, "c"),
-            concrete_input(119.6, "c")};
+    std::vector<timed_input_t> word1 = {
+            timed_input_t(0, "c"),
+            timed_input_t(2, "b"),
+            timed_input_t(102, "b"),
+            timed_input_t(104, "a"),
+            timed_input_t(104, "c"),
+            timed_input_t(109, "a"),
+            timed_input_t(119, "b"),
+            timed_input_t(119, "c"),
+            timed_input_t(119, "c")};
 
-    std::vector<concrete_input> word2 = {
-            concrete_input(119.6, "a"),
-            concrete_input(220.6, "c")};
+    std::vector<timed_input_t> word2 = {
+            timed_input_t(119, "a"),
+            timed_input_t(220, "c")};
 
     Concrete_monitor monitor(pos, neg);
-
+    
+    BOOST_CHECK(monitor.status() == INCONCLUSIVE);
     BOOST_CHECK(monitor.input(word1) == INCONCLUSIVE);
     BOOST_CHECK(monitor.input(word2) == NEGATIVE);
 }
@@ -80,9 +81,11 @@ BOOST_AUTO_TEST_CASE(time_converge_test_1) {
 
     converge_ta.intersection(diverge_ta);
 
-    auto non_empty_states = Fixpoint::buchi_accept_fixpoint(converge_ta);
+    auto ne_states = Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(converge_ta);
+    auto ne_states_delay = Fixpoint<delay_state_t>::buchi_accept_fixpoint(converge_ta);
 
-    BOOST_CHECK(non_empty_states.is_empty());
+    BOOST_CHECK(ne_states.is_empty());
+    BOOST_CHECK(ne_states_delay.is_empty());
 }
 
 BOOST_AUTO_TEST_CASE(time_divergence_test_1) {
@@ -92,15 +95,28 @@ BOOST_AUTO_TEST_CASE(time_divergence_test_1) {
     pos.intersection(TA::time_divergence_ta({"a"}, true));
     neg.intersection(TA::time_divergence_ta({"a"}, true));
 
-    BOOST_CHECK(Fixpoint::buchi_accept_fixpoint(neg).is_empty());
-    BOOST_CHECK(not Fixpoint::buchi_accept_fixpoint(pos).is_empty());
+    BOOST_CHECK(Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(neg).is_empty());
+    BOOST_CHECK(not Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(pos).is_empty());
     
     Interval_monitor monitor_int(pos, neg);
     Concrete_monitor monitor_con(pos, neg);
 
-    BOOST_CHECK(monitor_int.status());
-    BOOST_CHECK(monitor_con.status());
+    BOOST_CHECK(monitor_int.status() == POSITIVE);
+    BOOST_CHECK(not monitor_con.positive_state_estimate().empty());
+    BOOST_CHECK(monitor_con.negative_state_estimate().empty());
+    BOOST_CHECK(monitor_con.status() == POSITIVE);
 
+
+}
+
+BOOST_AUTO_TEST_CASE(concrete_state_test1) {
+    concrete_state_t s(0, 5);
+    symbolic_state_t z1(0, 5);
+    symbolic_state_t z2(1, 5);
+
+    BOOST_CHECK(s.is_included_in(z1));
+    z1.intersection(z2);
+    BOOST_CHECK(not s.is_included_in(z1));
 }
 
 BOOST_AUTO_TEST_CASE(absentBQR_test1) {
@@ -112,7 +128,7 @@ BOOST_AUTO_TEST_CASE(absentBQR_test1) {
 
     std::istream stream(&fb);
 
-    auto events = EventParser::parse_input<false>(&stream, 0);
+    auto events = EventParser::parse_input(&stream, 0);
     fb.close();
 
     Concrete_monitor monitor(pos, neg);
@@ -138,7 +154,7 @@ BOOST_AUTO_TEST_CASE(absentAQ_test1) {
 
     std::istream stream(&fb);
 
-    auto events = EventParser::parse_input<false>(&stream, 0);
+    auto events = EventParser::parse_input(&stream, 0);
     fb.close();
 
     Concrete_monitor monitor(pos, neg);
@@ -165,7 +181,7 @@ BOOST_AUTO_TEST_CASE(absentBR_test1) {
 
     std::istream stream(&fb);
 
-    auto events = EventParser::parse_input<false>(&stream, 0);
+    auto events = EventParser::parse_input(&stream, 0);
     fb.close();
     
     Concrete_monitor monitor(pos, neg);
@@ -192,7 +208,7 @@ BOOST_AUTO_TEST_CASE(recurBQR_test1) {
 
     std::istream stream(&fb);
 
-    auto events = EventParser::parse_input<false>(&stream, 0);
+    auto events = EventParser::parse_input(&stream, 0);
     fb.close();
 
     Concrete_monitor monitor(pos, neg);
@@ -219,7 +235,7 @@ BOOST_AUTO_TEST_CASE(recurGLB_test1) {
 
     std::istream stream(&fb);
 
-    auto events = EventParser::parse_input<false>(&stream, 0);
+    auto events = EventParser::parse_input(&stream, 0);
     fb.close();
 
     Concrete_monitor monitor(pos, neg);

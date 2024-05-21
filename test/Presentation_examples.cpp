@@ -41,10 +41,10 @@ BOOST_AUTO_TEST_CASE(presentation_interval) {
     /* Fixpoint states */
 
     std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
-    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+    Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(pos).print(std::cout, pos);
 
     std::cout << "Negative fixpoint states:\n";
-    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+    Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(neg).print(std::cout, neg);
 
 
 
@@ -56,26 +56,26 @@ BOOST_AUTO_TEST_CASE(presentation_interval) {
     std::cout << "\n<<<<<< Conjuntion with divergence automaton >>>>>>\n\n" << "Positive Model:\n" << pos << "\nNegative Model:\n" << neg << "\n\n";
 
     std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
-    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+    Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(pos).print(std::cout, pos);
 
     std::cout << "Negative fixpoint states:\n";
-    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+    Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(neg).print(std::cout, neg);
 
     std::cout << "<<<<<< Monitoring >>>>>>\n\n";
-    std::vector<interval_input> word1 = {
-            interval_input({0, 1}, "c"),
-            interval_input({3, 6}, "b"),
-            interval_input({50, 100}, "b"),
-            interval_input({102, 103}, "a"),
-            interval_input({103, 103}, "c"),
-            interval_input({105, 110}, "a"),
-            interval_input({115, 150}, "b"),
-            interval_input({140, 150}, "c")};
+    std::vector<timed_input_t> word1 = {
+            timed_input_t({0, 1}, "c"),
+            timed_input_t({3, 6}, "b"),
+            timed_input_t({50, 100}, "b"),
+            timed_input_t({102, 103}, "a"),
+            timed_input_t({103, 103}, "c"),
+            timed_input_t({105, 110}, "a"),
+            timed_input_t({115, 150}, "b"),
+            timed_input_t({140, 150}, "c")};
 
 
-    std::vector<interval_input> word2 = {
-            interval_input({160, 170}, "a"),
-            interval_input({201, 210}, "c")};
+    std::vector<timed_input_t> word2 = {
+            timed_input_t({160, 170}, "a"),
+            timed_input_t({201, 210}, "c")};
 
     Interval_monitor monitor(pos, neg);
 
@@ -144,10 +144,10 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
     /* Fixpoint states */
 
     std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
-    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+    Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(pos).print(std::cout, pos);
 
     std::cout << "Negative fixpoint states:\n";
-    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+    Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(neg).print(std::cout, neg);
 
 
 
@@ -161,36 +161,36 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
     std::cout << "\n<<<<<< Conjuntion with divergence automaton >>>>>>\n\n" << "Positive Model:\n" << pos << "\nNegative Model:\n" << neg << "\n\n";
 
     std::cout << "<<<<<< Calculating fixpoints >>>>>>\n\nPositive fixpoint states:\n";
-    Fixpoint::buchi_accept_fixpoint(pos).print(std::cout, pos);
+    Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(pos).print(std::cout, pos);
 
     std::cout << "Negative fixpoint states:\n";
-    Fixpoint::buchi_accept_fixpoint(neg).print(std::cout, neg);
+    Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(neg).print(std::cout, neg);
 
 
 
     /* Monitoring */
 
     std::cout << "<<<<<< Monitoring >>>>>>\n\n";
-    std::vector<concrete_input> word1 = {
-            concrete_input(0, "c"),
-            concrete_input(2.5, "b"),
-            concrete_input(102.5, "b"),
-            concrete_input(104.6, "a"),
-            concrete_input(105, "c"),
-            concrete_input(110, "a"),
-            concrete_input(120, "b"),
-            concrete_input(120, "c"),
-            concrete_input(120, "c")};
+    std::vector<timed_input_t> word1 = {
+            timed_input_t(0, "c"),
+            timed_input_t(2, "b"),
+            timed_input_t(102, "b"),
+            timed_input_t(104, "a"),
+            timed_input_t(105, "c"),
+            timed_input_t(110, "a"),
+            timed_input_t(120, "b"),
+            timed_input_t(120, "c"),
+            timed_input_t(120, "c")};
 
-    std::vector<concrete_input> word2 = {
-            concrete_input(120, "a"),
-            concrete_input(221, "c")};
+    std::vector<timed_input_t> word2 = {
+            timed_input_t(120, "a"),
+            timed_input_t(221, "c")};
 
     Concrete_monitor monitor(pos, neg);
 
     std::cout << "Monitoring word: ";
     for (const auto& c : word1)
-        std::cout << "(" << c.label << ", " << c.time <<  ") ";
+        std::cout << "(" << c.label << ", " << c.time.first <<  ") ";
 
     monitor.input(word1);
 
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(presentation_concrete) {
 
     std::cout << "\nMonitoring word: ";
     for (const auto& c : word2)
-        std::cout << "(" << c.label << ", " << c.time <<  ") ";
+        std::cout << "(" << c.label << ", " << c.time.first <<  ") ";
 
     monitor.input(word2);
 

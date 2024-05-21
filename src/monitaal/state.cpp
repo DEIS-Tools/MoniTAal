@@ -37,47 +37,25 @@ namespace monitaal {
         _federation = Federation();
     }
 
-    symbolic_state_t::symbolic_state_t(location_id_t location, const Federation& federation) : _location(location) {
-        _federation = federation;
+    symbolic_state_t::symbolic_state_t(location_id_t location, clock_index_t clocks) : 
+            symbolic_state_base(location, clocks + 1) {}
+
+    symbolic_state_t symbolic_state_t::unconstrained(location_id_t location, clock_index_t clocks) {
+        auto rtn = symbolic_state_t();
+        rtn._location = location;
+        rtn._federation = Federation::unconstrained(clocks + 1);
+        return rtn;
     }
 
-    void symbolic_state_t::down() {
-        _federation.past();
-    }
-
-    void symbolic_state_t::restrict_to_zero(const clocks_t& clocks) {
-        for (const auto& x : clocks) {
-            _federation.restrict(x, 0, pardibaal::bound_t::non_strict(0));
-        }
-    }
-
-    void symbolic_state_t::restrict(const constraints_t& constraints) {
-        for (const auto& c : constraints)
-            _federation.restrict(c);
-    }
-
-    void symbolic_state_t::free(const clocks_t& clocks) {
-        for (const auto& x : clocks)
-            _federation.free(x);
-    }
-
-    void symbolic_state_t::intersection(const symbolic_state_t& state) {
-        if (state._location == _location)
-            _federation.intersection(state._federation);
+    void symbolic_state_t::intersection(const symbolic_state_map_t<symbolic_state_t>& map) {
+        if (map.has_state(this->_location))
+            intersection(map.at(this->_location));
         else
             this->_federation.restrict(0,0, {-1, true});
     }
 
-    void symbolic_state_t::intersection(const symbolic_state_map_t& states) {
-        if (states.has_state(this->_location))
-            this->intersection(states.at(this->_location));
-        else
-            this->_federation.restrict(0,0, {-1, true});
-    }
-
-    void symbolic_state_t::add(const symbolic_state_t& state) {
-        if (state.location() == _location)
-            _federation.add(state._federation);
+    void symbolic_state_t::intersection(const symbolic_state_base& state) {
+        symbolic_state_base::intersection(state);
     }
 
     void symbolic_state_t::delay(symb_time_t value) {
@@ -92,80 +70,96 @@ namespace monitaal {
         _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_federation.dimension() - 1, interval.second));
     }
 
-    bool symbolic_state_t::do_transition(const edge_t& edge) {
-        if (edge.from() != _location) return false;
-
-        // If the transition is not possible, do nothing and return false
-        if (not this->satisfies(edge.guard()))
+    bool symbolic_state_t::is_included_in(const symbolic_state_map_t<symbolic_state_t>& map) const {
+        if (not map.has_state(_location))
             return false;
 
-        if (!edge.guard().empty()) {
-            for (auto& c : edge.guard())
-                _federation.restrict(c);
+        return is_included_in(map.at(_location));
+    }
+
+    bool symbolic_state_t::is_included_in(const symbolic_state_base &state) const {
+        return symbolic_state_base::is_included_in(state);
+    }
+
+    delay_state_t::delay_state_t() : _jitter(0) {}
+
+    delay_state_t::delay_state_t(location_id_t location, clock_index_t clocks, interval_t latency, symb_time_t jitter) : 
+            symbolic_state_base(location, clocks + 2), _jitter(jitter) {
+        _etime = clocks;
+        _time = clocks + 1;
+        
+        _federation.free(_etime);
+        _federation.restrict(_time, _etime, pardibaal::bound_t::non_strict(latency.first));
+        _federation.restrict(_etime, _time, pardibaal::bound_t::non_strict(latency.second));
+    }
+
+    delay_state_t delay_state_t::unconstrained(location_id_t location, clock_index_t clocks) {
+        auto state = delay_state_t();
+
+        state._location = location;
+        state._federation = Federation::unconstrained(clocks + 2);
+        // state._jitter = (symb_time_t) -1;
+        return state;
+    }
+
+    void delay_state_t::intersection(const symbolic_state_base& state) {
+        symbolic_state_base::intersection(state);
+    }
+
+    void delay_state_t::intersection(const symbolic_state_map_t<delay_state_t>& map) {
+        if (map.has_state(this->_location))
+            intersection(map.at(this->_location));
+        else
+            this->_federation.restrict(0,0, {-1, true});
+    }
+
+    void delay_state_t::delay(symb_time_t value) {
+        _federation.future();
+        _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime, value - _jitter));
+        _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime, value));
+    }
+
+    void delay_state_t::delay(interval_t interval) {
+        _federation.future();
+        _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime, interval.first - _jitter));
+        _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime, interval.second));
+    }
+
+    boost::icl::interval_set<symb_time_t> delay_state_t::get_latency() const {
+        auto latencies = boost::icl::interval_set<symb_time_t>();
+
+        for (const auto dbm : _federation) {
+            auto lower = dbm.at(_time, _etime),
+                 upper = dbm.at(_etime, _time);
+            if (lower.is_strict()) {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::left_open(-lower.get_bound(), upper.get_bound());
+            } else {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::right_open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::closed(-lower.get_bound(), upper.get_bound());
+            }
         }
 
-        for (const auto& r : edge.reset())
-            _federation.assign(r, 0);
-
-        _location = edge.to();
-        return true;
+        return latencies;
     }
 
-    void symbolic_state_t::do_transition_backward(const edge_t& edge) {
+    symb_time_t delay_state_t::get_jitter_bound() const { return _jitter; }
 
-        if (edge.to() == _location) {
-            _location = edge.from();
-
-            this->down();
-            this->restrict_to_zero(edge.reset());
-            this->free(edge.reset());
-            this->restrict(edge.guard());
-            this->down();
-        }
-    }
-
-    bool symbolic_state_t::is_empty() const {
-        return _federation.is_empty();
-    }
-
-    bool symbolic_state_t::is_included_in(const symbolic_state_map_t &states) const {
-        if (not states.has_state(_location))
+    bool delay_state_t::is_included_in(const symbolic_state_map_t<delay_state_t>& map) const {
+        if (not map.has_state(_location))
             return false;
 
-        return is_included_in(states.at(_location));
+        return is_included_in(map.at(_location));
     }
 
-    bool symbolic_state_t::is_included_in(const symbolic_state_t &state) const {
-        if (state._location == _location) {
-            auto rel = _federation.relation<false>(state._federation);
-            return rel.is_equal() || rel.is_subset();
-        }
-        return false;
+    bool delay_state_t::is_included_in(const symbolic_state_base& state) const {
+        return symbolic_state_base::is_included_in(state);
     }
 
-    bool symbolic_state_t::equals(const symbolic_state_t& state) const {
-        return _federation.is_approx_equal(state._federation);
-    }
-
-    bool symbolic_state_t::satisfies(const constraint_t &constraint) const {
-        return _federation.is_satisfying(constraint);
-    }
-
-    bool symbolic_state_t::satisfies(const constraints_t &constraints) const {
-        return _federation.is_satisfying(constraints);
-    }
-
-    location_id_t symbolic_state_t::location() const {
-        return _location;
-    }
-
-    Federation symbolic_state_t::federation() const { return _federation; }
-
-    void symbolic_state_t::print(std::ostream &out, const TA &T) const {
-        out << T.locations().at(_location).name() << ' ' << _federation;
-    }
-
-    void symbolic_state_map_t::insert(symbolic_state_t state) {
+    template<class state_t>
+    void symbolic_state_map_t<state_t>::insert(state_t state) {
 
         if (not state.is_empty()) {
             if (not this->has_state(state.location())) {
@@ -176,31 +170,38 @@ namespace monitaal {
         }
     }
 
-    void symbolic_state_map_t::remove(location_id_t loc) {
+    template<class state_t>
+    void symbolic_state_map_t<state_t>::remove(location_id_t loc) {
         _states.erase(loc);
     }
 
-    symbolic_state_t symbolic_state_map_t::at(location_id_t loc) const {
+    template<class state_t>
+    state_t symbolic_state_map_t<state_t>::at(location_id_t loc) const {
         return _states.at(loc);
     }
 
-    symbolic_state_t &symbolic_state_map_t::operator[](location_id_t loc) {
+    template<class state_t>
+    state_t &symbolic_state_map_t<state_t>::operator[](location_id_t loc) {
         return _states[loc];
     }
 
-    bool symbolic_state_map_t::is_empty() const {
+    template<class state_t>
+    bool symbolic_state_map_t<state_t>::is_empty() const {
         return _states.empty();
     }
 
-    size_t symbolic_state_map_t::size() const {
+    template<class state_t>
+    size_t symbolic_state_map_t<state_t>::size() const {
         return _states.size();
     }
 
-    bool symbolic_state_map_t::has_state(location_id_t loc) const {
+    template<class state_t>
+    bool symbolic_state_map_t<state_t>::has_state(location_id_t loc) const {
         return _states.find(loc) != _states.end();
     }
 
-    void symbolic_state_map_t::intersection(const symbolic_state_map_t& states) {
+    template<class state_t>
+    void symbolic_state_map_t<state_t>::intersection(const symbolic_state_map_t<state_t>& states) {
         std::vector<location_id_t> erase_list;
 
         for(auto &[l, _] : this->_states) {
@@ -215,32 +216,38 @@ namespace monitaal {
             remove(l);
     }
 
-    std::map<location_id_t, symbolic_state_t>::iterator symbolic_state_map_t::begin() {
+    template<class state_t>
+    std::map<location_id_t, state_t>::iterator symbolic_state_map_t<state_t>::begin() {
         return _states.begin();
     }
 
-    std::map<location_id_t, symbolic_state_t>::const_iterator symbolic_state_map_t::begin() const {
+    template<class state_t>
+    std::map<location_id_t, state_t>::const_iterator symbolic_state_map_t<state_t>::begin() const {
         return _states.begin();
     }
 
-    std::map<location_id_t, symbolic_state_t>::iterator symbolic_state_map_t::end() {
+    template<class state_t>
+    std::map<location_id_t, state_t>::iterator symbolic_state_map_t<state_t>::end() {
         return _states.end();
     }
 
-    std::map<location_id_t, symbolic_state_t>::const_iterator symbolic_state_map_t::end() const {
+    template<class state_t>
+    std::map<location_id_t, state_t>::const_iterator symbolic_state_map_t<state_t>::end() const {
         return _states.end();
     }
 
-    bool symbolic_state_map_t::equals(const symbolic_state_map_t& rhs) const {
+    template<class state_t>
+    bool symbolic_state_map_t<state_t>::equals(const symbolic_state_map_t<state_t>& rhs) const {
         if (this->size() != rhs.size())
             return false;
 
         return std::all_of(_states.begin(), _states.end(),
-                           [&rhs](const std::pair<location_id_t, symbolic_state_t>& s) {
+                           [&rhs](const std::pair<location_id_t, state_t>& s) {
             return rhs.at(s.first).equals(s.second); });
     }
 
-    void symbolic_state_map_t::print(std::ostream& out, const TA& T) const {
+    template<class state_t>
+    void symbolic_state_map_t<state_t>::print(std::ostream& out, const TA& T) const {
         out << "Locations:\n";
         for (const auto& [loc, _] : _states)
             out << T.locations().at(loc).name() << "\n";
@@ -252,7 +259,7 @@ namespace monitaal {
         }
     }
 
-    void concrete_state_t::delay(concrete_time_t value) {
+    void concrete_state_t::delay(symb_time_t value) {
         auto d = value - _valuation[_valuation.size() - 1];
         if (d < 0)
             throw base_error("Error: Observed value <", value, "> is smaller than valuation of global clock <", _valuation[_valuation.size() - 1], ">");
@@ -261,31 +268,37 @@ namespace monitaal {
         _valuation[0] = 0;
     }
 
+    void concrete_state_t::delay(interval_t interval) {
+        if (interval.first != interval.second)
+            throw base_error("Error: Concrete states cannot delay in non-singular intervals. Use Interval monitor or delay monitor instead");
+        delay(interval.first);
+    }
+
     // Empty because we don't need restriction for concrete states.
     void concrete_state_t::restrict(const constraints_t &constraints) {
         if (!this->satisfies(constraints))
-            _valuation[0] = -1;
+            set_empty();
     }
 
     void concrete_state_t::intersection(const symbolic_state_t& state) {
         if (!this->is_included_in(state))
-            _valuation[0] = -1;
+            set_empty();
     }
 
-    void concrete_state_t::intersection(const symbolic_state_map_t& states) {
+    void concrete_state_t::intersection(const symbolic_state_map_t<symbolic_state_t>& states) {
         if (!this->is_included_in(states))
-            _valuation[0] = -1;
+            set_empty();
     }
 
     bool concrete_state_t::do_transition(const edge_t &edge) {
         if (edge.from() != _location) {
-            _valuation[0] = -1; // if the first is -1 then the valuation is empty/invalid
+            set_empty();
             return false;
         }
         // If the transition is not possible, do nothing and return false
         for (const auto& c : edge.guard())
             if (!satisfies(c)) {
-                _valuation[0] = -1;
+                set_empty();
                 return false;
             }
 
@@ -307,13 +320,15 @@ namespace monitaal {
     }
 
     bool concrete_state_t::is_empty() const {
-        return _valuation[0] < 0;
+        return _valuation[0] != 0;
     }
 
     bool concrete_state_t::is_included_in(const concrete_state_t& state) const {
         auto size = _valuation.size();
         if (state.valuation().size() != size)
             return false;
+        if (this->is_empty())
+            return state.is_empty();
 
         for (int i = 0; i < size; ++i) {
             if (_valuation[i] != state.valuation()[i])
@@ -323,6 +338,8 @@ namespace monitaal {
     }
 
     bool concrete_state_t::is_included_in(const symbolic_state_t &states) const {
+        if (this->is_empty()) return true;
+
         if (states.location() != _location || states.is_empty()) {
             return false;
         } else {
@@ -339,7 +356,8 @@ namespace monitaal {
         return false;
     }
 
-    bool concrete_state_t::is_included_in(const symbolic_state_map_t &states) const {
+    bool concrete_state_t::is_included_in(const symbolic_state_map_t<symbolic_state_t> &states) const {
+        if (this->is_empty()) return true;
         if (not states.has_state(_location)) {
             return false;
         }
@@ -349,14 +367,14 @@ namespace monitaal {
     }
 
     bool concrete_state_t::satisfies(pardibaal::dim_t i, pardibaal::dim_t j, pardibaal::bound_t bound) const {
-        if (_valuation[0] < 0) 
+        if (this->is_empty()) 
             return false;
         if (bound.is_inf()) 
             return true;
         if (bound.is_strict()) {
-            return (_valuation[i] - _valuation[j] < bound.get_bound());
+            return ((zone_val_t) _valuation[i] - (zone_val_t) _valuation[j] < bound.get_bound());
         } else {
-            return (_valuation[i] - _valuation[j] <= bound.get_bound());
+            return ((zone_val_t) _valuation[i] - (zone_val_t) _valuation[j] <= bound.get_bound());
         }
     }
 
@@ -373,7 +391,11 @@ namespace monitaal {
     }
 
     concrete_state_t::concrete_state_t(location_id_t location, pardibaal::dim_t number_of_clocks) : _location(location) {
-        _valuation = std::vector<concrete_time_t>(number_of_clocks);
+        _valuation = std::vector<concrete_time_t>(number_of_clocks + 1);
+    }
+
+    void concrete_state_t::set_empty() {
+        _valuation[0] = 2;
     }
     
     void concrete_state_t::print(std::ostream& out, const TA& T) const {
@@ -383,4 +405,7 @@ namespace monitaal {
             out << T.clock_name(i) << " = " << _valuation[i] << ", ";
         out << "global = " << _valuation[max] << '\n';
     }
+
+    template struct symbolic_state_map_t<symbolic_state_t>;
+    template struct symbolic_state_map_t<delay_state_t>;
 }
