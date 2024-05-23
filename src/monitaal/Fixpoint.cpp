@@ -27,9 +27,9 @@
 namespace monitaal {
 
     template<class state_t>
-    symbolic_state_map_t<state_t> Fixpoint<state_t>::reach(const symbolic_state_map_t<state_t>& states, const TA& T) {
-        symbolic_state_map_t<state_t> waiting;
-        symbolic_state_map_t<state_t> passed;
+    state_map_t<state_t> Fixpoint<state_t>::reach(const state_map_t<state_t>& states, const TA& T) {
+        state_map_t<state_t> waiting;
+        state_map_t<state_t> passed;
 
         // We have to take at least one step
         for (const auto& [_, s] : states) {
@@ -62,8 +62,8 @@ namespace monitaal {
     }
 
     template<class state_t>
-    symbolic_state_map_t<state_t> Fixpoint<state_t>::accept_states(const TA &T) {
-        symbolic_state_map_t<state_t> accept_states;
+    state_map_t<state_t> Fixpoint<state_t>::accept_states(const TA &T) {
+        state_map_t<state_t> accept_states;
 
         for (const auto& [_, loc] : T.locations()) {
             if (loc.is_accept())
@@ -74,7 +74,7 @@ namespace monitaal {
     }
 
     template<class state_t>
-    symbolic_state_map_t<state_t> Fixpoint<state_t>::buchi_accept_fixpoint(const TA &T) {
+    state_map_t<state_t> Fixpoint<state_t>::buchi_accept_fixpoint(const TA &T) {
         auto reach_a = reach(accept_states(T), T);
 
 

@@ -38,21 +38,21 @@ namespace monitaal {
          * @param T: The Timed Automaton.
          * @return Set of states in a map that can reach the given states.
          */
-        static symbolic_state_map_t<state_t> reach(const symbolic_state_map_t<state_t>& states, const TA& T);
+        static state_map_t<state_t> reach(const state_map_t<state_t>& states, const TA& T);
 
         /**
          * Fetches all the states (symbolic) that are in accepting locations.
          * @param T: The Timed Automaton.
          * @return A set of symbolic states encapsulating accept states.
          */
-        static symbolic_state_map_t<state_t> accept_states(const TA& T);
+        static state_map_t<state_t> accept_states(const TA& T);
 
         /**
          * Calculates the set of states that can infinitely often reach an accepting state.
          * @param T: The Timed Automaton.
          * @return The maximum set of symbolic states that can reach an accepting state infinitely.
          */
-        static symbolic_state_map_t<state_t> buchi_accept_fixpoint(const TA& T);
+        static state_map_t<state_t> buchi_accept_fixpoint(const TA& T);
 
         /**
          * Calculates the set of states that can be reached at a given time point
@@ -63,8 +63,8 @@ namespace monitaal {
          * @param time: Amount of time that will elapse.
          * @return The set of states that can be reached by unobservable transitions within the time frame.
          */
-//        static symbolic_state_map_t
-//        restricted_unobservable_reach(const symbolic_state_map_t& states, const TA& T,
+//        static state_map_t
+//        restricted_unobservable_reach(const state_map_t& states, const TA& T,
 //                                      std::vector<std::string> observables, symb_time_t time);
 
         /**
@@ -76,8 +76,8 @@ namespace monitaal {
          * @param time: Time interval of the reachability analysis.
          * @return The set of states that can be reached by unobservable transitions within the time frame.
          */
-//        static symbolic_state_map_t
-//        restricted_unobservable_reach(const symbolic_state_map_t& states, const TA& T,
+//        static state_map_t
+//        restricted_unobservable_reach(const state_map_t& states, const TA& T,
 //                                      std::vector<std::string> observables, interval_t time);
     };
 

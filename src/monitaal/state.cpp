@@ -47,7 +47,7 @@ namespace monitaal {
         return rtn;
     }
 
-    void symbolic_state_t::intersection(const symbolic_state_map_t<symbolic_state_t>& map) {
+    void symbolic_state_t::intersection(const state_map_t<symbolic_state_t>& map) {
         if (map.has_state(this->_location))
             intersection(map.at(this->_location));
         else
@@ -70,7 +70,7 @@ namespace monitaal {
         _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_federation.dimension() - 1, interval.second));
     }
 
-    bool symbolic_state_t::is_included_in(const symbolic_state_map_t<symbolic_state_t>& map) const {
+    bool symbolic_state_t::is_included_in(const state_map_t<symbolic_state_t>& map) const {
         if (not map.has_state(_location))
             return false;
 
@@ -106,7 +106,7 @@ namespace monitaal {
         symbolic_state_base::intersection(state);
     }
 
-    void delay_state_t::intersection(const symbolic_state_map_t<delay_state_t>& map) {
+    void delay_state_t::intersection(const state_map_t<delay_state_t>& map) {
         if (map.has_state(this->_location))
             intersection(map.at(this->_location));
         else
@@ -147,7 +147,7 @@ namespace monitaal {
 
     symb_time_t delay_state_t::get_jitter_bound() const { return _jitter; }
 
-    bool delay_state_t::is_included_in(const symbolic_state_map_t<delay_state_t>& map) const {
+    bool delay_state_t::is_included_in(const state_map_t<delay_state_t>& map) const {
         if (not map.has_state(_location))
             return false;
 
@@ -159,7 +159,7 @@ namespace monitaal {
     }
 
     template<class state_t>
-    void symbolic_state_map_t<state_t>::insert(state_t state) {
+    void state_map_t<state_t>::insert(state_t state) {
 
         if (not state.is_empty()) {
             if (not this->has_state(state.location())) {
@@ -171,37 +171,37 @@ namespace monitaal {
     }
 
     template<class state_t>
-    void symbolic_state_map_t<state_t>::remove(location_id_t loc) {
+    void state_map_t<state_t>::remove(location_id_t loc) {
         _states.erase(loc);
     }
 
     template<class state_t>
-    state_t symbolic_state_map_t<state_t>::at(location_id_t loc) const {
+    state_t state_map_t<state_t>::at(location_id_t loc) const {
         return _states.at(loc);
     }
 
     template<class state_t>
-    state_t &symbolic_state_map_t<state_t>::operator[](location_id_t loc) {
+    state_t &state_map_t<state_t>::operator[](location_id_t loc) {
         return _states[loc];
     }
 
     template<class state_t>
-    bool symbolic_state_map_t<state_t>::is_empty() const {
+    bool state_map_t<state_t>::is_empty() const {
         return _states.empty();
     }
 
     template<class state_t>
-    size_t symbolic_state_map_t<state_t>::size() const {
+    size_t state_map_t<state_t>::size() const {
         return _states.size();
     }
 
     template<class state_t>
-    bool symbolic_state_map_t<state_t>::has_state(location_id_t loc) const {
+    bool state_map_t<state_t>::has_state(location_id_t loc) const {
         return _states.find(loc) != _states.end();
     }
 
     template<class state_t>
-    void symbolic_state_map_t<state_t>::intersection(const symbolic_state_map_t<state_t>& states) {
+    void state_map_t<state_t>::intersection(const state_map_t<state_t>& states) {
         std::vector<location_id_t> erase_list;
 
         for(auto &[l, _] : this->_states) {
@@ -217,27 +217,27 @@ namespace monitaal {
     }
 
     template<class state_t>
-    std::map<location_id_t, state_t>::iterator symbolic_state_map_t<state_t>::begin() {
+    std::map<location_id_t, state_t>::iterator state_map_t<state_t>::begin() {
         return _states.begin();
     }
 
     template<class state_t>
-    std::map<location_id_t, state_t>::const_iterator symbolic_state_map_t<state_t>::begin() const {
+    std::map<location_id_t, state_t>::const_iterator state_map_t<state_t>::begin() const {
         return _states.begin();
     }
 
     template<class state_t>
-    std::map<location_id_t, state_t>::iterator symbolic_state_map_t<state_t>::end() {
+    std::map<location_id_t, state_t>::iterator state_map_t<state_t>::end() {
         return _states.end();
     }
 
     template<class state_t>
-    std::map<location_id_t, state_t>::const_iterator symbolic_state_map_t<state_t>::end() const {
+    std::map<location_id_t, state_t>::const_iterator state_map_t<state_t>::end() const {
         return _states.end();
     }
 
     template<class state_t>
-    bool symbolic_state_map_t<state_t>::equals(const symbolic_state_map_t<state_t>& rhs) const {
+    bool state_map_t<state_t>::equals(const state_map_t<state_t>& rhs) const {
         if (this->size() != rhs.size())
             return false;
 
@@ -247,7 +247,7 @@ namespace monitaal {
     }
 
     template<class state_t>
-    void symbolic_state_map_t<state_t>::print(std::ostream& out, const TA& T) const {
+    void state_map_t<state_t>::print(std::ostream& out, const TA& T) const {
         out << "Locations:\n";
         for (const auto& [loc, _] : _states)
             out << T.locations().at(loc).name() << "\n";
@@ -285,7 +285,7 @@ namespace monitaal {
             set_empty();
     }
 
-    void concrete_state_t::intersection(const symbolic_state_map_t<symbolic_state_t>& states) {
+    void concrete_state_t::intersection(const state_map_t<symbolic_state_t>& states) {
         if (!this->is_included_in(states))
             set_empty();
     }
@@ -356,7 +356,7 @@ namespace monitaal {
         return false;
     }
 
-    bool concrete_state_t::is_included_in(const symbolic_state_map_t<symbolic_state_t> &states) const {
+    bool concrete_state_t::is_included_in(const state_map_t<symbolic_state_t> &states) const {
         if (this->is_empty()) return true;
         if (not states.has_state(_location)) {
             return false;
@@ -406,6 +406,6 @@ namespace monitaal {
         out << "global = " << _valuation[max] << '\n';
     }
 
-    template struct symbolic_state_map_t<symbolic_state_t>;
-    template struct symbolic_state_map_t<delay_state_t>;
+    template struct state_map_t<symbolic_state_t>;
+    template struct state_map_t<delay_state_t>;
 }
