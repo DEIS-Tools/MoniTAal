@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+</declaration>
+	<template>
+		<name x="5" y="5">assumption</name>
+		<declaration>// Place local declarations here.
+</declaration>
+		<location id="id0" x="442" y="102">
+			<name x="432" y="68">f2_a</name>
+		</location>
+		<location id="id1" x="170" y="102">
+			<name x="160" y="68">f1_a</name>
+		</location>
+		<location id="id2" x="0" y="102">
+			<name x="-10" y="68">f0_a</name>
+		</location>
+		<location id="id3" x="442" y="0">
+			<name x="432" y="-34">n2_a</name>
+		</location>
+		<location id="id4" x="170" y="0">
+			<name x="160" y="-34">n1_a</name>
+		</location>
+		<location id="id5" x="0" y="0">
+			<name x="-10" y="-34">n0_a</name>
+		</location>
+		<init ref="id5"/>
+		<transition id="id6">
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="guard" x="127" y="187">x == 1</label>
+			<label kind="synchronisation" x="204" y="187">move!</label>
+			<label kind="assignment" x="263" y="187">x := 0</label>
+			<nail x="408" y="204"/>
+			<nail x="34" y="204"/>
+		</transition>
+		<transition id="id7">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="246" y="85">x &gt;= 7 &amp;&amp; x &lt;= 9</label>
+			<label kind="synchronisation" x="289" y="102">stop!</label>
+			<label kind="assignment" x="280" y="119">x := 0</label>
+		</transition>
+		<transition id="id8">
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="guard" x="59" y="85">x == 1</label>
+			<label kind="synchronisation" x="59" y="119">start!</label>
+			<label kind="assignment" x="59" y="102">x := 0</label>
+		</transition>
+		<transition id="id9">
+			<source ref="id3"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="442" y="34">fault!</label>
+		</transition>
+		<transition id="id10">
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="170" y="34">fault!</label>
+		</transition>
+		<transition id="id11">
+			<source ref="id5"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="0" y="34">fault!</label>
+		</transition>
+		<transition id="id12">
+			<source ref="id3"/>
+			<target ref="id5"/>
+			<label kind="guard" x="144" y="-102">x == 1</label>
+			<label kind="synchronisation" x="204" y="-102">move!</label>
+			<label kind="assignment" x="255" y="-102">x := 0</label>
+			<nail x="408" y="-102"/>
+			<nail x="34" y="-102"/>
+		</transition>
+		<transition id="id13">
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="238" y="-25">x &gt;= 8 &amp;&amp; x &lt;= 10</label>
+			<label kind="synchronisation" x="289" y="0">stop!</label>
+			<label kind="assignment" x="280" y="17">x := 0</label>
+		</transition>
+		<transition id="id14">
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="68" y="0">x == 1</label>
+			<label kind="synchronisation" x="68" y="-17">start!</label>
+			<label kind="assignment" x="68" y="17">x := 0</label>
+		</transition>
+	</template>
+	<template>
+		<name>positive</name>
+		<location id="id15" x="170" y="0">
+			<name x="160" y="-34">q1</name>
+		</location>
+		<location id="id16" x="0" y="0">
+			<name x="-10" y="-34">q0_a</name>
+		</location>
+		<init ref="id16"/>
+		<transition id="id17">
+			<source ref="id16"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-110" y="-25">move!</label>
+			<nail x="-68" y="34"/>
+			<nail x="-68" y="-34"/>
+		</transition>
+		<transition id="id18">
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="51" y="-17">fault!</label>
+		</transition>
+	</template>
+	<template>
+		<name>negative</name>
+		<location id="id19" x="170" y="0">
+			<name x="160" y="-34">q1_a</name>
+		</location>
+		<location id="id20" x="0" y="0">
+			<name x="-10" y="-34">q0</name>
+		</location>
+		<init ref="id20"/>
+		<transition id="id21">
+			<source ref="id19"/>
+			<target ref="id19"/>
+			<label kind="synchronisation" x="188" y="8">move!</label>
+			<nail x="238" y="34"/>
+			<nail x="238" y="-51"/>
+		</transition>
+		<transition id="id22">
+			<source ref="id20"/>
+			<target ref="id20"/>
+			<label kind="synchronisation" x="-50" y="0">move!</label>
+			<nail x="-68" y="34"/>
+			<nail x="-76" y="-42"/>
+		</transition>
+		<transition id="id23">
+			<source ref="id20"/>
+			<target ref="id19"/>
+			<label kind="synchronisation" x="59" y="-17">fault!</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+</system>
+	<queries>
+		<query>
+			<formula/>
+			<comment/>
+		</query>
+	</queries>
+</nta>
