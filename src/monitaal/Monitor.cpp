@@ -21,6 +21,7 @@
  */
 
 #include "Monitor.h"
+#include "errors.h"
 
 #include <utility>
 #include <iostream>
@@ -30,11 +31,13 @@
 
 namespace monitaal {
 
-    timed_input_t::timed_input_t(interval_t time, label_t label) : time(time), label(std::move(label)) {}
-    timed_input_t::timed_input_t(symb_time_t time, label_t label) : time({time, time}), label(std::move(label)) {}
+    timed_input_t::timed_input_t(interval_t time, label_t label, input_type_e type) 
+            : time(time), label(std::move(label)), type(type) {}
+    timed_input_t::timed_input_t(symb_time_t time, label_t label, input_type_e type) 
+            : time({time, time}), label(std::move(label)), type(type) {}
 
     template<>
-    Monitor<delay_state_t>::Single_monitor::Single_monitor(const TA &automaton, const settings_t& setting) :
+    Single_monitor<delay_state_t>::Single_monitor(const TA &automaton, const settings_t& setting) :
     _automaton(automaton), 
     _accepting_space(Fixpoint<delay_state_t>::buchi_accept_fixpoint(automaton)),
     _inclusion(setting.inclusion) {
@@ -51,7 +54,7 @@ namespace monitaal {
     }
 
     template<class state_t>
-    Monitor<state_t>::Single_monitor::Single_monitor(const TA &automaton, const settings_t& setting) :
+    Single_monitor<state_t>::Single_monitor(const TA &automaton, const settings_t& setting) :
     _automaton(automaton), 
     _accepting_space(Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(automaton)),
     _inclusion(setting.inclusion) {
@@ -67,11 +70,11 @@ namespace monitaal {
         }
     }
 
-    template<class state_t> Monitor<state_t>::single_monitor_answer_e
-    Monitor<state_t>::Single_monitor::status() { return _status; }
+    template<class state_t> single_monitor_answer_e
+    Single_monitor<state_t>::status() { return _status; }
 
-    template<class state_t> Monitor<state_t>::single_monitor_answer_e
-    Monitor<state_t>::Single_monitor::input(const timed_input_t& input) {
+    template<class state_t> single_monitor_answer_e
+    Single_monitor<state_t>::input(const timed_input_t& input) {
 
         std::vector<state_t> next_states;
 
@@ -103,6 +106,24 @@ namespace monitaal {
                     continue;
 
                 auto state = s;
+
+                if (input.type == MULTI) {
+                    throw base_error("ERROR: Multi input not implemented!");
+                }
+                if (input.type == OPTIONAL) { // Add states where no transition was taken
+                    state.intersection(_accepting_space);
+                    if (!state.is_empty()) {
+                        bool add = true;
+                        if (_inclusion) {
+                            for (const auto& next_s : next_states) {
+                                if (state.is_included_in(next_s))
+                                    add = false;
+                            }
+                        }
+                        if (add)
+                            next_states.push_back(state);
+                    }
+                }
                 for (const auto& edge : _automaton.edges_from(s.location())) {
 
                     if (std::strcmp(edge.label().c_str(), input.label.c_str()) == 0) { //for all edges with input label
@@ -144,11 +165,11 @@ namespace monitaal {
     }
 
     template<class state_t> std::vector<state_t>
-    Monitor<state_t>::Single_monitor::state_estimate() { return _current_states; };
+    Single_monitor<state_t>::state_estimate() { return _current_states; };
 
     template<class state_t>
     Monitor<state_t>::Monitor(const TA& pos, const TA& neg)
-            : _monitor_pos(Single_monitor(pos, settings_t())), _monitor_neg(Single_monitor(neg, settings_t())) {
+            : _monitor_pos(Single_monitor<state_t>(pos, settings_t())), _monitor_neg(Single_monitor<state_t>(neg, settings_t())) {
 
         assert((_monitor_pos.status() != OUT || _monitor_neg.status() != OUT) &&
                "Error: Mismatch between positive and negative automata. Both are out\n");
@@ -162,7 +183,7 @@ namespace monitaal {
 
     template<class state_t>
     Monitor<state_t>::Monitor(const TA& pos, const TA& neg, const settings_t& setting)
-            : _monitor_pos(Single_monitor(pos, setting)), _monitor_neg(Single_monitor(neg, setting)) {
+            : _monitor_pos(Single_monitor<state_t>(pos, setting)), _monitor_neg(Single_monitor<state_t>(neg, setting)) {
 
         assert((_monitor_pos.status() != OUT || _monitor_neg.status() != OUT) &&
                "Error: Mismatch between positive and negative automata. Both are out\n");
@@ -220,12 +241,12 @@ namespace monitaal {
     }
 
     template<class state_t>
-    void Monitor<state_t>::Single_monitor::print_status(std::ostream& out) const {
+    void Single_monitor<state_t>::print_status(std::ostream& out) const {
         out << "Number of states: " << _current_states.size() << '\n';
     }
 
     template<>
-    void Monitor<delay_state_t>::Single_monitor::print_status(std::ostream& out) const {
+    void Single_monitor<delay_state_t>::print_status(std::ostream& out) const {
         out << "Consistent latencies: ";
         symb_time_t jitter = 0;
 
@@ -263,4 +284,8 @@ namespace monitaal {
     template class Monitor<symbolic_state_t>;
     template class Monitor<delay_state_t>;
     template class Monitor<concrete_state_t>;
+
+    template class Single_monitor<symbolic_state_t>;
+    template class Single_monitor<delay_state_t>;
+    template class Single_monitor<concrete_state_t>;
 }

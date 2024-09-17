@@ -36,6 +36,7 @@
 
 namespace monitaal {
 
+    enum input_type_e {ONCE, OPTIONAL, MULTI};
     /**
      * A timed character in a timed word.
      * Consists of a timing element and a label
@@ -43,9 +44,10 @@ namespace monitaal {
     struct timed_input_t {
         const interval_t time;
         const label_t label;
+        input_type_e type = ONCE;
 
-        timed_input_t(interval_t time, label_t label);
-        timed_input_t(symb_time_t time, label_t label);
+        timed_input_t(interval_t time, label_t label, input_type_e type = ONCE);
+        timed_input_t(symb_time_t time, label_t label, input_type_e type = ONCE);
     };
 
     struct settings_t {
@@ -57,42 +59,41 @@ namespace monitaal {
     enum monitor_answer_e {INCONCLUSIVE, POSITIVE, NEGATIVE};
 
     std::ostream& operator<<(std::ostream& out, const monitor_answer_e value);
+    
+    enum single_monitor_answer_e {ACTIVE, OUT};
+    // Monitors a single automata one step at a time
+    template<class state_t>
+    class Single_monitor { // Bad naming I KNOW
+        const TA _automaton;
 
+        // Where it is still possible to reach an accepting location infinitely often
+        const symbolic_state_map_t<typename std::conditional_t<std::is_base_of<symbolic_state_base, state_t>::value, 
+        state_t, symbolic_state_t>> _accepting_space;
+
+        std::vector<state_t> _current_states;
+
+        single_monitor_answer_e _status;
+
+        bool _inclusion;
+
+    public:
+        explicit Single_monitor(const TA &automaton, const settings_t& setting);
+
+        single_monitor_answer_e status();
+
+        single_monitor_answer_e input(const timed_input_t& input);
+
+        std::vector<state_t> state_estimate();
+
+        void print_status(std::ostream& out) const;
+    };
     /**
      * Monitors a property p from the two TBA's constructed for p and -p
      */
     template<class state_t>
     class Monitor {
 
-        enum single_monitor_answer_e {ACTIVE, OUT};
-
-        // Private class. Monitors a single automata one step at a time
-        class Single_monitor { // Bad naming I KNOW
-            const TA _automaton;
-
-            // Where it is still possible to reach an accepting location infinitely often
-            const symbolic_state_map_t<typename std::conditional_t<std::is_base_of<symbolic_state_base, state_t>::value, 
-            state_t, symbolic_state_t>> _accepting_space;
-
-            std::vector<state_t> _current_states;
-
-            single_monitor_answer_e _status;
-
-            bool _inclusion;
-
-        public:
-            explicit Single_monitor(const TA &automaton, const settings_t& setting);
-
-            single_monitor_answer_e status();
-
-            single_monitor_answer_e input(const timed_input_t& input);
-
-            std::vector<state_t> state_estimate();
-
-            void print_status(std::ostream& out) const;
-        };
-
-        Single_monitor _monitor_pos, _monitor_neg;
+        Single_monitor<state_t> _monitor_pos, _monitor_neg;
 
         monitor_answer_e _status;
 
