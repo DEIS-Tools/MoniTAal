@@ -150,7 +150,7 @@ namespace monitaal {
                                                   (c._j == 0 ? 0 : c._j + clock_size), c._bound));
                 }
 
-                location_t new_loc1(loc1.is_accept(), tmp_id, loc1.name() + '_' + loc2.name() + "_1", constr);
+                location_t new_loc1(false, tmp_id, loc1.name() + '_' + loc2.name() + "_1", constr);
                 location_t new_loc2(loc2.is_accept(), tmp_id+1, loc1.name() + '_' + loc2.name() + "_2", constr);
 
                 new_locations.push_back(new_loc1);
@@ -162,38 +162,88 @@ namespace monitaal {
         edges_t new_edges;
         for (const auto& [_, vec1] : this->_forward_edges)
             for (const auto& e1 : vec1)
-                for (const auto& [_, vec2] : other._forward_edges)
-                    for (const auto& e2 : vec2)
-                        if (not e1.label().compare(e2.label())) {
+                // Add loops when label is not in alphabet of other
+                if (not other.labels().contains(e1.label())) {
+                    for (const auto& [l, _] : other.locations()) {
+                        const auto& [from_l1, from_l2] = new_loc_indir.at({e1.from(), l});
+                        const auto& [to_l1, to_l2] = new_loc_indir.at({e1.to(), l});
+                        
+                        edge_t new_e1(from_l1, (this->locations().at(e1.from()).is_accept() 
+                                                ? to_l2 : to_l1), e1.guard(), e1.reset(), e1.label());
 
-                            constraints_t guard(e1.guard());
-                            for (const auto& c : e2.guard()) {
-                                guard.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_size),
-                                                              (c._j == 0 ? 0 : c._j + clock_size), c._bound));
+                        edge_t new_e2(from_l2, (other.locations().at(l).is_accept() 
+                                                ? to_l1 : to_l2), e1.guard(), e1.reset(), e1.label());
+
+                        new_edges.push_back(new_e1);
+                        new_edges.push_back(new_e2);
+                    }
+                }
+                else 
+                    for (const auto& [_, vec2] : other._forward_edges)
+                        for (const auto& e2 : vec2)
+                            if (not e1.label().compare(e2.label())) {
+
+                                constraints_t guard(e1.guard());
+                                for (const auto& c : e2.guard()) {
+                                    guard.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_size),
+                                                                (c._j == 0 ? 0 : c._j + clock_size), c._bound));
+                                }
+
+                                clocks_t reset(e1.reset());
+                                for (const auto& r : e2.reset())
+                                    reset.push_back(r == 0 ? 0 : r + clock_size);
+
+                                const std::string label = e1.label();
+
+                                const auto& [to_l1, to_l2] = new_loc_indir.at({e1.to(), e2.to()});
+                                const auto& [from_l1, from_l2] = new_loc_indir.at({e1.from(), e2.from()});
+
+                                edge_t new_e1(from_l1, (this->locations().at(e1.from()).is_accept() 
+                                                        ? to_l2 : to_l1), guard, reset, label);
+
+                                edge_t new_e2(from_l2, (other.locations().at(e2.from()).is_accept() 
+                                                        ? to_l1 : to_l2), guard, reset, label);
+
+                                new_edges.push_back(new_e1);
+                                new_edges.push_back(new_e2);
                             }
+        
+        // Add loops when label is not in alphabet of this
+        for (const auto& [_, vec2] : other._forward_edges)
+            for (const auto& e2 : vec2)
+                if (not this->labels().contains(e2.label())) {
+                    for (const auto& [l, _] : this->locations()) {
+                        const auto& [from_l1, from_l2] = new_loc_indir.at({l, e2.from()});
+                        const auto& [to_l1, to_l2] = new_loc_indir.at({l, e2.to()});
 
-                            clocks_t reset(e1.reset());
-                            for (const auto& r : e2.reset())
-                                reset.push_back(r == 0 ? 0 : r + clock_size);
-
-                            const std::string label = e1.label();
-
-                            const auto& [to_l1, to_l2] = new_loc_indir.at({e1.to(), e2.to()});
-                            const auto& [from_l1, from_l2] = new_loc_indir.at({e1.from(), e2.from()});
-
-                            edge_t new_e1(from_l1, (this->locations().at(e1.from()).is_accept() 
-                                                     ? to_l2 : to_l1), guard, reset, label);
-
-                            edge_t new_e2(from_l2, (other.locations().at(e2.from()).is_accept() 
-                                                     ? to_l1 : to_l2), guard, reset, label);
-
-                            new_edges.push_back(new_e1);
-                            new_edges.push_back(new_e2);
+                        constraints_t guard;
+                        for (const auto& c : e2.guard()) {
+                            guard.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_size),
+                                                        (c._j == 0 ? 0 : c._j + clock_size), c._bound));
                         }
+
+                        clocks_t reset;
+                        for (const auto& r : e2.reset())
+                            reset.push_back(r == 0 ? 0 : r + clock_size);
+                        
+                        edge_t new_e1(from_l1, (this->locations().at(l).is_accept() 
+                                                ? to_l2 : to_l1), guard, reset, e2.label());
+
+                        edge_t new_e2(from_l2, (other.locations().at(e2.from()).is_accept() 
+                                                ? to_l1 : to_l2), guard, reset, e2.label());
+
+                        new_edges.push_back(new_e1);
+                        new_edges.push_back(new_e2);
+                    }
+                }
 
 
         *this = TA(this->_name + '_' + other._name, new_clocks, new_locations, new_edges,
                    new_loc_indir[{this->initial_location(), other.initial_location()}].first);
+        
+        // Add labels from other to this
+        auto tmp_labels = other.labels();
+        this->_labels.merge(tmp_labels);
 
     }
 

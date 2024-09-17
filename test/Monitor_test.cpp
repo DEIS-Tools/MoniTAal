@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(monitor_test1) {
     BOOST_CHECK(monitor.input(word2) == NEGATIVE);
 }
 
-BOOST_AUTO_TEST_CASE(intersection_test_1) {
+BOOST_AUTO_TEST_CASE(intersection_test1) {
     TA T1 = Parser::parse("models/small1.xml", "small1");
     TA T2 = Parser::parse("models/small2.xml", "small2");
 
@@ -255,4 +255,81 @@ BOOST_AUTO_TEST_CASE(recurGLB_test1) {
         else
             BOOST_CHECK(monitor.status() == NEGATIVE);
     }
+}
+
+BOOST_AUTO_TEST_CASE(intersection_test2) {
+    TA never_b_pos = Parser::parse("models/never_b.xml", "positive");
+    TA never_b_neg = Parser::parse("models/never_b.xml", "negative");
+
+    TA c_after_10_pos = Parser::parse("models/c_after_10.xml", "positive");
+    TA c_after_10_neg = Parser::parse("models/c_after_10.xml", "negative");
+    TA int_neg = Parser::parse("models/b_or_c.xml", "negative");
+
+    TA int_pos1 = c_after_10_pos;
+    TA int_pos2 = never_b_pos;
+
+    int_pos1.intersection(never_b_pos);
+    int_pos2.intersection(c_after_10_pos);
+
+    BOOST_CHECK(int_pos1.labels().contains("a"));
+    BOOST_CHECK(int_pos1.labels().contains("b"));
+    BOOST_CHECK(int_pos1.labels().contains("c"));
+    BOOST_CHECK(int_pos1.labels().size() == 3);
+    BOOST_CHECK(int_pos2.labels().contains("a"));
+    BOOST_CHECK(int_pos2.labels().contains("b"));
+    BOOST_CHECK(int_pos2.labels().contains("c"));
+    BOOST_CHECK(int_pos2.labels().size() == 3);
+
+    Concrete_monitor monitor_b(never_b_pos, never_b_neg);
+    Concrete_monitor monitor_c(c_after_10_pos, c_after_10_neg);
+    Concrete_monitor monitor_int1(int_pos1, int_neg);
+    Concrete_monitor monitor_int2(int_pos2, int_neg);
+
+    BOOST_CHECK(monitor_b.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_c.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_int1.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_int2.status() == INCONCLUSIVE);
+
+    monitor_b.input({0, "a"});
+    monitor_c.input({0, "a"});
+    monitor_int1.input({0, "a"});
+    monitor_int2.input({0, "a"});
+
+    BOOST_CHECK(monitor_b.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_c.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_int1.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_int2.status() == INCONCLUSIVE);
+
+    monitor_b.input({5, "c"});
+    monitor_c.input({5, "c"});
+    monitor_int1.input({5, "c"});
+    monitor_int2.input({5, "c"});
+
+    BOOST_CHECK(monitor_b.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_c.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_int1.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_int2.status() == INCONCLUSIVE);
+
+    monitor_b.input({15, "c"});
+    monitor_c.input({15, "c"});
+    monitor_int1.input({15, "c"});
+    monitor_int2.input({15, "c"});
+
+    BOOST_CHECK(monitor_b.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_c.status() == POSITIVE);
+    BOOST_CHECK(monitor_int1.status() == INCONCLUSIVE);
+    BOOST_CHECK(monitor_int2.status() == INCONCLUSIVE);
+
+    monitor_b.input({20, "b"});
+    monitor_c.input({20, "b"});
+    monitor_int1.input({20, "b"});
+    monitor_int2.input({20, "b"});
+
+    BOOST_CHECK(monitor_b.status() == NEGATIVE);
+    BOOST_CHECK(monitor_c.status() == POSITIVE);
+    BOOST_CHECK(monitor_int1.status() == NEGATIVE);
+    BOOST_CHECK(monitor_int2.status() == NEGATIVE);
+
+
+    
 }
