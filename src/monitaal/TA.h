@@ -84,6 +84,8 @@ namespace monitaal {
 
         location_map_t _locations;
 
+        std::map<location_id_t, std::vector<clock_index_t>> _inactive_clocks;
+
         edge_map_t _backward_edges;
 
         edge_map_t _forward_edges;
@@ -106,6 +108,8 @@ namespace monitaal {
 
         [[nodiscard]] std::string clock_name(clock_index_t index) const;
 
+        std::map<location_id_t, std::vector<clock_index_t>> inactive_clocks() const;
+
         [[nodiscard]] const location_map_t& locations() const;
 
         [[nodiscard]] location_id_t initial_location() const;
@@ -115,6 +119,8 @@ namespace monitaal {
         [[nodiscard]] const std::unordered_set<label_t>& labels() const;
 
         void intersection (const TA& other);
+
+        std::map<location_id_t, std::vector<clock_index_t>> compute_inactive_clocks();
 
         static TA time_divergence_ta(const std::vector<std::string>& alphabet, bool deterministic);
 

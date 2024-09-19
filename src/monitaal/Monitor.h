@@ -52,6 +52,7 @@ namespace monitaal {
 
     struct settings_t {
         bool inclusion = false;
+        bool clock_abstraction = false;
         interval_t latency{0,0};
         symb_time_t jitter = 0;
     };
@@ -74,7 +75,8 @@ namespace monitaal {
 
         single_monitor_answer_e _status;
 
-        bool _inclusion;
+        bool _inclusion,
+             _clock_abstraction;
 
     public:
         explicit Single_monitor(const TA &automaton, const settings_t& setting);

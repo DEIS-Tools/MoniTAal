@@ -121,6 +121,8 @@ namespace monitaal {
         void delay(symb_time_t value);
         void delay(interval_t interval);
 
+        void free(const clocks_t& clocks);
+
         // Small hack: This is used in the monitor template, but only relevant for symbolic states.
         // Therefore this is just an empty implementation.
         void restrict(const constraints_t& constraints);

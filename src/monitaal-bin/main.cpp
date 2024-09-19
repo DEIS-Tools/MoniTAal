@@ -238,6 +238,7 @@ int main(int argc, const char** argv) {
             ("type,t", po::value<std::string>(), "Input type (concrete or interval) default = concrete.")
             ("input,i", po::value<std::string>(), "Monitor events contained in file.")
             ("inclusion,u", "Enable inclusion checking for duplicate states")
+            ("clock-abstraction,c", "Enable abstraction of inactive clocks (Automatically enables inclusion)")
             ("verbose,v", "Prints more information on the monitoring procedure.")
             ("silent,s", "removes all outputs")
             ("print-dot,o", "Prints the dot graphs of the given automata.")
@@ -301,6 +302,7 @@ int main(int argc, const char** argv) {
 
     settings_t mon_setting = settings_t();
     mon_setting.inclusion = vm.count("inclusion");
+    mon_setting.clock_abstraction = vm.count("clock-abstraction");
 
     Interval_monitor monitor_int(pos, neg, mon_setting);
     Concrete_monitor monitor_con(pos, neg, mon_setting);

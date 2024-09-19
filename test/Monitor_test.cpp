@@ -329,7 +329,49 @@ BOOST_AUTO_TEST_CASE(intersection_test2) {
     BOOST_CHECK(monitor_c.status() == POSITIVE);
     BOOST_CHECK(monitor_int1.status() == NEGATIVE);
     BOOST_CHECK(monitor_int2.status() == NEGATIVE);
+}
 
-
+BOOST_AUTO_TEST_CASE(inactive_clock_test1) {
+    clock_map_t clocks({{0, "0"}, {1, "x"}, {2, "y"}, {3, "z"}, {4, "v"}, {5, "w"}});
     
+    int l_id = 0;
+    locations_t locs = {
+        location_t(true, l_id++, "l0", {constraint_t::lower_strict(1, 10)}),
+        location_t(false, l_id++, "l2", {}),
+        location_t(false, l_id++, "l4", {constraint_t::lower_strict(2, 10)})
+    };
+
+    edges_t edges{
+        edge_t(0, 0, {}, {1}, "a"),
+        edge_t(0, 1, {}, {}, "a"),
+        edge_t(1, 1, {constraint_t::lower_strict(2, 10)}, {}, "a"),
+        edge_t(1, 2, {}, {1, 2}, "a"),
+        edge_t(2, 2, {}, {2}, "a"),
+        edge_t(2, 2, {constraint_t::upper_non_strict(5, 10)}, {3}, "a")
+    };
+
+    TA automaton("inactive_clock_test", clocks, locs, edges, 0);
+
+    BOOST_CHECK(automaton.inactive_clocks().at(0).size() == 2);//x
+    BOOST_CHECK(automaton.inactive_clocks().at(1).size() == 3);
+    BOOST_CHECK(automaton.inactive_clocks().at(2).size() == 3);
+
+    BOOST_CHECK(automaton.inactive_clocks().at(0).at(0) == 3);//x
+    BOOST_CHECK(automaton.inactive_clocks().at(0).at(1) == 4);//x
+
+    BOOST_CHECK(automaton.inactive_clocks().at(1).at(0) == 1);
+    BOOST_CHECK(automaton.inactive_clocks().at(1).at(1) == 3);
+    BOOST_CHECK(automaton.inactive_clocks().at(1).at(2) == 4);
+
+    BOOST_CHECK(automaton.inactive_clocks().at(2).at(0) == 1);
+    BOOST_CHECK(automaton.inactive_clocks().at(2).at(1) == 3);
+    BOOST_CHECK(automaton.inactive_clocks().at(2).at(2) == 4);
+
+    // for (const auto& [l, inact] : automaton.inactive_clocks()) {
+    //     std::cout << automaton.locations().at(l).name() << "\n";
+    //     for (const auto& x : inact) {
+    //         std::cout << '\t' << automaton.clock_name(x) << '\n';
+    //     }
+    // }
+    // automaton.print_dot(std::cout);
 }

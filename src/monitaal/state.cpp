@@ -274,6 +274,8 @@ namespace monitaal {
         delay(interval.first);
     }
 
+    void concrete_state_t::free(const clocks_t& clocks) { return; }
+
     // Empty because we don't need restriction for concrete states.
     void concrete_state_t::restrict(const constraints_t &constraints) {
         if (!this->satisfies(constraints))

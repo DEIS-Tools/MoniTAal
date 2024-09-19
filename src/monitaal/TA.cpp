@@ -25,6 +25,7 @@
 
 #include <utility>
 #include <iostream>
+#include <boost/dynamic_bitset.hpp>
 
 namespace monitaal {
 
@@ -102,6 +103,72 @@ namespace monitaal {
         _locations = std::move(loc_map);
         _backward_edges = std::move(backward_edges);
         _forward_edges = std::move(forward_edges);
+        
+        _inactive_clocks = compute_inactive_clocks();
+    }
+
+
+
+    std::map<location_id_t, std::vector<clock_index_t>>
+    TA::compute_inactive_clocks() {
+        std::map<location_id_t, boost::dynamic_bitset<>> active_clocks;
+        std::map<location_id_t, std::vector<clock_index_t>> rtn;
+
+        boost::dynamic_bitset<> act(number_of_clocks());
+        
+        for (const auto& [l_id, l] : locations()) {
+            act.reset();
+
+            for (const auto& c : l.invariant()) {
+                act[c._i] = 1;
+                act[c._j] = 1;
+            }
+            for (const auto& e : edges_from(l_id)) {
+                for (const auto& c : e.guard()) {
+                    act[c._i] = 1;
+                    act[c._j] = 1;
+                }
+            }
+            active_clocks.insert({l_id, act});
+        }
+
+        bool modified = true;
+        boost::dynamic_bitset<> reset(number_of_clocks());
+        
+        while (modified) {
+            modified = false;
+            
+            for (const auto& [l_id, l] : _locations) {
+                act = active_clocks.at(l_id);
+
+                for (const auto& e : edges_from(l_id)) {
+                    reset.reset(); // Clocks that are reset on an edge
+
+                    for (const auto& r : e.reset())
+                        reset[r] = 1;
+                    
+                    act |= (active_clocks.at(e.to()) - reset);
+                }
+
+                if (active_clocks.at(l_id) != act) {
+                    active_clocks.at(l_id) = act;
+                    modified = true;
+                }
+            }
+        }
+
+        std::vector<clock_index_t> inactive;
+
+        for (const auto& [l_id, l] : _locations) {
+            inactive.clear();
+            for (int i = 1; i < _number_of_clocks; ++i) {
+                if (!active_clocks.at(l_id)[i])
+                    inactive.push_back(i);
+            }
+            rtn.insert({l_id, inactive});
+        }
+
+        return rtn;
     }
 
     const edges_t& TA::edges_to(location_id_t id) const { return _backward_edges.at(id); }
@@ -109,6 +176,8 @@ namespace monitaal {
     const edges_t& TA::edges_from(location_id_t id) const { return _forward_edges.at(id); }
 
     std::string TA::clock_name(clock_index_t index) const { return _clock_names.at(index); }
+
+    std::map<location_id_t, std::vector<clock_index_t>> TA::inactive_clocks() const { return _inactive_clocks; };
 
     const location_map_t &TA::locations() const { return _locations; }
 

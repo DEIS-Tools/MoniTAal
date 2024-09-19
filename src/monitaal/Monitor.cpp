@@ -40,7 +40,8 @@ namespace monitaal {
     Single_monitor<delay_state_t>::Single_monitor(const TA &automaton, const settings_t& setting) :
     _automaton(automaton), 
     _accepting_space(Fixpoint<delay_state_t>::buchi_accept_fixpoint(automaton)),
-    _inclusion(setting.inclusion) {
+    _inclusion(setting.inclusion),
+    _clock_abstraction(setting.clock_abstraction) {
         
         delay_state_t init = delay_state_t(_automaton.initial_location(), _automaton.number_of_clocks(), setting.latency, setting.jitter);
 
@@ -57,7 +58,8 @@ namespace monitaal {
     Single_monitor<state_t>::Single_monitor(const TA &automaton, const settings_t& setting) :
     _automaton(automaton), 
     _accepting_space(Fixpoint<symbolic_state_t>::buchi_accept_fixpoint(automaton)),
-    _inclusion(setting.inclusion) {
+    _inclusion(setting.inclusion),
+    _clock_abstraction(setting.clock_abstraction) {
         
         state_t init = state_t(_automaton.initial_location(), _automaton.number_of_clocks());
 
@@ -92,8 +94,11 @@ namespace monitaal {
                                     add = false;
                             }
                         }
-                        if (add)
+                        if (add) {
+                            if (_clock_abstraction)
+                                s.free(_automaton.inactive_clocks().at(s.location()));
                             next_states.push_back(s);
+                        }
                     }
                 }
             }
@@ -120,8 +125,11 @@ namespace monitaal {
                                     add = false;
                             }
                         }
-                        if (add)
+                        if (add) {
+                            if (_clock_abstraction)
+                                state.free(_automaton.inactive_clocks().at(state.location()));
                             next_states.push_back(state);
+                        }
                     }
                 }
                 for (const auto& edge : _automaton.edges_from(s.location())) {
@@ -143,8 +151,11 @@ namespace monitaal {
                                             add = false;
                                     }
                                 }
-                                if (add)
+                                if (add) {
+                                    if (_clock_abstraction)
+                                        state.free(_automaton.inactive_clocks().at(state.location()));
                                     next_states.push_back(state);
+                                }
                             }
                         }
                         state = s;

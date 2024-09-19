@@ -34,7 +34,7 @@ using namespace monitaal;
 BOOST_AUTO_TEST_CASE(delay_test1) {
     TA pos = Parser::parse("models/a-b.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b.xml", "not_a_leadsto_b");
-    settings_t setting{false, {0, 100}, 0};
+    settings_t setting{false, false, {0, 100}, 0};
 
     Monitor<delay_state_t> monitor(pos, neg, setting);
 
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(delay_test1) {
 BOOST_AUTO_TEST_CASE(delay_test2) {
     TA pos = Parser::parse("models/a-b.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b.xml", "not_a_leadsto_b");
-    settings_t setting{false, {0, 100}, 1};
+    settings_t setting{false, false, {0, 100}, 1};
 
     Monitor<delay_state_t> monitor(pos, neg, setting);
 
@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(delay_test2) {
 BOOST_AUTO_TEST_CASE(delay_test3) {
     TA pos = Parser::parse("models/a-b.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b.xml", "not_a_leadsto_b");
-    settings_t setting{false, {0, 100}, 0};
+    settings_t setting{false, false, {0, 100}, 0};
 
     Monitor<delay_state_t> monitor(pos, neg, setting);
 
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(delay_test3) {
 BOOST_AUTO_TEST_CASE(delay_test4) {
     TA pos = Parser::parse("models/a-b.xml", "a_leadsto_b");
     TA neg = Parser::parse("models/a-b.xml", "not_a_leadsto_b");
-    settings_t setting{false, {0, 100}, 1};
+    settings_t setting{false, false, {0, 100}, 1};
 
     Monitor<delay_state_t> monitor(pos, neg, setting);
 
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(delay_test4) {
 BOOST_AUTO_TEST_CASE(delay_test5) {
     TA pos = Parser::parse("models/delay-example.xml", "positive");
     TA neg = Parser::parse("models/delay-example.xml", "negative");
-    settings_t setting{true, {0, 100}, 2};
+    settings_t setting{true, true, {0, 100}, 2};
     Monitor<delay_state_t> monitor(pos, neg, setting);
 
     monitor.input({173, "a"});
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(delay_test5) {
 BOOST_AUTO_TEST_CASE(delay_test6) {
     TA pos = Parser::parse("models/delay-example.xml", "positive");
     TA neg = Parser::parse("models/delay-example.xml", "negative");
-    settings_t setting{true, {0, 100}, 3};
+    settings_t setting{true, true, {0, 100}, 3};
     Monitor<delay_state_t> monitor(pos, neg, setting);
 
     monitor.input({173, "a"});
@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE(delay_test6) {
 BOOST_AUTO_TEST_CASE(delay_test7) {
     TA pos = Parser::parse("models/delay-example.xml", "positive");
     TA neg = Parser::parse("models/delay-example.xml", "negative");
-    settings_t setting{true, {0, 100}, 2};
+    settings_t setting{true, true, {0, 100}, 2};
 
     Monitor<delay_state_t> monitor(pos, neg, setting);
 
@@ -214,7 +214,7 @@ BOOST_AUTO_TEST_CASE(delay_test7) {
 BOOST_AUTO_TEST_CASE(delay_test8) {
     TA pos = Parser::parse("models/delay-example.xml", "positive");
     TA neg = Parser::parse("models/delay-example.xml", "negative");
-    settings_t setting{true, {0, 100}, 2};
+    settings_t setting{true, true, {0, 100}, 2};
 
     Monitor<delay_state_t> monitor(pos, neg, setting);
 
@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE(delay_test8) {
 BOOST_AUTO_TEST_CASE(delay_test9) {
     TA pos = Parser::parse("models/delay-example.xml", "positive");
     TA neg = Parser::parse("models/delay-example.xml", "negative");
-    settings_t setting{true, {0, 100}, 2};
+    settings_t setting{true, true, {0, 100}, 2};
 
     Monitor<delay_state_t> monitor(pos, neg, setting);
     monitor.input({173, "a"});

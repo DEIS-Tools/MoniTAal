@@ -38,7 +38,7 @@ using namespace monitaal;
 
 void run_gearcontroller2(int limit) {
     char* prop = "gear-control-properties.xml";
-    settings_t setting{false, {0, 100}, 5};
+    settings_t setting{false, false, {0, 100}, 5};
     std::vector<Delay_monitor> monitors = {
         Delay_monitor(Parser::parse(prop, "CloseClutch"), Parser::parse(prop, "NotCloseClutch"), setting),
         Delay_monitor(Parser::parse(prop, "OpenClutch"), Parser::parse(prop, "NotOpenClutch"), setting),
@@ -87,7 +87,7 @@ void run_gearcontroller2(int limit) {
 
 void run_gearcontroller(int limit) {
     char* prop = "gear-control-properties.xml";
-    settings_t setting{false, {0, 0}, 0};
+    settings_t setting{false, false, {0, 0}, 0};
     std::vector<Delay_monitor> monitors = {
         Delay_monitor(Parser::parse(prop, "CloseClutch"), Parser::parse(prop, "NotCloseClutch"), setting),
         Delay_monitor(Parser::parse(prop, "OpenClutch"), Parser::parse(prop, "NotOpenClutch"), setting),
