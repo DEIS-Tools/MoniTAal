@@ -60,7 +60,7 @@ void run_benchmark_concrete(Concrete_monitor& monitor, bin_settings_t& settings,
     int max_response = 0, res_tmp;
     auto t1 = std::chrono::high_resolution_clock::now(),
          t2 = std::chrono::high_resolution_clock::now();
-    auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t2);
+    auto ms_int = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t2);
 
     for (int i = 0; i < limit-1; ++i) {
         t1 = std::chrono::high_resolution_clock::now();
@@ -68,7 +68,7 @@ void run_benchmark_concrete(Concrete_monitor& monitor, bin_settings_t& settings,
         t2 = std::chrono::high_resolution_clock::now();
 
         res_tmp = ms_int.count();
-        ms_int += std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1);
+        ms_int += std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1);
         res_tmp = ms_int.count() - res_tmp;
         max_response = res_tmp > max_response ? res_tmp : max_response;
 
@@ -79,14 +79,14 @@ void run_benchmark_concrete(Concrete_monitor& monitor, bin_settings_t& settings,
     monitor.input({11+limit, "b"});
     t2 = std::chrono::high_resolution_clock::now();
     res_tmp = ms_int.count();
-    ms_int += std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1);
+    ms_int += std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1);
     res_tmp = ms_int.count() - res_tmp;
     max_response = res_tmp > max_response ? res_tmp : max_response;
 
     tmp = monitor.positive_state_estimate().size() + monitor.negative_state_estimate().size();
     max_states = tmp > max_states ? tmp : max_states;
 
-    std::cout << "\nTime total: " << ms_int.count() << " ms\nMax response time: " << max_response << " ms\nMax states: " << max_states << '\n';
+    std::cout << "\nTime total: " << ms_int.count() << " ns\nMax response time: " << max_response << " ns\nMax states: " << max_states << '\n';
     return;
 }
 
@@ -95,7 +95,7 @@ void run_benchmark_interval(Interval_monitor& monitor, bin_settings_t& settings,
     int max_response = 0, res_tmp;
     auto t1 = std::chrono::high_resolution_clock::now(),
          t2 = std::chrono::high_resolution_clock::now();
-    auto ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t2);
+    auto ms_int = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t2);
 
     for (int i = 0; i < limit-1; ++i) {
         if (overlap) {
@@ -110,7 +110,7 @@ void run_benchmark_interval(Interval_monitor& monitor, bin_settings_t& settings,
             t2 = std::chrono::high_resolution_clock::now();
         }
         res_tmp = ms_int.count();
-        ms_int += std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1);
+        ms_int += std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1);
         res_tmp = ms_int.count() - res_tmp;
         max_response = res_tmp > max_response ? res_tmp : max_response;
 
@@ -127,14 +127,14 @@ void run_benchmark_interval(Interval_monitor& monitor, bin_settings_t& settings,
         t2 = std::chrono::high_resolution_clock::now();
     }
     res_tmp = ms_int.count();
-    ms_int += std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1);
+    ms_int += std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1);
     res_tmp = ms_int.count() - res_tmp;
     max_response = res_tmp > max_response ? res_tmp : max_response;
 
     tmp = monitor.positive_state_estimate().size() + monitor.negative_state_estimate().size();
     max_states = tmp > max_states ? tmp : max_states;
 
-    std::cout << "\nTime total: " << ms_int.count() << " ms\nMax response time: " << max_response << " ms\nMax states: " << max_states << '\n';
+    std::cout << "\nTime total: " << ms_int.count() << " ns\nMax response time: " << max_response << " ns\nMax states: " << max_states << '\n';
     return;
 }
 
