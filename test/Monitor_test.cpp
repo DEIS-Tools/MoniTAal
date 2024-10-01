@@ -38,8 +38,8 @@ BOOST_AUTO_TEST_CASE(time_div_print) {
 }
 
 BOOST_AUTO_TEST_CASE(monitor_test1) {
-    TA pos = Parser::parse("models/a-b.xml", "a_leadsto_b");
-    TA neg = Parser::parse("models/a-b.xml", "not_a_leadsto_b");
+    TA pos = Parser::parse_file("models/a-b.xml", "a_leadsto_b");
+    TA neg = Parser::parse_file("models/a-b.xml", "not_a_leadsto_b");
 
     std::vector<timed_input_t> word1 = {
             timed_input_t(0, "c"),
@@ -64,8 +64,8 @@ BOOST_AUTO_TEST_CASE(monitor_test1) {
 }
 
 BOOST_AUTO_TEST_CASE(intersection_test1) {
-    TA T1 = Parser::parse("models/small1.xml", "small1");
-    TA T2 = Parser::parse("models/small2.xml", "small2");
+    TA T1 = Parser::parse_file("models/small1.xml", "small1");
+    TA T2 = Parser::parse_file("models/small2.xml", "small2");
 
     //std::cout << T1 << T2;
 
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(intersection_test1) {
 }
 
 BOOST_AUTO_TEST_CASE(time_converge_test_1) {
-    TA converge_ta = Parser::parse("models/time_converge.xml", "time_convergence");
+    TA converge_ta = Parser::parse_file("models/time_converge.xml", "time_convergence");
 
     auto diverge_ta = TA::time_divergence_ta({"a"}, false);
 
@@ -89,8 +89,8 @@ BOOST_AUTO_TEST_CASE(time_converge_test_1) {
 }
 
 BOOST_AUTO_TEST_CASE(time_divergence_test_1) {
-    TA pos = Parser::parse("models/time-must-pass.xml", "positive");
-    TA neg = Parser::parse("models/time-must-pass.xml", "negative");
+    TA pos = Parser::parse_file("models/time-must-pass.xml", "positive");
+    TA neg = Parser::parse_file("models/time-must-pass.xml", "negative");
 
     pos.intersection(TA::time_divergence_ta({"a"}, true));
     neg.intersection(TA::time_divergence_ta({"a"}, true));
@@ -120,8 +120,8 @@ BOOST_AUTO_TEST_CASE(concrete_state_test1) {
 }
 
 BOOST_AUTO_TEST_CASE(absentBQR_test1) {
-    TA pos = Parser::parse("models/absentBQR.xml", "positive");
-    TA neg = Parser::parse("models/absentBQR.xml", "negative");
+    TA pos = Parser::parse_file("models/absentBQR.xml", "positive");
+    TA neg = Parser::parse_file("models/absentBQR.xml", "negative");
     
     std::filebuf fb;
     fb.open("models/absentBQRinput.txt", std::ios::in);
@@ -146,8 +146,8 @@ BOOST_AUTO_TEST_CASE(absentBQR_test1) {
 }
 
 BOOST_AUTO_TEST_CASE(absentAQ_test1) {
-    TA pos = Parser::parse("models/absentAQ.xml", "positive");
-    TA neg = Parser::parse("models/absentAQ.xml", "negative");
+    TA pos = Parser::parse_file("models/absentAQ.xml", "positive");
+    TA neg = Parser::parse_file("models/absentAQ.xml", "negative");
     
     std::filebuf fb;
     fb.open("models/absentAQinput.txt", std::ios::in);
@@ -173,8 +173,8 @@ BOOST_AUTO_TEST_CASE(absentAQ_test1) {
 }
 
 BOOST_AUTO_TEST_CASE(absentBR_test1) {
-    TA pos = Parser::parse("models/absentBR.xml", "positive");
-    TA neg = Parser::parse("models/absentBR.xml", "negative");
+    TA pos = Parser::parse_file("models/absentBR.xml", "positive");
+    TA neg = Parser::parse_file("models/absentBR.xml", "negative");
     
     std::filebuf fb;
     fb.open("models/absentBRinput.txt", std::ios::in);
@@ -200,8 +200,8 @@ BOOST_AUTO_TEST_CASE(absentBR_test1) {
 }
 
 BOOST_AUTO_TEST_CASE(recurBQR_test1) {
-    TA pos = Parser::parse("models/recurBQR.xml", "positive");
-    TA neg = Parser::parse("models/recurBQR.xml", "negative");
+    TA pos = Parser::parse_file("models/recurBQR.xml", "positive");
+    TA neg = Parser::parse_file("models/recurBQR.xml", "negative");
     
     std::filebuf fb;
     fb.open("models/recurBQRinput.txt", std::ios::in);
@@ -227,8 +227,8 @@ BOOST_AUTO_TEST_CASE(recurBQR_test1) {
 }
 
 BOOST_AUTO_TEST_CASE(recurGLB_test1) {
-    TA pos = Parser::parse("models/recurGLB.xml", "positive");
-    TA neg = Parser::parse("models/recurGLB.xml", "negative");
+    TA pos = Parser::parse_file("models/recurGLB.xml", "positive");
+    TA neg = Parser::parse_file("models/recurGLB.xml", "negative");
     
     std::filebuf fb;
     fb.open("models/recurGLBinput.txt", std::ios::in);
@@ -258,12 +258,12 @@ BOOST_AUTO_TEST_CASE(recurGLB_test1) {
 }
 
 BOOST_AUTO_TEST_CASE(intersection_test2) {
-    TA never_b_pos = Parser::parse("models/never_b.xml", "positive");
-    TA never_b_neg = Parser::parse("models/never_b.xml", "negative");
+    TA never_b_pos = Parser::parse_file("models/never_b.xml", "positive");
+    TA never_b_neg = Parser::parse_file("models/never_b.xml", "negative");
 
-    TA c_after_10_pos = Parser::parse("models/c_after_10.xml", "positive");
-    TA c_after_10_neg = Parser::parse("models/c_after_10.xml", "negative");
-    TA int_neg = Parser::parse("models/b_or_c.xml", "negative");
+    TA c_after_10_pos = Parser::parse_file("models/c_after_10.xml", "positive");
+    TA c_after_10_neg = Parser::parse_file("models/c_after_10.xml", "negative");
+    TA int_neg = Parser::parse_file("models/b_or_c.xml", "negative");
 
     TA int_pos1 = c_after_10_pos;
     TA int_pos2 = never_b_pos;

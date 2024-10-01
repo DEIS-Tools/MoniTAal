@@ -235,7 +235,7 @@ int main(int argc, const char** argv) {
             ("help,h", "Dispay this help message\nExample: monitaal-bin --pos <name> <path> --neg <name> <path>")
             ("pos,p", po::value<std::vector<std::string>>()->required()->multitoken(), "<name of template> <path to xml file> : Property automaton.")
             ("neg,n", po::value<std::vector<std::string>>()->required()->multitoken(), "<name of template> <path to xml file> : Negated property automaton.")
-            ("type,t", po::value<std::string>(), "Input type (concrete or interval) default = concrete.")
+            ("type,t", po::value<std::string>()->default_value("concrete", "concrete"), "Input type (concrete or interval) default = concrete.")
             ("input,i", po::value<std::string>(), "Monitor events contained in file.")
             ("inclusion,u", "Enable inclusion checking for duplicate states")
             ("clock-abstraction,c", "Enable abstraction of inactive clocks (Automatically enables inclusion)")
@@ -272,8 +272,8 @@ int main(int argc, const char** argv) {
         exit(-1);
     }
 
-    TA pos = Parser::parse(&posarg[1][0], &posarg[0][0]);
-    TA neg = Parser::parse(&negarg[1][0], &negarg[0][0]);
+    TA pos = Parser::parse_file(&posarg[1][0], &posarg[0][0]);
+    TA neg = Parser::parse_file(&negarg[1][0], &negarg[0][0]);
 
     bool is_interval = arg_type(vm);
 

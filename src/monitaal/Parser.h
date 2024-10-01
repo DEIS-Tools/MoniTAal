@@ -36,7 +36,9 @@ namespace monitaal {
 
     class Parser {
     public:
-        static TA parse(const char *path, const char *name);
+        static TA parse_data(const char *xml, const char *name);
+        static TA parse_file(const char *path, const char *name);
+        static TA parse(pugi::xml_document& doc, const char *name);
 
     private:
         static bool load_file(pugi::xml_document& doc, const char *path);

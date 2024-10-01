@@ -26,6 +26,8 @@
 #include "monitaal/Monitor.h"
 #include "monitaal/EventParser.h"
 
+#include "gear_controller_model.h"
+
 #include <cstdlib>
 #include <boost/program_options.hpp>
 #include <filesystem>
@@ -36,65 +38,27 @@
 namespace po = boost::program_options;
 using namespace monitaal;
 
-void run_gearcontroller2(int limit) {
-    char* prop = "gear-control-properties.xml";
-    settings_t setting{false, false, {0, 100}, 5};
-    std::vector<Delay_monitor> monitors = {
-        Delay_monitor(Parser::parse(prop, "CloseClutch"), Parser::parse(prop, "NotCloseClutch"), setting),
-        Delay_monitor(Parser::parse(prop, "OpenClutch"), Parser::parse(prop, "NotOpenClutch"), setting),
-        Delay_monitor(Parser::parse(prop, "ReqSet"), Parser::parse(prop, "NotReqSet"), setting),
-        Delay_monitor(Parser::parse(prop, "ReqNeu"), Parser::parse(prop, "NotReqNeu"), setting),
-        Delay_monitor(Parser::parse(prop, "SpeedSet"), Parser::parse(prop, "NotSpeedSet"), setting),
-        Delay_monitor(Parser::parse(prop, "test1"), Parser::parse(prop, "Nottest1"), setting)
-    };
-
-    auto size = monitors.size();
-    bool is_firm = false;
-    int event_counter = 0;
-
-    int tmp = 0;
-    int max_states = 0;
-    int max_response_time = 0;
-    int response_time = 0;
-    int time_horizon = 0;
-
-    std::filebuf fb;
-    fb.open("gear-control-input3.txt", std::ios::in);
-    std::istream stream(&fb);
-    std::vector<timed_input_t> events;
+struct latency_t {
+    symb_time_t lower = 0,
+                upper = 0;
     
-    auto t1 = std::chrono::high_resolution_clock::now();
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-
-    while ((not is_firm) && (limit == 0 || event_counter < limit)) {
-
-        events = EventParser::parse_input(&stream, 1);
-        if (events.size() == 0) break;
-        
-        for (int i = 0; i < size; ++i) {
-            monitors[i].input(events);
-        }
-        event_counter += events.size();
-        
+    friend std::ostream& operator<<(std::ostream& os, latency_t const& l) {
+        return os << "[" << l.lower << ", " << l.upper << "]";
     }
-    t2 = std::chrono::high_resolution_clock::now();
-    time = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    friend std::istream& operator>>(std::istream& is, latency_t& l) {
+        return is >> std::skipws >> l.lower >> std::skipws >> l.upper;
+    }
+};
 
-    fb.close();
-    std::cout << "Monitored " << event_counter << " events in " << time.count() << "ms\n";
-}
-
-void run_gearcontroller(int limit) {
-    char* prop = "gear-control-properties.xml";
-    settings_t setting{false, false, {0, 0}, 0};
+void run_gearcontroller(int observation_lenght, interval_t latency, symb_time_t jitter, bool inclusion) {
+    settings_t setting{inclusion, inclusion, {latency.first, latency.second}, jitter};
     std::vector<Delay_monitor> monitors = {
-        Delay_monitor(Parser::parse(prop, "CloseClutch"), Parser::parse(prop, "NotCloseClutch"), setting),
-        Delay_monitor(Parser::parse(prop, "OpenClutch"), Parser::parse(prop, "NotOpenClutch"), setting),
-        Delay_monitor(Parser::parse(prop, "ReqSet"), Parser::parse(prop, "NotReqSet"), setting),
-        Delay_monitor(Parser::parse(prop, "ReqNeu"), Parser::parse(prop, "NotReqNeu"), setting),
-        Delay_monitor(Parser::parse(prop, "SpeedSet"), Parser::parse(prop, "NotSpeedSet"), setting),
-        Delay_monitor(Parser::parse(prop, "test1"), Parser::parse(prop, "Nottest1"), setting)
+        Delay_monitor(Parser::parse_data(gear_controller_properties, "CloseClutch"), Parser::parse_data(gear_controller_properties, "NotCloseClutch"), setting),
+        Delay_monitor(Parser::parse_data(gear_controller_properties, "OpenClutch"), Parser::parse_data(gear_controller_properties, "NotOpenClutch"), setting),
+        Delay_monitor(Parser::parse_data(gear_controller_properties, "ReqSet"), Parser::parse_data(gear_controller_properties, "NotReqSet"), setting),
+        Delay_monitor(Parser::parse_data(gear_controller_properties, "ReqNeu"), Parser::parse_data(gear_controller_properties, "NotReqNeu"), setting),
+        Delay_monitor(Parser::parse_data(gear_controller_properties, "SpeedSet"), Parser::parse_data(gear_controller_properties, "NotSpeedSet"), setting),
+        Delay_monitor(Parser::parse_data(gear_controller_properties, "test1"), Parser::parse_data(gear_controller_properties, "Nottest1"), setting)
     };
 
     auto size = monitors.size();
@@ -107,18 +71,17 @@ void run_gearcontroller(int limit) {
     int response_time = 0;
     int time_horizon = 0;
 
-    std::filebuf fb;
-    fb.open("gear-control-input3.txt", std::ios::in);
-    std::istream stream(&fb);
+    std::stringstream input_stream(gear_controller_input, std::ios::in);
+
     std::vector<timed_input_t> events;
     
     auto t1 = std::chrono::high_resolution_clock::now();
     auto t2 = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t2);
 
-    while ((not is_firm) && (limit == 0 || event_counter < limit)) {
+    while ((not is_firm) && (observation_lenght == 0 || event_counter < observation_lenght)) {
 
-        events = EventParser::parse_input(&stream, 1);
+        events = EventParser::parse_input(&input_stream, 1);
         if (events.size() == 0) break;
         
         t1 = std::chrono::high_resolution_clock::now();
@@ -147,7 +110,6 @@ void run_gearcontroller(int limit) {
         time_horizon = events[events.size()-1].time.second;
     }
 
-    fb.close();
     std::cout << "Monitored " << event_counter << " events in " << time.count() << 
                  "ns\nMax states: "<< max_states << "\nmax response: "<< max_response_time << "ns\nTime Horizon: " << time_horizon <<"\nMemory: " << sizeof(monitors) <<"\nMonitor verdicts are\n";
 }
@@ -157,8 +119,11 @@ int main(int argc, const char** argv) {
     po::options_description options;
     options.add_options()
             ("help,h", "Dispay this help message\nExample: monitaal-benchmark --pos <name> <path> --neg <name> <path> --input <path>")
-            ("G1",po::value<int>(), "Run Gear controller benchmark")
-            ("G2",po::value<int>(), "Run Gear controller benchmark");
+            ("length", po::value<int>()->default_value(0, "0"), "Bound on the number of observations. 0 means no bound")
+            ("latency", po::value<std::vector<symb_time_t>>()->multitoken()->default_value({0, 0}, "0 0"), "Specify latency upper and lower bound parameters")
+            ("jitter", po::value<symb_time_t>()->default_value(0, "0"), "Specify the jitter upper bound parameter")
+            ("inclusion", "Enable inclusion and inactive clock abstraction")
+            ("gear-controller", "Run Gear controller benchmark");
 
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(options).run(), vm);
@@ -175,10 +140,15 @@ int main(int argc, const char** argv) {
         exit(-1);
     }
 
-    if (vm.count("G1"))
-        run_gearcontroller(vm["G1"].as<int>());
-    if (vm.count("G2"))
-        run_gearcontroller2(vm["G2"].as<int>());
+    auto latency = vm["latency"].as<std::vector<symb_time_t>>(); 
+    
+    if (latency.size() != 2) {
+        std::cerr << "Error: Latency needs exactly two arguments (lower and upper bound)\n";
+        exit(-1);
+    }
+    
+    if (vm.count("gear-controller"))
+        run_gearcontroller(vm["length"].as<int>(), {latency[0], latency[1]}, vm["jitter"].as<symb_time_t>(), vm.count("inclusion"));
 
 
     return 0;

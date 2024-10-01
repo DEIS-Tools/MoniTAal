@@ -4,7 +4,12 @@ find_package(Boost COMPONENTS program_options)
 
 project(monitaal-benchmark LANGUAGES CXX)
 
-add_executable(monitaal-benchmark main.cpp)
+set(MODEL_FILES
+        gear_controller_model.h)
+
+add_executable(monitaal-benchmark 
+        ${MODEL_FILES}
+        main.cpp)
 
 target_link_libraries(monitaal-benchmark PRIVATE
         ${Boost_LIBRARIES}
