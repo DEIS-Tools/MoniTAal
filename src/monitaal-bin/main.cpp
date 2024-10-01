@@ -55,89 +55,6 @@ struct bin_settings_t
     bin_settings_t(const TA& positive, const TA& negative) : positive(positive), negative(negative) {};
 };
 
-void run_benchmark_concrete(Concrete_monitor& monitor, bin_settings_t& settings, int limit, bool advance) {
-    int max_states = 0, tmp = 0;
-    int max_response = 0, res_tmp;
-    auto t1 = std::chrono::high_resolution_clock::now(),
-         t2 = std::chrono::high_resolution_clock::now();
-    auto ms_int = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t2);
-
-    for (int i = 0; i < limit-1; ++i) {
-        t1 = std::chrono::high_resolution_clock::now();
-        monitor.input(concrete_input(i, "a"));
-        t2 = std::chrono::high_resolution_clock::now();
-
-        res_tmp = ms_int.count();
-        ms_int += std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1);
-        res_tmp = ms_int.count() - res_tmp;
-        max_response = res_tmp > max_response ? res_tmp : max_response;
-
-        tmp = monitor.positive_state_estimate().size() + monitor.negative_state_estimate().size();
-        max_states = tmp > max_states ? tmp : max_states;
-    }
-    t1 = std::chrono::high_resolution_clock::now();
-    monitor.input({11+limit, "b"});
-    t2 = std::chrono::high_resolution_clock::now();
-    res_tmp = ms_int.count();
-    ms_int += std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1);
-    res_tmp = ms_int.count() - res_tmp;
-    max_response = res_tmp > max_response ? res_tmp : max_response;
-
-    tmp = monitor.positive_state_estimate().size() + monitor.negative_state_estimate().size();
-    max_states = tmp > max_states ? tmp : max_states;
-
-    std::cout << "\nTime total: " << ms_int.count() << " ns\nMax response time: " << max_response << " ns\nMax states: " << max_states << '\n';
-    return;
-}
-
-void run_benchmark_interval(Interval_monitor& monitor, bin_settings_t& settings, int limit, bool overlap) {
-    int max_states = 0, tmp;
-    int max_response = 0, res_tmp;
-    auto t1 = std::chrono::high_resolution_clock::now(),
-         t2 = std::chrono::high_resolution_clock::now();
-    auto ms_int = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t2);
-
-    for (int i = 0; i < limit-1; ++i) {
-        if (overlap) {
-            interval_input e({0+i, 10+i}, "a");
-            t1 = std::chrono::high_resolution_clock::now();
-            monitor.input(e);
-            t2 = std::chrono::high_resolution_clock::now();
-        } else {
-            interval_input e({0, 10}, "a");
-            t1 = std::chrono::high_resolution_clock::now();
-            monitor.input(e);
-            t2 = std::chrono::high_resolution_clock::now();
-        }
-        res_tmp = ms_int.count();
-        ms_int += std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1);
-        res_tmp = ms_int.count() - res_tmp;
-        max_response = res_tmp > max_response ? res_tmp : max_response;
-
-        tmp = monitor.positive_state_estimate().size() + monitor.negative_state_estimate().size();
-        max_states = tmp > max_states ? tmp : max_states;
-    }
-    if (overlap) {
-        t1 = std::chrono::high_resolution_clock::now();
-        monitor.input({{30+limit,30+limit}, "b"});
-        t2 = std::chrono::high_resolution_clock::now();
-    } else {
-        t1 = std::chrono::high_resolution_clock::now();
-        monitor.input({{30,30}, "b"});
-        t2 = std::chrono::high_resolution_clock::now();
-    }
-    res_tmp = ms_int.count();
-    ms_int += std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1);
-    res_tmp = ms_int.count() - res_tmp;
-    max_response = res_tmp > max_response ? res_tmp : max_response;
-
-    tmp = monitor.positive_state_estimate().size() + monitor.negative_state_estimate().size();
-    max_states = tmp > max_states ? tmp : max_states;
-
-    std::cout << "\nTime total: " << ms_int.count() << " ns\nMax response time: " << max_response << " ns\nMax states: " << max_states << '\n';
-    return;
-}
-
 template<class state_t>
 void interactive_monitoring(Monitor<state_t>& monitor, bin_settings_t& settings, std::ostream& out, std::istream& in) {
     std::string input = "";
@@ -242,8 +159,6 @@ int main(int argc, const char** argv) {
             ("verbose,v", "Prints more information on the monitoring procedure.")
             ("silent,s", "removes all outputs")
             ("print-dot,o", "Prints the dot graphs of the given automata.")
-            ("benchmark", po::value<int>(), "Run predefined benchmark")
-            ("advance,a", "For bencharking. Make sure that time points advance")
             ("div,d", po::value<std::vector<std::string>>()->multitoken(), "<list of labels> : Take time divergence into account.");
 
     po::variables_map vm;
@@ -306,22 +221,6 @@ int main(int argc, const char** argv) {
 
     Interval_monitor monitor_int(pos, neg, mon_setting);
     Concrete_monitor monitor_con(pos, neg, mon_setting);
-
-    if (vm.count("benchmark")) {
-        if (is_interval) {
-            run_benchmark_interval(monitor_int, settings, vm["benchmark"].as<int>(), vm.count("advance"));
-            if (!settings.silent)
-                std::cout << "Monitoring ended, verdict is: " << monitor_int.status() << "\nMonitored " << (vm["benchmark"].as<int>()) << " events\n";
-
-        }
-        else {
-            run_benchmark_concrete(monitor_con, settings, vm["benchmark"].as<int>(), vm.count("advance"));
-            if (!settings.silent)
-                std::cout << "Monitoring ended, verdict is: " << monitor_con.status() << "\nMonitored " << (vm["benchmark"].as<int>()) << " events\n";
-
-        }
-        return 0;
-    }
 
     // Monitoring events from file
     if (vm.count("input")) {

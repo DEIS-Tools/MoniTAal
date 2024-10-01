@@ -55,6 +55,10 @@ namespace monitaal {
         bool clock_abstraction = false;
         interval_t latency{0,0};
         symb_time_t jitter = 0;
+
+        settings_t(){};
+        settings_t(bool inclusion, bool clock_abstraction, interval_t latency, symb_time_t jitter) : 
+                inclusion(inclusion), clock_abstraction(clock_abstraction), latency(latency), jitter(jitter){};
     };
 
     enum monitor_answer_e {INCONCLUSIVE, POSITIVE, NEGATIVE};
