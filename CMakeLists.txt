@@ -9,6 +9,13 @@ OPTION(MONITAAL_BUILD_TEST "Builds tests" OFF)
 OPTION(MONITAAL_BUILD_BIN "Builds binary" OFF)
 OPTION(MONITAAL_BUILD_BENCH "Builds benchmark binary" OFF)
 OPTION(MONITAAL_BUILD_ALL "Builds everything" OFF)
+OPTION(MONITAAL_BUILD_BUNDLE "Builds binary and Benchmark with static bindings" OFF)
+
+if(MONITAAL_BUILD_BUNDLE)
+    set(Boost_USE_STATIC_LIBS ON)
+    set(MONITAAL_BUILD_BENCH=ON)
+    set(MONITAAL_BUILD_BIN=ON)
+endif()
 
 FIND_PACKAGE(Boost REQUIRED)
 

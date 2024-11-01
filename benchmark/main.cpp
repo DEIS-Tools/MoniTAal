@@ -53,7 +53,7 @@ void b_live_a_freq_concrete(benchmark_setting& setting) {
     TA neg = Parser::parse_data(b_live_a_freq_model, "negative");
 
     if (setting.div_alphabet.size() > 0) {
-        auto div = TA::time_divergence_ta(setting.div_alphabet, false);
+        auto div = TA::time_divergence_ta(setting.div_alphabet, true);
         pos.intersection(div);
         neg.intersection(div);
     }
@@ -102,7 +102,7 @@ void b_live_a_freq_interval(benchmark_setting& setting) {
     TA neg = Parser::parse_data(b_live_a_freq_model, "negative");
 
     if (setting.div_alphabet.size() > 0) {
-        auto div = TA::time_divergence_ta(setting.div_alphabet, false);
+        auto div = TA::time_divergence_ta(setting.div_alphabet, true);
         pos.intersection(div);
         neg.intersection(div);
     }
