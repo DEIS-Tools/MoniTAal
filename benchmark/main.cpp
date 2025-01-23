@@ -45,6 +45,7 @@ struct benchmark_setting {
     interval_t latency = {0, 0};
     symb_time_t jitter = 0;
     std::vector<std::string> div_alphabet = {};
+    int uncertainty_val = 0;
 };
 
 
@@ -93,7 +94,7 @@ void b_live_a_freq_concrete(benchmark_setting& setting) {
     tmp = monitor.positive_state_estimate().size() + monitor.negative_state_estimate().size();
     max_states = tmp > max_states ? tmp : max_states;
 
-    std::cout << "\nTime total: " << ms_int.count() << " ns\nMax response time: " << max_response << " ns\nMax states: " << max_states << "\nMonitored " << (setting.trace_bound+1) << " events\n";
+    std::cout << "\nTime total: " << ms_int.count() << " ns\nMax response time: " << max_response << " ns\nMax states: " << max_states << "\nMonitored " << (setting.trace_bound) << " events\n";
     return;
 }
 
@@ -155,23 +156,53 @@ void b_live_a_freq_interval(benchmark_setting& setting) {
     tmp = monitor.positive_state_estimate().size() + monitor.negative_state_estimate().size();
     max_states = tmp > max_states ? tmp : max_states;
 
-    std::cout << "\nTime total: " << ms_int.count() << " ns\nMax response time: " << max_response << " ns\nMax states: " << max_states << "\nMonitored " << (setting.trace_bound+1) << " events\n";
+    std::cout << "\nTime total: " << ms_int.count() << " ns\nMax response time: " << max_response << " ns\nMax states: " << max_states << "\nMonitored " << (setting.trace_bound) << " events\n";
     return;
 }
 
 void run_gearcontroller(benchmark_setting& setting) {
     settings_t monitor_setting{setting.inclusion, setting.inclusion, setting.latency, setting.jitter};
 
+
+    TA CloseClutch = Parser::parse_data(gear_controller_properties, "CloseClutch");
+    TA OpenClutch = Parser::parse_data(gear_controller_properties, "OpenClutch");
+    TA ReqSet = Parser::parse_data(gear_controller_properties, "ReqSet");
+    TA ReqNeu = Parser::parse_data(gear_controller_properties, "ReqNeu");
+    TA SpeedSet = Parser::parse_data(gear_controller_properties, "SpeedSet");
+    TA test1 = Parser::parse_data(gear_controller_properties, "test1");
+    TA NotCloseClutch = Parser::parse_data(gear_controller_properties, "NotCloseClutch");
+    TA NotOpenClutch = Parser::parse_data(gear_controller_properties, "NotOpenClutch");
+    TA NotReqSet = Parser::parse_data(gear_controller_properties, "NotReqSet");
+    TA NotReqNeu = Parser::parse_data(gear_controller_properties, "NotReqNeu");
+    TA NotSpeedSet = Parser::parse_data(gear_controller_properties, "NotSpeedSet");
+    TA Nottest1 = Parser::parse_data(gear_controller_properties, "Nottest1");
+
+    if (setting.div_alphabet.size() > 0) {
+        auto div = TA::time_divergence_ta(setting.div_alphabet, true);
+        CloseClutch.intersection(div);
+        OpenClutch.intersection(div);
+        ReqSet.intersection(div);
+        ReqNeu.intersection(div);
+        SpeedSet.intersection(div);
+        test1.intersection(div);
+        NotCloseClutch.intersection(div);
+        NotOpenClutch.intersection(div);
+        NotReqSet.intersection(div);
+        NotReqNeu.intersection(div);
+        NotSpeedSet.intersection(div);
+        Nottest1.intersection(div);
+    }
+
     std::vector<Delay_monitor> monitors = {
-        Delay_monitor(Parser::parse_data(gear_controller_properties, "CloseClutch"), Parser::parse_data(gear_controller_properties, "NotCloseClutch"), monitor_setting),
-        Delay_monitor(Parser::parse_data(gear_controller_properties, "OpenClutch"), Parser::parse_data(gear_controller_properties, "NotOpenClutch"), monitor_setting),
-        Delay_monitor(Parser::parse_data(gear_controller_properties, "ReqSet"), Parser::parse_data(gear_controller_properties, "NotReqSet"), monitor_setting),
-        Delay_monitor(Parser::parse_data(gear_controller_properties, "ReqNeu"), Parser::parse_data(gear_controller_properties, "NotReqNeu"), monitor_setting),
-        Delay_monitor(Parser::parse_data(gear_controller_properties, "SpeedSet"), Parser::parse_data(gear_controller_properties, "NotSpeedSet"), monitor_setting),
-        Delay_monitor(Parser::parse_data(gear_controller_properties, "test1"), Parser::parse_data(gear_controller_properties, "Nottest1"), monitor_setting)
+        Delay_monitor(CloseClutch, NotCloseClutch, monitor_setting),
+        Delay_monitor(OpenClutch, NotOpenClutch, monitor_setting),
+        Delay_monitor(ReqSet, NotReqSet, monitor_setting),
+        Delay_monitor(ReqNeu, NotReqNeu, monitor_setting),
+        Delay_monitor(SpeedSet, NotSpeedSet, monitor_setting),
+        Delay_monitor(test1, Nottest1, monitor_setting)
     };
 
-    auto size = monitors.size();
+    auto size = 6;
     bool is_firm = false;
     int event_counter = 0;
 
@@ -184,15 +215,22 @@ void run_gearcontroller(benchmark_setting& setting) {
     std::stringstream input_stream(gear_controller_input, std::ios::in);
 
     std::vector<timed_input_t> events;
-    
+    std::vector<timed_input_t> tmpevents;
+
     auto t1 = std::chrono::high_resolution_clock::now();
     auto t2 = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t2);
 
     while ((not is_firm) && (setting.trace_bound == 0 || event_counter < setting.trace_bound)) {
 
-        events = EventParser::parse_input(&input_stream, 1);
-        if (events.size() == 0) break;
+        
+        tmpevents = EventParser::parse_input(&input_stream, 1);
+        events.clear();
+
+        if (tmpevents.size() == 0) break;
+        for (auto &e : tmpevents) {
+            events.push_back(timed_input_t({e.time.first - setting.uncertainty_val, e.time.second + setting.uncertainty_val}, e.label, e.type));
+        }
         
         t1 = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < size; ++i) {
@@ -219,9 +257,12 @@ void run_gearcontroller(benchmark_setting& setting) {
         event_counter += events.size();
         time_horizon = events[events.size()-1].time.second;
     }
-
     std::cout << "Monitored " << event_counter << " events in " << time.count() << 
                  "ns\nMax states: "<< max_states << "\nmax response: "<< max_response_time << "ns\nTime Horizon: " << time_horizon <<"\nMemory: " << sizeof(monitors) <<"\nMonitor verdicts are\n";
+    for (int i = 0; i < size; ++i) {
+        std::cout << monitors[i].status() << ", ";
+    }
+    std::cout << '\n';
 }
 
 int main(int argc, const char** argv) {
@@ -231,6 +272,7 @@ int main(int argc, const char** argv) {
             ("help,h", "Dispay this help message\nExample: monitaal-benchmark --pos <name> <path> --neg <name> <path> --input <path>")
             ("length", po::value<int>()->default_value(0, "0"), "Bound on the number of observations. 0 means no bound")
             ("inclusion", "Enable inclusion and inactive clock abstraction")
+            ("uncertainty", po::value<symb_time_t>()->default_value(0, "0"), "Random timing uncertainty added to observations")
             ("div,d", po::value<std::vector<std::string>>()->multitoken()->default_value({}, "Empty"), "<list of labels> : Take time divergence into account.")
             ("latency", po::value<std::vector<symb_time_t>>()->multitoken()->default_value({0, 0}, "0 0"), "Specify latency upper and lower bound parameters")
             ("jitter", po::value<symb_time_t>()->default_value(0, "0"), "Specify the jitter upper bound parameter")
@@ -268,6 +310,8 @@ int main(int argc, const char** argv) {
     setting.inclusion = vm.count("inclusion");
     setting.latency = {latency[0], latency[1]};
     setting.div_alphabet = vm["div"].as<std::vector<std::string>>();
+    setting.uncertainty_val = vm["uncertainty"].as<symb_time_t>();
+    
 
     
     if (vm.count("gear-controller"))

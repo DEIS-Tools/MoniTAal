@@ -13,8 +13,8 @@ OPTION(MONITAAL_BUILD_BUNDLE "Builds binary and Benchmark with static bindings" 
 
 if(MONITAAL_BUILD_BUNDLE)
     set(Boost_USE_STATIC_LIBS ON)
-    set(MONITAAL_BUILD_BENCH=ON)
-    set(MONITAAL_BUILD_BIN=ON)
+    set(MONITAAL_BUILD_BENCH ON)
+    set(MONITAAL_BUILD_BIN ON)
 endif()
 
 FIND_PACKAGE(Boost REQUIRED)
