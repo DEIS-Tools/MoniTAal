@@ -8,6 +8,14 @@ set(EXTERNAL_INSTALL_LOCATION "${CMAKE_BINARY_DIR}/external")
 OPTION(MONITAAL_BUILD_TEST "Builds tests" OFF)
 OPTION(MONITAAL_BUILD_BIN "Builds binary" OFF)
 OPTION(MONITAAL_BUILD_BENCH "Builds benchmark binary" OFF)
+OPTION(MONITAAL_BUILD_ALL "Builds everything" OFF)
+OPTION(MONITAAL_BUILD_BUNDLE "Builds binary and Benchmark with static bindings" OFF)
+
+if(MONITAAL_BUILD_BUNDLE)
+    set(Boost_USE_STATIC_LIBS ON)
+    set(MONITAAL_BUILD_BENCH ON)
+    set(MONITAAL_BUILD_BIN ON)
+endif()
 
 FIND_PACKAGE(Boost REQUIRED)
 
@@ -45,15 +53,15 @@ include_directories(include)
 add_subdirectory(src/monitaal)
 target_include_directories(MoniTAal INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-if(MONITAAL_BUILD_BIN)
+if(MONITAAL_BUILD_BIN OR MONITAAL_BUILD_ALL)
     add_subdirectory(src/monitaal-bin)
 endif()
 
-if(MONITAAL_BUILD_BENCH)
+if(MONITAAL_BUILD_BENCH OR MONITAAL_BUILD_ALL)
     add_subdirectory(benchmark)
 endif()
     
-if(MONITAAL_BUILD_TEST)
+if(MONITAAL_BUILD_TEST OR MONITAAL_BUILD_ALL)
     enable_testing()
     add_subdirectory(test)
 endif()

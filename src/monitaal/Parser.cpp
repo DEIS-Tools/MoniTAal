@@ -30,13 +30,27 @@
 
 namespace monitaal {
 
-    TA Parser::parse(const char *path, const char *name) {
+    TA Parser::parse_data(const char *xml, const char *name) {
+        pugi::xml_document doc;
+        auto parse_result = doc.load_string(xml);
+
+        if (not parse_result) {
+            std::cerr << "Parsing string failed: " << parse_result.status;
+            exit(-1);
+        }
+        return parse(doc, name);
+    }
+
+    TA Parser::parse_file(const char *path, const char *name) {
         pugi::xml_document doc;
         if (not load_file(doc, path)) {
             std::cerr << "Error: Failed to load model file " << path << '\n';
             exit(-1);
         }
+        return parse(doc, name);
+    }
 
+    TA Parser::parse(pugi::xml_document& doc, const char *name) {
         pugi::xml_node xml_ta;
         if (std::strlen(name) == 0)
             xml_ta = doc.child("nta").child("template");
