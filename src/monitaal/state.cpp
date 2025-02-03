@@ -89,7 +89,7 @@ namespace monitaal {
         _time = clocks + 1;
         
         _federation.free(_etime);
-        _federation.restrict(_time, _etime, pardibaal::bound_t::non_strict(latency.first));
+        _federation.restrict(_time, _etime, pardibaal::bound_t::non_strict(-latency.first));
         _federation.restrict(_etime, _time, pardibaal::bound_t::non_strict(latency.second));
     }
 
@@ -98,7 +98,9 @@ namespace monitaal {
 
         state._location = location;
         state._federation = Federation::unconstrained(clocks + 2);
-        // state._jitter = (symb_time_t) -1;
+        state._etime = clocks;
+        state._time = clocks + 1;
+
         return state;
     }
 
