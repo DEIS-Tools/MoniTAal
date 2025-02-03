@@ -80,6 +80,36 @@ namespace monitaal {
         symb_time_t _jitter;
     };
 
+    struct testing_state_t : public symbolic_state_base {
+        testing_state_t();
+        testing_state_t(location_id_t location, clock_index_t clocks, interval_t latency_o, interval_t latency_i, symb_time_t jitter_o, symb_time_t jitter_i);
+
+        [[nodiscard]] static testing_state_t unconstrained(location_id_t location, clock_index_t clocks);
+
+        void intersection(const symbolic_state_base& state);
+        void intersection(const symbolic_state_map_t<testing_state_t>& map);
+
+        void delay(symb_time_t value);
+        void delay(interval_t interval);
+
+        [[nodiscard]] boost::icl::interval_set<symb_time_t> get_input_latency() const;
+        [[nodiscard]] boost::icl::interval_set<symb_time_t> get_output_latency() const;
+        [[nodiscard]] symb_time_t get_input_jitter() const;
+        [[nodiscard]] symb_time_t get_output_jitter() const;
+
+        [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
+        [[nodiscard]] bool is_included_in(const symbolic_state_map_t<testing_state_t>& map) const;
+
+        void expect_input() {_is_input_mode = true;}
+        void expect_output() {_is_input_mode = false;}
+        void switch_input_mode() {_is_input_mode != _is_input_mode;}
+
+    private:
+        bool _is_input_mode; // Starts with an input, then alternates between inputs and outputs
+        clock_index_t _etime_o, _etime_i, _time;
+        symb_time_t _jitter_o, _jitter_i;
+    };
+
     /**
      * states_map_t represents a set of symbolic states, stored in a map structure from locations to federations.
      */

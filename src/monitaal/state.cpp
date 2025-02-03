@@ -160,6 +160,132 @@ namespace monitaal {
         return symbolic_state_base::is_included_in(state);
     }
 
+    testing_state_t::testing_state_t() : _jitter_o(0), _jitter_i(0) {}
+
+    testing_state_t::testing_state_t(location_id_t location, clock_index_t clocks, interval_t latency_o, interval_t latency_i, symb_time_t jitter_o, symb_time_t jitter_i) : 
+            symbolic_state_base(location, clocks + 3), _jitter_o(jitter_o), _jitter_i(jitter_i) {
+        _etime_o = clocks;
+        _etime_i = clocks + 1;
+        _time = clocks + 2;
+        
+        _federation.free(_etime_o);
+        _federation.restrict(_time, _etime_o, pardibaal::bound_t::non_strict(-latency_o.first));
+        _federation.restrict(_etime_o, _time, pardibaal::bound_t::non_strict(latency_o.second));
+
+        // Same for input. We don't need to shift, since we expect an input first.
+        _federation.future();
+        _federation.free(_etime_i);
+        _federation.restrict(_time, _etime_i, pardibaal::bound_t::non_strict(latency_i.second));
+        _federation.restrict(_etime_i, _time, pardibaal::bound_t::non_strict(-latency_i.first));
+
+        assert(_federation.at(0).at(_time, 0) == pardibaal::bound_t::non_strict(latency_i.second));
+        assert(_federation.at(0).at(0, _time) == pardibaal::bound_t::non_strict(-latency_i.first));
+    }
+
+    testing_state_t testing_state_t::unconstrained(location_id_t location, clock_index_t clocks) {
+        auto state = testing_state_t();
+
+        state._location = location;
+        state._federation = Federation::unconstrained(clocks + 3);
+        state._etime_o = clocks;
+        state._etime_i = clocks + 1;
+        state._time = clocks + 2;
+
+        return state;
+    }
+
+    void testing_state_t::intersection(const symbolic_state_base& state) {
+        symbolic_state_base::intersection(state);
+    }
+
+    void testing_state_t::intersection(const symbolic_state_map_t<testing_state_t>& map) {
+        if (map.has_state(this->_location))
+            intersection(map.at(this->_location));
+        else
+            this->_federation.restrict(0,0, {-1, true});
+    }
+
+    void testing_state_t::delay(symb_time_t value) {
+        _federation.future();
+        if (_is_input_mode) {
+            _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_i, value - _jitter_i));
+            _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_i, value));
+        } else {
+            _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_o, value - _jitter_o));
+            _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_o, value));
+        }
+
+        switch_input_mode();
+    }
+
+    void testing_state_t::delay(interval_t interval) {
+        _federation.future();
+        if (_is_input_mode) {
+            _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_i, interval.first - _jitter_i));
+            _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_i, interval.second));
+        } else {
+            _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_o, interval.first - _jitter_o));
+            _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_o, interval.second));
+        }
+        
+        switch_input_mode();
+    }
+
+    boost::icl::interval_set<symb_time_t> testing_state_t::get_input_latency() const {
+        auto latencies = boost::icl::interval_set<symb_time_t>();
+
+        for (const auto dbm : _federation) {
+            auto lower = dbm.at(_time, _etime_o),
+                 upper = dbm.at(_etime_o, _time);
+            if (lower.is_strict()) {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::left_open(-lower.get_bound(), upper.get_bound());
+            } else {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::right_open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::closed(-lower.get_bound(), upper.get_bound());
+            }
+        }
+
+        return latencies;
+    }
+
+    boost::icl::interval_set<symb_time_t> testing_state_t::get_output_latency() const {
+        auto latencies = boost::icl::interval_set<symb_time_t>();
+
+        for (const auto dbm : _federation) {
+            auto upper = dbm.at(_time, _etime_i),
+                lower = dbm.at(_etime_i, _time);
+            if (lower.is_strict()) {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::left_open(-lower.get_bound(), upper.get_bound());
+            } else {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::right_open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::closed(-lower.get_bound(), upper.get_bound());
+            }
+        }
+
+        return latencies;
+    }
+
+    symb_time_t testing_state_t::get_input_jitter() const { return _jitter_i; }
+
+    symb_time_t testing_state_t::get_output_jitter() const { return _jitter_o; }
+
+    bool testing_state_t::is_included_in(const symbolic_state_map_t<testing_state_t>& map) const {
+        if (not map.has_state(_location))
+            return false;
+
+        return is_included_in(map.at(_location));
+    }
+
+    bool testing_state_t::is_included_in(const symbolic_state_base& state) const {
+        return symbolic_state_base::is_included_in(state);
+    }
+
     template<class state_t>
     void symbolic_state_map_t<state_t>::insert(state_t state) {
 
@@ -412,4 +538,5 @@ namespace monitaal {
 
     template struct symbolic_state_map_t<symbolic_state_t>;
     template struct symbolic_state_map_t<delay_state_t>;
+    template struct symbolic_state_map_t<testing_state_t>;
 }
