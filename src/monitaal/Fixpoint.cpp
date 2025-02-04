@@ -109,5 +109,6 @@ namespace monitaal {
 
     template class Fixpoint<symbolic_state_t>;
     template class Fixpoint<delay_state_t>;
+    template class Fixpoint<testing_state_t>;
 
 }

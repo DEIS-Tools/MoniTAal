@@ -162,7 +162,7 @@ namespace monitaal {
 
     testing_state_t::testing_state_t() : _jitter_o(0), _jitter_i(0) {}
 
-    testing_state_t::testing_state_t(location_id_t location, clock_index_t clocks, interval_t latency_o, interval_t latency_i, symb_time_t jitter_o, symb_time_t jitter_i) : 
+    testing_state_t::testing_state_t(location_id_t location, clock_index_t clocks, interval_t latency_i, interval_t latency_o, symb_time_t jitter_i, symb_time_t jitter_o) : 
             symbolic_state_base(location, clocks + 3), _jitter_o(jitter_o), _jitter_i(jitter_i) {
         _etime_o = clocks;
         _etime_i = clocks + 1;

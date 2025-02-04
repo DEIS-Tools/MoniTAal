@@ -39,6 +39,7 @@ namespace monitaal {
     struct concrete_state_t;
     struct symbolic_state_base;
     struct delay_state_t;
+    struct testing_state_t;
 
     struct timed_input_t;
     template<class state_t> class Monitor;
@@ -76,6 +77,7 @@ namespace monitaal {
     using Interval_monitor = Monitor<symbolic_state_t>;
     using Concrete_monitor = Monitor<concrete_state_t>;
     using Delay_monitor    = Monitor<delay_state_t>;
+    using Testing_monitor  = Monitor<testing_state_t>;
 
 }
 

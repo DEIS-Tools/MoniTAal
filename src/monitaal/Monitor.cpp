@@ -54,6 +54,24 @@ namespace monitaal {
         }
     }
 
+    template<>
+    Single_monitor<testing_state_t>::Single_monitor(const TA &automaton, const settings_t& setting) :
+    _automaton(automaton), 
+    _accepting_space(Fixpoint<testing_state_t>::buchi_accept_fixpoint(automaton)),
+    _inclusion(setting.inclusion),
+    _clock_abstraction(setting.clock_abstraction) {
+        
+        testing_state_t init = testing_state_t(_automaton.initial_location(), _automaton.number_of_clocks(), setting.latency, setting.latency, setting.jitter, setting.jitter);
+
+        init.intersection(_accepting_space);
+        if (init.is_empty())
+            _status = OUT;
+        else {
+            _status = ACTIVE;
+            _current_states = std::vector{init};
+        }
+    }
+
     template<class state_t>
     Single_monitor<state_t>::Single_monitor(const TA &automaton, const settings_t& setting) :
     _automaton(automaton), 
@@ -271,6 +289,27 @@ namespace monitaal {
         out << latencies << "\nJitter bound: " << jitter << '\n';
     }
 
+    template<>
+    void Single_monitor<testing_state_t>::print_status(std::ostream& out) const {
+        symb_time_t in_jitter = 0,
+            out_jitter = 0;
+
+        auto in_latencies = boost::icl::interval_set<symb_time_t>(),
+            out_latencies = boost::icl::interval_set<symb_time_t>();
+
+        for (const auto& s : _current_states) {
+            in_latencies += s.get_input_latency();
+            out_latencies += s.get_output_latency();
+            in_jitter = s.get_input_jitter();
+            out_jitter = s.get_output_jitter();
+        }
+
+        out << "Consistent input latencies: ";
+        out << in_latencies << "\nJitter bound: " << in_jitter << '\n';
+        out << "Consistent output latencies: ";
+        out << out_latencies << "\nJitter bound: " << out_jitter << '\n';
+    }
+
     template<class state_t>
     void Monitor<state_t>::print_status(std::ostream& out) const {
         out << "Verdict: " << status() << '\n';
@@ -295,8 +334,10 @@ namespace monitaal {
     template class Monitor<symbolic_state_t>;
     template class Monitor<delay_state_t>;
     template class Monitor<concrete_state_t>;
+    template class Monitor<testing_state_t>;
 
     template class Single_monitor<symbolic_state_t>;
     template class Single_monitor<delay_state_t>;
     template class Single_monitor<concrete_state_t>;
+    template class Single_monitor<testing_state_t>;
 }

@@ -28,6 +28,7 @@
 
 #include "gear_controller_model.h"
 #include "b_live_a_freq.h"
+#include "gear_controller_test.h"
 
 #include <cstdlib>
 #include <boost/program_options.hpp>
@@ -43,6 +44,7 @@ struct benchmark_setting {
     int trace_bound = 1;
     bool inclusion = true;
     interval_t latency = {0, 0};
+    symb_time_t actual_latency = 0;
     symb_time_t jitter = 0;
     std::vector<std::string> div_alphabet = {};
     int uncertainty_val = 0;
@@ -265,6 +267,83 @@ void run_gearcontroller(benchmark_setting& setting) {
     std::cout << '\n';
 }
 
+
+void run_gearcontroller_testing(benchmark_setting& setting) {
+    settings_t monitor_setting{setting.inclusion, setting.inclusion, setting.latency, setting.jitter};
+
+
+    TA pos = Parser::parse_data(gear_controller_test_model, "positive");
+    TA neg = Parser::parse_data(gear_controller_test_model, "negative");
+
+    if (setting.div_alphabet.size() > 0) {
+        auto div = TA::time_divergence_ta({"ReqNewGear", "NewGear"}, true);
+        pos.intersection(div);
+        neg.intersection(div);
+    }
+
+    auto monitor = Testing_monitor(pos, neg, monitor_setting);
+
+
+    int event_counter = 0;
+
+    int tmp = 0;
+    int max_states = 0;
+    int max_response_time = 0;
+    int response_time = 0;
+    int time_horizon = 0;
+
+    std::stringstream input_stream(gear_controller_test_input, std::ios::in);
+
+    std::vector<timed_input_t> events;
+    std::vector<timed_input_t> tmpevents;
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t2);
+
+
+    bool input_mode = true;
+
+    while ((monitor.status() == INCONCLUSIVE) && (setting.trace_bound == 0 || event_counter < setting.trace_bound)) {
+
+        
+        tmpevents = EventParser::parse_input(&input_stream, 1);
+        events.clear();
+
+        if (tmpevents.size() == 0) break;
+        for (auto &e : tmpevents) {
+            if (input_mode)
+                events.push_back(timed_input_t({e.time.first - setting.uncertainty_val - setting.actual_latency, e.time.second + setting.uncertainty_val - setting.actual_latency}, e.label, e.type));
+            if (input_mode)
+                events.push_back(timed_input_t({e.time.first - setting.uncertainty_val + setting.actual_latency, e.time.second + setting.uncertainty_val + setting.actual_latency}, e.label, e.type));
+        }
+        input_mode = !input_mode;
+        
+        t1 = std::chrono::high_resolution_clock::now();
+        monitor.input(events);
+        t2 = std::chrono::high_resolution_clock::now();
+        
+        tmp = time.count();
+        time += std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1);
+        response_time = time.count() - tmp;
+        max_response_time = response_time > max_response_time ? response_time : max_response_time;
+
+        tmp = max_states;
+        max_states = 0;
+
+        max_states = monitor.positive_state_estimate().size() + monitor.negative_state_estimate().size();
+
+        max_states = tmp > max_states ? tmp : max_states;
+        
+        event_counter += events.size();
+        time_horizon = events[events.size()-1].time.second;
+        
+        monitor.print_status(std::cout);
+    }
+    std::cout << "Monitored " << event_counter << " events in " << time.count() << 
+                 "ns\nMax states: "<< max_states << "\nmax response: "<< max_response_time << "ns\nTime Horizon: " << time_horizon <<"\nMemory: " << sizeof(monitor) <<'\n';
+}
+
 int main(int argc, const char** argv) {
 
     po::options_description options;
@@ -275,6 +354,7 @@ int main(int argc, const char** argv) {
             ("uncertainty", po::value<symb_time_t>()->default_value(0, "0"), "Random timing uncertainty added to observations")
             ("div,d", po::value<std::vector<std::string>>()->multitoken()->default_value({}, "Empty"), "<list of labels> : Take time divergence into account.")
             ("latency", po::value<std::vector<symb_time_t>>()->multitoken()->default_value({0, 0}, "0 0"), "Specify latency upper and lower bound parameters")
+            ("actual-latency", po::value<symb_time_t>()->default_value(0, "0"), "Latency used to shift inputs")
             ("jitter", po::value<symb_time_t>()->default_value(0, "0"), "Specify the jitter upper bound parameter")
             ("gear-controller", "Run Gear controller benchmark")
             ("b-live-a-freq-int","Run the b-liveness & a-frequency benchmark with interval time")
@@ -309,6 +389,7 @@ int main(int argc, const char** argv) {
     setting.jitter = vm["jitter"].as<symb_time_t>();
     setting.inclusion = vm.count("inclusion");
     setting.latency = {latency[0], latency[1]};
+    setting.actual_latency = vm["actual-latency"].as<symb_time_t>();
     setting.div_alphabet = vm["div"].as<std::vector<std::string>>();
     setting.uncertainty_val = vm["uncertainty"].as<symb_time_t>();
     

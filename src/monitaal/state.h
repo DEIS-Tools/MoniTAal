@@ -102,7 +102,7 @@ namespace monitaal {
 
         void expect_input() {_is_input_mode = true;}
         void expect_output() {_is_input_mode = false;}
-        void switch_input_mode() {_is_input_mode != _is_input_mode;}
+        void switch_input_mode() {_is_input_mode = !_is_input_mode;}
 
     private:
         bool _is_input_mode; // Starts with an input, then alternates between inputs and outputs
