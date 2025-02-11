@@ -164,22 +164,19 @@ namespace monitaal {
 
     testing_state_t::testing_state_t(location_id_t location, clock_index_t clocks, interval_t latency_i, interval_t latency_o, symb_time_t jitter_i, symb_time_t jitter_o) : 
             symbolic_state_base(location, clocks + 3), _jitter_o(jitter_o), _jitter_i(jitter_i) {
-        _etime_o = clocks;
-        _etime_i = clocks + 1;
-        _time = clocks + 2;
+        _time = clocks;
+        _etime_o = clocks + 1;
+        _etime_i = clocks + 2;
         
         _federation.free(_etime_o);
-        _federation.restrict(_time, _etime_o, pardibaal::bound_t::non_strict(-latency_o.first));
+        _federation.restrict(_time, _etime_o, pardibaal::bound_t::non_strict(-(latency_o.first)));
         _federation.restrict(_etime_o, _time, pardibaal::bound_t::non_strict(latency_o.second));
 
         // Same for input. We don't need to shift, since we expect an input first.
         _federation.future();
-        _federation.free(_etime_i);
+        _federation.assign(_etime_i, 0);
         _federation.restrict(_time, _etime_i, pardibaal::bound_t::non_strict(latency_i.second));
-        _federation.restrict(_etime_i, _time, pardibaal::bound_t::non_strict(-latency_i.first));
-
-        assert(_federation.at(0).at(_time, 0) == pardibaal::bound_t::non_strict(latency_i.second));
-        assert(_federation.at(0).at(0, _time) == pardibaal::bound_t::non_strict(-latency_i.first));
+        _federation.restrict(_etime_i, _time, pardibaal::bound_t::non_strict(-(latency_i.first)));
     }
 
     testing_state_t testing_state_t::unconstrained(location_id_t location, clock_index_t clocks) {
