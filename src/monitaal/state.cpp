@@ -205,8 +205,8 @@ namespace monitaal {
     void testing_state_t::delay(symb_time_t value) {
         _federation.future();
         if (_is_input_mode) {
-            _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_i, value - _jitter_i));
-            _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_i, value));
+            _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_i, value));
+            _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_i, value + _jitter_i));
         } else {
             _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_o, value - _jitter_o));
             _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_o, value));
@@ -224,11 +224,11 @@ namespace monitaal {
             _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_o, interval.first - _jitter_o));
             _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_o, interval.second));
         }
-        
+
         switch_input_mode();
     }
 
-    boost::icl::interval_set<symb_time_t> testing_state_t::get_input_latency() const {
+    boost::icl::interval_set<symb_time_t> testing_state_t::get_output_latency() const {
         auto latencies = boost::icl::interval_set<symb_time_t>();
 
         for (const auto dbm : _federation) {
@@ -248,7 +248,7 @@ namespace monitaal {
         return latencies;
     }
 
-    boost::icl::interval_set<symb_time_t> testing_state_t::get_output_latency() const {
+    boost::icl::interval_set<symb_time_t> testing_state_t::get_input_latency() const {
         auto latencies = boost::icl::interval_set<symb_time_t>();
 
         for (const auto dbm : _federation) {

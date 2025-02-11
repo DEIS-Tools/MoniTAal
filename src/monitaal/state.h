@@ -105,7 +105,7 @@ namespace monitaal {
         void switch_input_mode() {_is_input_mode = !_is_input_mode;}
 
     private:
-        bool _is_input_mode; // Starts with an input, then alternates between inputs and outputs
+        bool _is_input_mode = true; // Starts with an input, then alternates between inputs and outputs
         clock_index_t _etime_o, _etime_i, _time;
         symb_time_t _jitter_o, _jitter_i;
     };

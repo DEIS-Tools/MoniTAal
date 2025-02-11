@@ -61,7 +61,7 @@ namespace monitaal {
     _inclusion(setting.inclusion),
     _clock_abstraction(setting.clock_abstraction) {
         
-        testing_state_t init = testing_state_t(_automaton.initial_location(), _automaton.number_of_clocks(), setting.latency, setting.latency, setting.jitter, setting.jitter);
+        testing_state_t init = testing_state_t(_automaton.initial_location(), _automaton.number_of_clocks(), setting.latency_i, setting.latency, setting.jitter_i, setting.jitter);
 
         init.intersection(_accepting_space);
         if (init.is_empty())
