@@ -70,6 +70,17 @@ namespace monitaal {
         _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_federation.dimension() - 1, interval.second));
     }
 
+    relation_t symbolic_state_t::relation(const symbolic_state_map_t<symbolic_state_t>& map) const {
+        if (not map.has_state(_location))
+            return relation_t::different();
+
+        return relation(map.at(_location));
+    }
+    
+    relation_t symbolic_state_t::relation(const symbolic_state_base& state) const {
+        return symbolic_state_base::relation(state);
+    }
+
     bool symbolic_state_t::is_included_in(const symbolic_state_map_t<symbolic_state_t>& map) const {
         if (not map.has_state(_location))
             return false;
@@ -89,7 +100,7 @@ namespace monitaal {
         _time = clocks + 1;
         
         _federation.free(_etime);
-        _federation.restrict(_time, _etime, pardibaal::bound_t::non_strict(latency.first));
+        _federation.restrict(_time, _etime, pardibaal::bound_t::non_strict(-latency.first));
         _federation.restrict(_etime, _time, pardibaal::bound_t::non_strict(latency.second));
     }
 
@@ -98,7 +109,9 @@ namespace monitaal {
 
         state._location = location;
         state._federation = Federation::unconstrained(clocks + 2);
-        // state._jitter = (symb_time_t) -1;
+        state._etime = clocks;
+        state._time = clocks + 1;
+
         return state;
     }
 
@@ -147,6 +160,17 @@ namespace monitaal {
 
     symb_time_t delay_state_t::get_jitter_bound() const { return _jitter; }
 
+    relation_t delay_state_t::relation(const symbolic_state_map_t<delay_state_t>& map) const {
+        if (not map.has_state(_location))
+            return relation_t::different();
+
+        return relation(map.at(_location));
+    }
+    
+    relation_t delay_state_t::relation(const symbolic_state_base& state) const {
+        return symbolic_state_base::relation(state);
+    }
+
     bool delay_state_t::is_included_in(const symbolic_state_map_t<delay_state_t>& map) const {
         if (not map.has_state(_location))
             return false;
@@ -155,6 +179,160 @@ namespace monitaal {
     }
 
     bool delay_state_t::is_included_in(const symbolic_state_base& state) const {
+        return symbolic_state_base::is_included_in(state);
+    }
+
+    testing_state_t::testing_state_t() : _jitter_o(0), _jitter_i(0) {}
+
+    testing_state_t::testing_state_t(location_id_t location, clock_index_t clocks, interval_t latency_i, interval_t latency_o, symb_time_t jitter_i, symb_time_t jitter_o) : 
+            symbolic_state_base(location, clocks + 3), _jitter_o(jitter_o), _jitter_i(jitter_i) {
+        _time = clocks;
+        _etime_o = clocks + 1;
+        _etime_i = clocks + 2;
+        
+        _federation.free(_etime_o);
+        _federation.restrict(_time, _etime_o, pardibaal::bound_t::non_strict(-(latency_o.first)));
+        _federation.restrict(_etime_o, _time, pardibaal::bound_t::non_strict(latency_o.second));
+
+        // Same for input. We don't need to shift, since we expect an input first.
+        _federation.future();
+        _federation.assign(_etime_i, 0);
+        _federation.restrict(_time, _etime_i, pardibaal::bound_t::non_strict(latency_i.second));
+        _federation.restrict(_etime_i, _time, pardibaal::bound_t::non_strict(-(latency_i.first)));
+    }
+
+    testing_state_t testing_state_t::unconstrained(location_id_t location, clock_index_t clocks) {
+        auto state = testing_state_t();
+
+        state._location = location;
+        state._federation = Federation::unconstrained(clocks + 3);
+        state._etime_o = clocks;
+        state._etime_i = clocks + 1;
+        state._time = clocks + 2;
+
+        return state;
+    }
+
+    void testing_state_t::intersection(const symbolic_state_base& state) {
+        symbolic_state_base::intersection(state);
+    }
+
+    void testing_state_t::intersection(const symbolic_state_map_t<testing_state_t>& map) {
+        if (map.has_state(this->_location))
+            intersection(map.at(this->_location));
+        else
+            this->_federation.restrict(0,0, {-1, true});
+    }
+
+    void testing_state_t::delay(symb_time_t value) {
+        _federation.future();
+        if (_is_input_mode) {
+            _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_i, value));
+            _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_i, value + _jitter_i));
+        } else {
+            _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_o, value - _jitter_o));
+            _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_o, value));
+        }
+
+        switch_input_mode();
+    }
+
+    void testing_state_t::delay(interval_t interval) {
+        _federation.future();
+        if (_is_input_mode) {
+            _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_i, interval.first - _jitter_i));
+            _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_i, interval.second));
+        } else {
+            _federation.restrict(pardibaal::difference_bound_t::lower_non_strict(_etime_o, interval.first - _jitter_o));
+            _federation.restrict(pardibaal::difference_bound_t::upper_non_strict(_etime_o, interval.second));
+        }
+
+        switch_input_mode();
+    }
+
+    boost::icl::interval_set<symb_time_t> testing_state_t::get_output_latency() const {
+        auto latencies = boost::icl::interval_set<symb_time_t>();
+
+        for (const auto dbm : _federation) {
+            auto lower = dbm.at(_time, _etime_o),
+                 upper = dbm.at(_etime_o, _time);
+            if (lower.is_strict()) {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::left_open(-lower.get_bound(), upper.get_bound());
+            } else {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::right_open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::closed(-lower.get_bound(), upper.get_bound());
+            }
+        }
+
+        return latencies;
+    }
+
+    boost::icl::interval_set<symb_time_t> testing_state_t::get_input_latency() const {
+        auto latencies = boost::icl::interval_set<symb_time_t>();
+
+        for (const auto dbm : _federation) {
+            auto upper = dbm.at(_time, _etime_i),
+                lower = dbm.at(_etime_i, _time);
+            if (lower.is_strict()) {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::left_open(-lower.get_bound(), upper.get_bound());
+            } else {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::right_open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::closed(-lower.get_bound(), upper.get_bound());
+            }
+        }
+
+        return latencies;
+    }
+
+    boost::icl::interval_set<symb_time_t> testing_state_t::get_input_output_interval() const {
+        auto latencies = boost::icl::interval_set<symb_time_t>();
+
+        for (const auto dbm : _federation) {
+            auto upper = dbm.at(_etime_o, _etime_i),
+                lower = dbm.at(_etime_i, _etime_o);
+            if (lower.is_strict()) {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::left_open(-lower.get_bound(), upper.get_bound());
+            } else {
+                latencies += upper.is_strict() ? 
+                    boost::icl::interval<symb_time_t>::right_open(-lower.get_bound(), upper.get_bound()) :
+                    boost::icl::interval<symb_time_t>::closed(-lower.get_bound(), upper.get_bound());
+            }
+        }
+
+        return latencies;
+    }
+
+    symb_time_t testing_state_t::get_input_jitter() const { return _jitter_i; }
+
+    symb_time_t testing_state_t::get_output_jitter() const { return _jitter_o; }
+
+    relation_t testing_state_t::relation(const symbolic_state_map_t<testing_state_t>& map) const {
+        if (not map.has_state(_location))
+            return relation_t::different();
+
+        return relation(map.at(_location));
+    }
+    
+    relation_t testing_state_t::relation(const symbolic_state_base& state) const {
+        return symbolic_state_base::relation(state);
+    }
+
+    bool testing_state_t::is_included_in(const symbolic_state_map_t<testing_state_t>& map) const {
+        if (not map.has_state(_location))
+            return false;
+
+        return is_included_in(map.at(_location));
+    }
+    
+    bool testing_state_t::is_included_in(const symbolic_state_base& state) const {
         return symbolic_state_base::is_included_in(state);
     }
 
@@ -325,6 +503,52 @@ namespace monitaal {
         return _valuation[0] != 0;
     }
 
+    relation_t concrete_state_t::relation(const concrete_state_t& state) const {
+        auto size = _valuation.size();
+        if (state.valuation().size() != size)
+            return relation_t::different();
+        if (this->is_empty())
+            return state.is_empty() ? relation_t::equal() : relation_t::subset();
+        if (state.is_empty())
+            return relation_t::superset();
+
+        for (int i = 0; i < size; ++i) {
+            if (_valuation[i] != state.valuation()[i])
+                return relation_t::different();
+        }
+        return relation_t::equal();
+    }
+    
+    relation_t concrete_state_t::relation(const symbolic_state_t& states) const {
+        if (this->is_empty())
+            return states.is_empty() ? relation_t::equal() : relation_t::subset();
+
+        if (states.location() != _location || states.is_empty()) {
+            return relation_t::different();
+        } else {
+            for (const auto &dbm : states.federation()) {
+                bool sat = true;
+                for (pardibaal::dim_t i = 0; i < dbm.dimension(); ++i)
+                    for (pardibaal::dim_t j = 0; j < dbm.dimension(); ++j)
+                       if (!satisfies(i, j, dbm.at(i, j)))
+                            sat = false;
+                if (sat) return relation_t::subset();
+            }
+        }
+
+        return relation_t::different();
+    }
+    
+    relation_t concrete_state_t::relation(const symbolic_state_map_t<symbolic_state_t>& states) const {
+        if (this->is_empty())
+            return states.is_empty() ? relation_t::equal() : relation_t::subset();
+        if (not states.has_state(_location)) {
+            return relation_t::different();
+        }
+
+        return relation(states.at(_location));
+    }
+
     bool concrete_state_t::is_included_in(const concrete_state_t& state) const {
         auto size = _valuation.size();
         if (state.valuation().size() != size)
@@ -410,4 +634,5 @@ namespace monitaal {
 
     template struct symbolic_state_map_t<symbolic_state_t>;
     template struct symbolic_state_map_t<delay_state_t>;
+    template struct symbolic_state_map_t<testing_state_t>;
 }

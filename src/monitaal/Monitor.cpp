@@ -54,6 +54,24 @@ namespace monitaal {
         }
     }
 
+    template<>
+    Single_monitor<testing_state_t>::Single_monitor(const TA &automaton, const settings_t& setting) :
+    _automaton(automaton), 
+    _accepting_space(Fixpoint<testing_state_t>::buchi_accept_fixpoint(automaton)),
+    _inclusion(setting.inclusion),
+    _clock_abstraction(setting.clock_abstraction) {
+        
+        testing_state_t init = testing_state_t(_automaton.initial_location(), _automaton.number_of_clocks(), setting.latency_i, setting.latency, setting.jitter_i, setting.jitter);
+
+        init.intersection(_accepting_space);
+        if (init.is_empty())
+            _status = OUT;
+        else {
+            _status = ACTIVE;
+            _current_states = std::vector{init};
+        }
+    }
+
     template<class state_t>
     Single_monitor<state_t>::Single_monitor(const TA &automaton, const settings_t& setting) :
     _automaton(automaton), 
@@ -87,16 +105,24 @@ namespace monitaal {
                     s.restrict(_automaton.locations().at(s.location()).invariant());
                     s.intersection(_accepting_space);
                     if (!s.is_empty()) {
-                        bool add = true;
+                        bool add = true,
+                             replace = true;
+                        relation_t relation = relation_t::different();
                         if (_inclusion) {
-                            for (const auto& next_s : next_states) {
-                                if (s.is_included_in(next_s))
-                                    add = false;
-                            }
-                        }
-                        if (add) {
                             if (_clock_abstraction)
                                 s.free(_automaton.inactive_clocks().at(s.location()));
+                            for (const auto& next_s : next_states) {
+                                relation = s.relation(next_s);
+                                if (relation.is_subset() || relation.is_equal())
+                                    add = false;
+                                if (next_s.location() == s.location() && (relation.is_different() || relation.is_subset()))
+                                    replace = false;
+                            }
+                        }
+                        if (add || replace) {
+                            if (replace) {
+                                std::erase_if(next_states, [&s](const state_t& state){return state.location() == s.location();});
+                            }
                             next_states.push_back(s);
                         }
                     }
@@ -118,16 +144,24 @@ namespace monitaal {
                 if (input.type == OPTIONAL) { // Add states where no transition was taken
                     state.intersection(_accepting_space);
                     if (!state.is_empty()) {
-                        bool add = true;
+                        bool add = true,
+                             replace = true;
+                        relation_t relation = relation_t::different();
                         if (_inclusion) {
-                            for (const auto& next_s : next_states) {
-                                if (state.is_included_in(next_s))
-                                    add = false;
-                            }
-                        }
-                        if (add) {
                             if (_clock_abstraction)
                                 state.free(_automaton.inactive_clocks().at(state.location()));
+                            for (const auto& next_s : next_states) {
+                                relation = state.relation(next_s);
+                                if (relation.is_subset() || relation.is_equal())
+                                    add = false;
+                                if (next_s.location() == state.location() && (relation.is_different() || relation.is_subset()))
+                                    replace = false;
+                            }
+                        }
+                        if (add || replace) {
+                            if (replace) {
+                                std::erase_if(next_states, [&state](const state_t& s){return state.location() == s.location();});
+                            }
                             next_states.push_back(state);
                         }
                     }
@@ -144,16 +178,24 @@ namespace monitaal {
                             // Only add the state if it is included in the possible accept space
                             state.intersection(_accepting_space);
                             if (!state.is_empty()) {
-                                bool add = true;
+                                bool add = true,
+                                     replace = true;
+                                relation_t relation = relation_t::different();
                                 if (_inclusion) {
-                                    for (const auto& next_s : next_states) {
-                                        if (state.is_included_in(next_s))
-                                            add = false;
-                                    }
-                                }
-                                if (add) {
                                     if (_clock_abstraction)
                                         state.free(_automaton.inactive_clocks().at(state.location()));
+                                    for (const auto& next_s : next_states) {
+                                        relation = state.relation(next_s);
+                                        if (relation.is_subset() || relation.is_equal())
+                                            add = false;
+                                        if (next_s.location() == state.location() && (relation.is_different() || relation.is_subset()))
+                                            replace = false;
+                                    }
+                                }
+                                if (add || replace) {
+                                    if (replace) {
+                                        std::erase_if(next_states, [&state](const state_t& s){return state.location() == s.location();});
+                                    }
                                     next_states.push_back(state);
                                 }
                             }
@@ -271,6 +313,27 @@ namespace monitaal {
         out << latencies << "\nJitter bound: " << jitter << '\n';
     }
 
+    template<>
+    void Single_monitor<testing_state_t>::print_status(std::ostream& out) const {
+        symb_time_t in_jitter = 0,
+            out_jitter = 0;
+
+        auto in_latencies = boost::icl::interval_set<symb_time_t>(),
+            out_latencies = boost::icl::interval_set<symb_time_t>();
+
+        for (const auto& s : _current_states) {
+            in_latencies += s.get_input_latency();
+            out_latencies += s.get_output_latency();
+            in_jitter = s.get_input_jitter();
+            out_jitter = s.get_output_jitter();
+        }
+
+        out << "Consistent input latencies: ";
+        out << in_latencies << "\nJitter bound: " << in_jitter << '\n';
+        out << "Consistent output latencies: ";
+        out << out_latencies << "\nJitter bound: " << out_jitter << '\n';
+    }
+
     template<class state_t>
     void Monitor<state_t>::print_status(std::ostream& out) const {
         out << "Verdict: " << status() << '\n';
@@ -295,8 +358,10 @@ namespace monitaal {
     template class Monitor<symbolic_state_t>;
     template class Monitor<delay_state_t>;
     template class Monitor<concrete_state_t>;
+    template class Monitor<testing_state_t>;
 
     template class Single_monitor<symbolic_state_t>;
     template class Single_monitor<delay_state_t>;
     template class Single_monitor<concrete_state_t>;
+    template class Single_monitor<testing_state_t>;
 }

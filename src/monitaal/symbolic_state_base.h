@@ -49,6 +49,7 @@ namespace monitaal {
         void do_transition_backward(const edge_t& edge);
 
         [[nodiscard]] bool is_empty() const;
+        [[nodiscard]] relation_t relation(const symbolic_state_base& state) const;
         [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
         [[nodiscard]] bool equals(const symbolic_state_base& state) const;
 

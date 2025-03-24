@@ -97,6 +97,13 @@ namespace monitaal {
         return _federation.is_empty();
     }
 
+    relation_t symbolic_state_base::relation(const symbolic_state_base& state) const {
+        if (state._location == _location) {
+            return _federation.relation<false>(state._federation);
+        }
+        return relation_t::different();
+    }
+
     bool symbolic_state_base::is_included_in(const symbolic_state_base &state) const {
         if (state._location == _location) {
             auto rel = _federation.relation<false>(state._federation);

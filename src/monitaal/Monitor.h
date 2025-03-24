@@ -53,8 +53,8 @@ namespace monitaal {
     struct settings_t {
         bool inclusion = false;
         bool clock_abstraction = false;
-        interval_t latency{0,0};
-        symb_time_t jitter = 0;
+        interval_t latency{0,0}, latency_i{0,0};
+        symb_time_t jitter = 0, jitter_i = 0;
 
         settings_t(){};
         settings_t(bool inclusion, bool clock_abstraction, interval_t latency, symb_time_t jitter) : 

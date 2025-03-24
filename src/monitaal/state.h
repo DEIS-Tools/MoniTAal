@@ -53,6 +53,9 @@ namespace monitaal {
         void delay(symb_time_t value);
         void delay(interval_t interval);
 
+        [[nodiscard]] relation_t relation(const symbolic_state_map_t<symbolic_state_t>& map) const;
+        [[nodiscard]] relation_t relation(const symbolic_state_base& state) const;
+
         [[nodiscard]] bool is_included_in(const symbolic_state_map_t<symbolic_state_t>& map) const;
         [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
     };
@@ -72,12 +75,49 @@ namespace monitaal {
         [[nodiscard]] boost::icl::interval_set<symb_time_t> get_latency() const;
         [[nodiscard]] symb_time_t get_jitter_bound() const;
 
+        [[nodiscard]] relation_t relation(const symbolic_state_map_t<delay_state_t>& map) const;
+        [[nodiscard]] relation_t relation(const symbolic_state_base& state) const;
+
         [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
         [[nodiscard]] bool is_included_in(const symbolic_state_map_t<delay_state_t>& map) const;
 
     private:
         clock_index_t _etime, _time;
         symb_time_t _jitter;
+    };
+
+    struct testing_state_t : public symbolic_state_base {
+        testing_state_t();
+        testing_state_t(location_id_t location, clock_index_t clocks, interval_t latency_o, interval_t latency_i, symb_time_t jitter_o, symb_time_t jitter_i);
+
+        [[nodiscard]] static testing_state_t unconstrained(location_id_t location, clock_index_t clocks);
+
+        void intersection(const symbolic_state_base& state);
+        void intersection(const symbolic_state_map_t<testing_state_t>& map);
+
+        void delay(symb_time_t value);
+        void delay(interval_t interval);
+
+        [[nodiscard]] boost::icl::interval_set<symb_time_t> get_input_latency() const;
+        [[nodiscard]] boost::icl::interval_set<symb_time_t> get_output_latency() const;
+        [[nodiscard]] boost::icl::interval_set<symb_time_t> get_input_output_interval() const;
+        [[nodiscard]] symb_time_t get_input_jitter() const;
+        [[nodiscard]] symb_time_t get_output_jitter() const;
+
+        [[nodiscard]] relation_t relation(const symbolic_state_map_t<testing_state_t>& map) const;
+        [[nodiscard]] relation_t relation(const symbolic_state_base& state) const;
+
+        [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
+        [[nodiscard]] bool is_included_in(const symbolic_state_map_t<testing_state_t>& map) const;
+
+        void expect_input() {_is_input_mode = true;}
+        void expect_output() {_is_input_mode = false;}
+        void switch_input_mode() {_is_input_mode = !_is_input_mode;}
+
+    private:
+        bool _is_input_mode = true; // Starts with an input, then alternates between inputs and outputs
+        clock_index_t _etime_o, _etime_i, _time;
+        symb_time_t _jitter_o, _jitter_i;
     };
 
     /**
@@ -142,6 +182,10 @@ namespace monitaal {
         [[nodiscard]] location_id_t location() const;
 
         [[nodiscard]] bool is_empty() const;
+
+        [[nodiscard]] relation_t relation(const concrete_state_t& state) const;
+        [[nodiscard]] relation_t relation(const symbolic_state_t& states) const;
+        [[nodiscard]] relation_t relation(const symbolic_state_map_t<symbolic_state_t>& states) const;
 
         [[nodiscard]] bool is_included_in(const concrete_state_t& state) const;
 
