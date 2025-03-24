@@ -53,6 +53,9 @@ namespace monitaal {
         void delay(symb_time_t value);
         void delay(interval_t interval);
 
+        [[nodiscard]] relation_t relation(const symbolic_state_map_t<symbolic_state_t>& map) const;
+        [[nodiscard]] relation_t relation(const symbolic_state_base& state) const;
+
         [[nodiscard]] bool is_included_in(const symbolic_state_map_t<symbolic_state_t>& map) const;
         [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
     };
@@ -71,6 +74,9 @@ namespace monitaal {
 
         [[nodiscard]] boost::icl::interval_set<symb_time_t> get_latency() const;
         [[nodiscard]] symb_time_t get_jitter_bound() const;
+
+        [[nodiscard]] relation_t relation(const symbolic_state_map_t<delay_state_t>& map) const;
+        [[nodiscard]] relation_t relation(const symbolic_state_base& state) const;
 
         [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
         [[nodiscard]] bool is_included_in(const symbolic_state_map_t<delay_state_t>& map) const;
@@ -94,8 +100,12 @@ namespace monitaal {
 
         [[nodiscard]] boost::icl::interval_set<symb_time_t> get_input_latency() const;
         [[nodiscard]] boost::icl::interval_set<symb_time_t> get_output_latency() const;
+        [[nodiscard]] boost::icl::interval_set<symb_time_t> get_input_output_interval() const;
         [[nodiscard]] symb_time_t get_input_jitter() const;
         [[nodiscard]] symb_time_t get_output_jitter() const;
+
+        [[nodiscard]] relation_t relation(const symbolic_state_map_t<testing_state_t>& map) const;
+        [[nodiscard]] relation_t relation(const symbolic_state_base& state) const;
 
         [[nodiscard]] bool is_included_in(const symbolic_state_base& state) const;
         [[nodiscard]] bool is_included_in(const symbolic_state_map_t<testing_state_t>& map) const;
@@ -172,6 +182,10 @@ namespace monitaal {
         [[nodiscard]] location_id_t location() const;
 
         [[nodiscard]] bool is_empty() const;
+
+        [[nodiscard]] relation_t relation(const concrete_state_t& state) const;
+        [[nodiscard]] relation_t relation(const symbolic_state_t& states) const;
+        [[nodiscard]] relation_t relation(const symbolic_state_map_t<symbolic_state_t>& states) const;
 
         [[nodiscard]] bool is_included_in(const concrete_state_t& state) const;
 

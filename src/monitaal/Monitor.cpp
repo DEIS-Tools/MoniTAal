@@ -105,16 +105,24 @@ namespace monitaal {
                     s.restrict(_automaton.locations().at(s.location()).invariant());
                     s.intersection(_accepting_space);
                     if (!s.is_empty()) {
-                        bool add = true;
+                        bool add = true,
+                             replace = true;
+                        relation_t relation = relation_t::different();
                         if (_inclusion) {
-                            for (const auto& next_s : next_states) {
-                                if (s.is_included_in(next_s))
-                                    add = false;
-                            }
-                        }
-                        if (add) {
                             if (_clock_abstraction)
                                 s.free(_automaton.inactive_clocks().at(s.location()));
+                            for (const auto& next_s : next_states) {
+                                relation = s.relation(next_s);
+                                if (relation.is_subset() || relation.is_equal())
+                                    add = false;
+                                if (next_s.location() == s.location() && (relation.is_different() || relation.is_subset()))
+                                    replace = false;
+                            }
+                        }
+                        if (add || replace) {
+                            if (replace) {
+                                std::erase_if(next_states, [&s](const state_t& state){return state.location() == s.location();});
+                            }
                             next_states.push_back(s);
                         }
                     }
@@ -136,16 +144,24 @@ namespace monitaal {
                 if (input.type == OPTIONAL) { // Add states where no transition was taken
                     state.intersection(_accepting_space);
                     if (!state.is_empty()) {
-                        bool add = true;
+                        bool add = true,
+                             replace = true;
+                        relation_t relation = relation_t::different();
                         if (_inclusion) {
-                            for (const auto& next_s : next_states) {
-                                if (state.is_included_in(next_s))
-                                    add = false;
-                            }
-                        }
-                        if (add) {
                             if (_clock_abstraction)
                                 state.free(_automaton.inactive_clocks().at(state.location()));
+                            for (const auto& next_s : next_states) {
+                                relation = state.relation(next_s);
+                                if (relation.is_subset() || relation.is_equal())
+                                    add = false;
+                                if (next_s.location() == state.location() && (relation.is_different() || relation.is_subset()))
+                                    replace = false;
+                            }
+                        }
+                        if (add || replace) {
+                            if (replace) {
+                                std::erase_if(next_states, [&state](const state_t& s){return state.location() == s.location();});
+                            }
                             next_states.push_back(state);
                         }
                     }
@@ -162,16 +178,24 @@ namespace monitaal {
                             // Only add the state if it is included in the possible accept space
                             state.intersection(_accepting_space);
                             if (!state.is_empty()) {
-                                bool add = true;
+                                bool add = true,
+                                     replace = true;
+                                relation_t relation = relation_t::different();
                                 if (_inclusion) {
-                                    for (const auto& next_s : next_states) {
-                                        if (state.is_included_in(next_s))
-                                            add = false;
-                                    }
-                                }
-                                if (add) {
                                     if (_clock_abstraction)
                                         state.free(_automaton.inactive_clocks().at(state.location()));
+                                    for (const auto& next_s : next_states) {
+                                        relation = state.relation(next_s);
+                                        if (relation.is_subset() || relation.is_equal())
+                                            add = false;
+                                        if (next_s.location() == state.location() && (relation.is_different() || relation.is_subset()))
+                                            replace = false;
+                                    }
+                                }
+                                if (add || replace) {
+                                    if (replace) {
+                                        std::erase_if(next_states, [&state](const state_t& s){return state.location() == s.location();});
+                                    }
                                     next_states.push_back(state);
                                 }
                             }

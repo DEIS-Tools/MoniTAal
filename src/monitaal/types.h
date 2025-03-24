@@ -47,6 +47,8 @@ namespace monitaal {
     using Federation = pardibaal::Federation;
     using Zone       = pardibaal::DBM;
 
+    using relation_t = pardibaal::relation_t;
+
     using zone_val_t = pardibaal::val_t;
 
     using constraint_t  = pardibaal::difference_bound_t;
